@@ -1,0 +1,46 @@
+{
+  "campaign_id": "16519d9b2564754c1e7093a1",
+  "configuration": {
+    "campaign": "integer_polynomial_discovery",
+    "candidates": 300,
+    "domain": "mixed",
+    "lower": -8,
+    "max_evals": 289,
+    "seed": 42,
+    "upper": 8
+  },
+  "counts": {
+    "EXPERIMENTALLY_SUPPORTED": 3,
+    "FORMALLY_VERIFIED": 0,
+    "GENERATED": 0,
+    "INVALID": 0,
+    "PROOF_CANDIDATE": 0,
+    "PROVED_IN_SUPPORTED_FRAGMENT": 49,
+    "REFUTED": 89,
+    "UNDER_TEST": 0,
+    "UNRESOLVED": 0
+  },
+  "environment": {
+    "lean": "not_executed",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "python": "3.13.5",
+    "sympy": "1.14.0",
+    "verification": "sparse_ZZ_and_SymPy_ZZ",
+    "z3": "not_executed"
+  },
+  "full_findings_file": "baseline_findings.ndjson",
+  "measurement": {
+    "candidate_positions_per_second": 994.44,
+    "execution_seconds": 0.301678,
+    "peak_process_rss_kb_linux": 134128
+  },
+  "originality_policy": "NOT_ASSESSED: no literature search performed",
+  "progress": {
+    "candidate_budget": 300,
+    "complete": true,
+    "cursor": 300,
+    "duplicates_rejected": 159,
+    "unique_candidates": 141
+  },
+  "schema": "axiom.v0.1.report"
+}

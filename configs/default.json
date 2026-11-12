@@ -1,0 +1,9 @@
+{
+  "campaign": "integer_polynomial_discovery",
+  "seed": 42,
+  "candidates": 100,
+  "domain": "polynomial",
+  "lower": -8,
+  "upper": 8,
+  "max_evals": 300
+}
