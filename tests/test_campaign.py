@@ -39,8 +39,12 @@ def test_bounded_search_not_promoted(tmp_path):
     result = run_campaign(str(tmp_path / "test.db"), seed=42, candidates=50, domain="mixed", max_evals=1)
     for item in result["findings"]:
         if item["statement"]["relation"] == ">=" and item["search"]["counterexample"] is None:
-            assert item["status"] == "EXPERIMENTALLY_SUPPORTED"
-            assert item["proof"] is None
+            if item["status"] == "PROVED_IN_SUPPORTED_FRAGMENT":
+                from axiom.certificate_checker import check_certificate
+                assert check_certificate(item["statement"], item["proof"]["certificate"])
+            else:
+                assert item["status"] == "EXPERIMENTALLY_SUPPORTED"
+                assert item["proof"] is None
 
 
 def test_status_history_and_complexity_rank(tmp_path):

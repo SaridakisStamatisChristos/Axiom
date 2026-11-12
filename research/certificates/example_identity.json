@@ -1,0 +1,123 @@
+{
+  "certificate": {
+    "lhs_coefficients": [
+      [
+        [
+          0
+        ],
+        25
+      ],
+      [
+        [
+          1
+        ],
+        10
+      ],
+      [
+        [
+          2
+        ],
+        1
+      ]
+    ],
+    "method": "coefficient_identity",
+    "rhs_coefficients": [
+      [
+        [
+          0
+        ],
+        25
+      ],
+      [
+        [
+          1
+        ],
+        10
+      ],
+      [
+        [
+          2
+        ],
+        1
+      ]
+    ],
+    "schema": "axiom.polynomial.certificate.v1",
+    "statement_sha256": "330ee6127b1c013a72800819dd894fd19b9bf0aa0f9c16ebf767900c6a0899ab",
+    "variables": [
+      "x"
+    ]
+  },
+  "statement": {
+    "bounds": [],
+    "lhs": {
+      "args": [
+        {
+          "args": [
+            {
+              "args": [],
+              "op": "var",
+              "value": "x"
+            },
+            {
+              "args": [],
+              "op": "const",
+              "value": 5
+            }
+          ],
+          "op": "add",
+          "value": null
+        }
+      ],
+      "op": "pow",
+      "value": 2
+    },
+    "relation": "==",
+    "rhs": {
+      "args": [
+        {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "var",
+                  "value": "x"
+                }
+              ],
+              "op": "pow",
+              "value": 2
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "const",
+                  "value": 10
+                },
+                {
+                  "args": [],
+                  "op": "var",
+                  "value": "x"
+                }
+              ],
+              "op": "mul",
+              "value": null
+            }
+          ],
+          "op": "add",
+          "value": null
+        },
+        {
+          "args": [],
+          "op": "const",
+          "value": 25
+        }
+      ],
+      "op": "add",
+      "value": null
+    },
+    "variables": [
+      "x"
+    ]
+  }
+}

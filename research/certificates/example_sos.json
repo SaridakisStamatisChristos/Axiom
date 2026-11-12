@@ -1,0 +1,59 @@
+{
+  "certificate": {
+    "constant": 0,
+    "method": "sum_of_squares",
+    "multiplier": 4,
+    "schema": "axiom.polynomial.certificate.v1",
+    "squares": [
+      {
+        "polynomial": [
+          [
+            [
+              1
+            ],
+            2
+          ]
+        ],
+        "weight": 1
+      }
+    ],
+    "statement_sha256": "5e41838d7e9792d8ffda1f351576b0cc1bc794c86ada2d26d70d1dbce063c546",
+    "variables": [
+      "x"
+    ]
+  },
+  "statement": {
+    "bounds": [],
+    "lhs": {
+      "args": [
+        {
+          "args": [
+            {
+              "args": [],
+              "op": "var",
+              "value": "x"
+            }
+          ],
+          "op": "pow",
+          "value": 2
+        },
+        {
+          "args": [],
+          "op": "const",
+          "value": 0
+        }
+      ],
+      "op": "add",
+      "value": null
+    },
+    "relation": ">=",
+    "rhs": {
+      "args": [],
+      "op": "const",
+      "value": 0
+    },
+    "variables": [
+      "x"
+    ]
+  }
+}

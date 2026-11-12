@@ -1,0 +1,69 @@
+{
+  "campaign_id": "0f376fbe499fa0dcce5d3f44",
+  "configuration": {
+    "campaign": "integer_polynomial_discovery",
+    "candidates": 300,
+    "domain": "mixed",
+    "engine_version": "0.2.0",
+    "lower": -8,
+    "max_evals": 289,
+    "seed": 42,
+    "upper": 8
+  },
+  "counts": {
+    "EXPERIMENTALLY_SUPPORTED": 1,
+    "FORMALLY_VERIFIED": 0,
+    "GENERATED": 0,
+    "INVALID": 0,
+    "PROOF_CANDIDATE": 0,
+    "PROVED_IN_SUPPORTED_FRAGMENT": 85,
+    "REFUTED": 82,
+    "UNDER_TEST": 0,
+    "UNRESOLVED": 0
+  },
+  "environment": {
+    "lean": "not_executed",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "python": "3.13.5",
+    "sympy": "1.14.0",
+    "verification": "stdlib_certificate_checker_and_SymPy_ZZ",
+    "z3": "not_executed"
+  },
+  "evidence_audit": {
+    "deterministic_replay": true,
+    "findings": 168,
+    "formal_kernel_verification": false,
+    "outcome": "PASSED",
+    "validated_certificates": 85,
+    "validated_counterexamples": 82
+  },
+  "full_findings_file": "v02_findings.ndjson",
+  "full_report_in_archive": "v02_campaign_report.json",
+  "generation_templates": {
+    "cubic_expansion": 25,
+    "difference_of_squares": 25,
+    "distributivity": 40,
+    "finite_interval_inequality": 1,
+    "multivariate_sum_of_squares": 41,
+    "quadratic_nonnegativity": 4,
+    "square_expansion": 32
+  },
+  "measurement": {
+    "candidate_positions_per_second": 911.8,
+    "execution_seconds": 0.329021,
+    "peak_process_rss_kb_linux": 135012
+  },
+  "originality_policy": "NOT_ASSESSED: no literature search performed",
+  "progress": {
+    "candidate_budget": 300,
+    "complete": true,
+    "cursor": 300,
+    "duplicates_rejected": 132,
+    "unique_candidates": 168
+  },
+  "proof_methods": {
+    "coefficient_identity": 48,
+    "sum_of_squares": 37
+  },
+  "schema": "axiom.v0.2.report"
+}

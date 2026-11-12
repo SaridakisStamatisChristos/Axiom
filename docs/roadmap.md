@@ -1,11 +1,21 @@
-# Verified-first roadmap
+# AXIOM — verified-first roadmap
 
-**v0.1 — current:** integer polynomial expression AST, fixed-seed conjecture templates, structural deduplication, exact bounded falsification and independent witness validation, dual coefficient normalization proofs of polynomial identities, status history, ranking heuristic, SQLite checkpointing, CLI, executable tests, baseline report.
+**v0.1 — preserved:** Typed two-variable integer-polynomial AST, seeded template conjectures, exact bounded counterexample checks, dual symbolic normalization identity proofs, SQLite and CLI, initial tests, verified baseline with no Lean or novelty claims.
 
-**v0.2 — next:** independently checkable structured proof certificates and a standalone minimal polynomial-certificate verifier. Expand assumption representation and true state-machine invariant tests. Add counterexample minimization, granular resource budgets, and stronger nontrivial candidate generation.
+**v0.2 — implemented:** Standalone, stdlib-only coefficient identity certificates and independently replayable SOS inequality certificates; certificate SHA-256 binding to full statement; safe restricted complete-square constructor; persisted-evidence auditing and report-audit CLI; bounded counterexample minimization with search/assumption intersection; expanded deterministic grammar; adversarial tests and campaign evidence. These are local Python proof certificates, *not* formal proof-assistant verification.
 
-**v0.3:** optional Lean 4 adapter; reject sorry/admit/untrusted extra axioms, pin compiler/library and preserve actual compiler output and proof sources.
+**v0.3 — next:** Actual optional Lean 4 integration on real installed executable with checked proof source and dependency manifest, axiom audits, rejection of `sorry`/admitted goals, reliable version capture, kernel-verification evidence. Preserve the local checker and do not conflate its acceptance with Lean acceptance.
 
-**v0.4–v0.6:** modular arithmetic, recurrence/number theory, combinatorics/graph invariants, and mathematical knowledge dependency graph.
+**v0.4:** Elementary number theory, modular arithmetic and recurrences with domain-specific soundness rules, counterexample exploration and proof methods.
 
-**v0.7–v1.0:** budget-aware campaign scheduling, optional model-guided search behind verification, observatory, optimized multi-domain autonomous research. No milestone implies a breakthrough or mathematical originality.
+**v0.5:** Finite combinatorics and graph structures with exhaustive enumeration and relevant certified invariants.
+
+**v0.6:** Theorem/lemma dependency graph, explicit verified edges and reuse with assumptions.
+
+**v0.7:** Priority- and evidence-aware orchestration with bounded worker scheduling, pause/restart and cost metrics.
+
+**v0.8:** Optional machine-guided proposal engines, including configurable local models, behind unchanged independent proof gates.
+
+**v0.9:** Observatory and optimization of proven algorithms, with reproducible benchmarks.
+
+**v1.0:** Integrated local-first research laboratory with cumulative evidence and multiple verified mathematical domains. No milestone automatically establishes originality or guarantees solutions to open problems.

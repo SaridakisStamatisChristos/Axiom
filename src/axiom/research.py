@@ -15,7 +15,11 @@ import sympy
 
 from .generation import generate
 from .mathematics import Expr, Statement
-from .verification import falsify, polynomial_proof
+from .verification import falsify, proof_search
+from .certificate_checker import check_certificate
+from .evidence import audit_finding
+
+ENGINE_VERSION = "0.2.0"
 
 STATUSES = frozenset({"GENERATED", "UNDER_TEST", "EXPERIMENTALLY_SUPPORTED", "REFUTED",
                       "PROOF_CANDIDATE", "PROVED_IN_SUPPORTED_FRAGMENT", "FORMALLY_VERIFIED",
@@ -60,7 +64,8 @@ def run_campaign(db_path: str, seed: int = 42, candidates: int = 100, domain: st
         raise ValueError("invalid campaign configuration")
     if step_limit is not None and step_limit < 0:
         raise ValueError("step_limit must be nonnegative")
-    config = {"campaign": "integer_polynomial_discovery", "seed": seed, "candidates": candidates,
+    config = {"campaign": "integer_polynomial_discovery", "engine_version": ENGINE_VERSION,
+              "seed": seed, "candidates": candidates,
               "domain": domain, "lower": lower, "upper": upper, "max_evals": max_evals}
     generated = generate(seed, candidates, domain)
     campaign_id = hashlib.sha256(stable_json(config).encode()).hexdigest()[:24]
@@ -88,11 +93,17 @@ def run_campaign(db_path: str, seed: int = 42, candidates: int = 100, domain: st
             proof = None
             if search["counterexample"] is not None:
                 status = "REFUTED"
-            elif statement.relation == "==":
-                proof = polynomial_proof(statement)
-                status = "PROVED_IN_SUPPORTED_FRAGMENT" if proof else "UNRESOLVED"
             else:
-                status = "EXPERIMENTALLY_SUPPORTED"
+                proof = proof_search(statement)
+                if proof:
+                    # Independently replay exactly the evidence that will be persisted.
+                    if not check_certificate(statement.to_dict(), proof["certificate"]):
+                        raise ArithmeticError("CRITICAL: independent verifier did not accept proof")
+                    status = "PROVED_IN_SUPPORTED_FRAGMENT"
+                elif statement.relation == "==":
+                    status = "UNRESOLVED"
+                else:
+                    status = "EXPERIMENTALLY_SUPPORTED"
             if status not in STATUSES:
                 raise AssertionError("unrecognized evidence status")
             candidate_id = hashlib.sha256(key.encode()).hexdigest()
@@ -117,9 +128,13 @@ def run_campaign(db_path: str, seed: int = 42, candidates: int = 100, domain: st
                     for r in db.execute("""SELECT candidate_id,ordinal,template,statement,status,originality,
                                              ranking_score,status_history,search_evidence,proof_evidence FROM findings
                                              WHERE campaign_id=? ORDER BY ordinal""", (campaign_id,))]
+    # Re-audit all restored evidence, including records persisted by earlier
+    # interrupted runs. Database rows are not trusted as theorem certificates.
+    for finding in findings:
+        audit_finding(finding)
     counts = {s: sum(f["status"] == s for f in findings) for s in sorted(STATUSES)}
     duration = time.perf_counter() - started
-    report = {"schema": "axiom.v0.1.report", "campaign_id": campaign_id, "configuration": config,
+    report = {"schema": "axiom.v0.2.report", "campaign_id": campaign_id, "configuration": config,
               "progress": {"cursor": cursor, "candidate_budget": candidates, "complete": cursor == candidates,
                            "duplicates_rejected": duplicates, "unique_candidates": len(findings)},
               "counts": counts, "findings": findings,
@@ -127,7 +142,7 @@ def run_campaign(db_path: str, seed: int = 42, candidates: int = 100, domain: st
                               "candidate_positions_per_second": round((cursor - start_cursor) / duration, 2) if duration else None,
                               "peak_process_rss_kb_linux": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss if platform.system() == "Linux" else None},
               "environment": {"python": platform.python_version(), "sympy": sympy.__version__,
-                              "platform": platform.platform(), "verification": "sparse_ZZ_and_SymPy_ZZ",
+                              "platform": platform.platform(), "verification": "stdlib_certificate_checker_and_SymPy_ZZ",
                               "lean": "not_executed", "z3": "not_executed"},
               "originality_policy": "NOT_ASSESSED: no literature search performed"}
     if report_path:

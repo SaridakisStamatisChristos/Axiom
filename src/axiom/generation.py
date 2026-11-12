@@ -1,7 +1,7 @@
 """Deterministic finite-grammar candidate generator (no benchmarks mixed in)."""
 from __future__ import annotations
 import random
-from .mathematics import Statement, C, V, add, mul, power
+from .mathematics import Statement, C, V, add, mul, sub, power
 
 
 def generate(seed: int, budget: int, domain: str = "polynomial") -> list[tuple[str, Statement]]:
@@ -16,7 +16,7 @@ def generate(seed: int, budget: int, domain: str = "polynomial") -> list[tuple[s
         k = rng.choice([v for v in range(-6, 7) if v])
         c = rng.choice([v for v in range(-5, 6) if v])
         mutation = rng.choice((0, 0, 1, -1, 2))
-        template = i % (4 if domain == "mixed" else 3)
+        template = i % (7 if domain == "mixed" else 4)
         if template == 0:
             lhs = power(add(x, C(k)), 2)
             rhs = add(add(power(x, 2), mul(C(2 * k), x)), C(k * k + mutation))
@@ -32,11 +32,26 @@ def generate(seed: int, budget: int, domain: str = "polynomial") -> list[tuple[s
             rhs = add(add(add(power(x, 3), mul(C(3 * k), power(x, 2))), mul(C(3 * k * k), x)), C(k ** 3 + mutation))
             statement = Statement(lhs, rhs, "==", ("x",))
             label = "cubic_expansion"
-        else:
+        elif template == 3:
+            lhs = mul(add(x, C(k)), sub(x, C(k)))
+            rhs = add(sub(power(x, 2), C(k * k)), C(mutation))
+            statement = Statement(lhs, rhs, "==", ("x",))
+            label = "difference_of_squares"
+        elif template == 4:
             lhs = add(power(x, 2), C(mutation))
             rhs = C(0)
-            # Bounded testing does not justify a universal inequality claim.
-            statement = Statement(lhs, rhs, ">=", ("x",), (("x", -8, 8),))
-            label = "bounded_integer_inequality"
+            statement = Statement(lhs, rhs, ">=", ("x",))
+            label = "quadratic_nonnegativity"
+        elif template == 5:
+            lhs = add(add(power(sub(x, C(k)), 2),
+                          power(add(y, C(c)), 2)), C(mutation))
+            statement = Statement(lhs, C(0), ">=", ("x", "y"))
+            label = "multivariate_sum_of_squares"
+        else:
+            # True under explicit bounds, false outside them: deliberately no
+            # universal SOS proof; finite testing cannot be promoted to proof.
+            lhs = mul(x, sub(C(8), x))
+            statement = Statement(lhs, C(0), ">=", ("x",), (("x", 0, 8),))
+            label = "finite_interval_inequality"
         out.append((label, statement))
     return out
