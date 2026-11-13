@@ -38,7 +38,8 @@ For every candidate:
    \`SimpleGraph\` model and original components/forest/bipartite/triangles
    functions from \`graph_invariants.py\`.
 2. A separate independent bitset oracle computes vertex degrees, connected
-   components, forest equivalence, bipartiteness and triangles from
+   components, forest acyclicity via an independent DFS cycle detector,
+   bipartiteness and triangles from
    adjacency bitsets; it does **not** import the discovery invariant engine.
 3. Both call the same typed declarative \`graph_claims.holds\` statement
    interpreter. That shared interpreter, the enumeration model, and
