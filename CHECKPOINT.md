@@ -1,3 +1,32 @@
+# AXIOM v0.7 — Development continuation checkpoint (13 November 2026)
+
+**Source:** v0.6 merged into main in commit c3cfd3139e8c2aa3b27831b6620b91e398c7fae8 after the verified Lean 4 CI, graph CI, and knowledge-graph CI. **Branch:** axiom-v0.7-cross-domain-federation.
+
+## Implemented
+
+- New typed federation storage layered on top of the v0.6 knowledge graph without altering original kg tables.
+- Four exact source domains: graph, algebraic polynomial, number theory, recurrence. Native domain replay required on import and again on audit.
+- Cross-domain query and provenance records; no cross-domain theorem inference.
+- Original Python proof statuses retained, independent from preserved historical Lean records; formal Lean evidence not imported yet.
+- Adversarial tests, dedicated GitHub Actions matrix, complete documentation.
+
+## Reproduce
+
+    python -m pip install -e '.[dev]'
+    pytest -q
+    axiom knowledge-build --db research/knowledge/axiom.sqlite3 \
+      research/graphs/v05_baseline_report.json \
+      research/graphs/v05_scale_report.json
+    axiom knowledge-federate --db research/knowledge/axiom.sqlite3 \
+      research/v03_campaign_report.json \
+      research/number_theory/v04_report.json \
+      research/number_theory/v04_sequences.json
+    axiom knowledge-federation-audit --db research/knowledge/axiom.sqlite3
+
+**Release gate:** The v0.7 development implementation must pass dedicated federation CI, full graph regression, and pinned Lean CI before promotion. Do not claim CI completion solely from source or test additions.
+
+---
+
 # AXIOM v0.6 — Active development checkpoint (13 November 2026)
 
 **Based on verified main commit:** 119b1a72aa554ec50723e42aaab7df709923c2bf (v0.5). **Development branch:** axiom-v0.6-knowledge-graph. **Engineering state:** implementation and tests committed; CI review/promotion not yet claimed in this checkpoint.
