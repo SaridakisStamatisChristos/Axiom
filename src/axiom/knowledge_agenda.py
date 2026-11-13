@@ -14,7 +14,6 @@ import tempfile
 
 from .graph_claims import digest, stable
 from .knowledge_graph import _open
-from .knowledge_federation import _audit as _audit_federation
 from .formal_provenance import _audit as _audit_formal
 
 SCHEMA = "axiom.research_agenda.v1"
@@ -56,8 +55,13 @@ def research_agenda(db_path: str, *, domain: str | None = None,
     """
     _arguments(domain, limit)
     with _open(db_path, existing=True) as db:
-        nodes, edges = _audit_federation(db)
-        formal = _audit_formal(db)  # Includes a full second independent replay.
+        db.execute("BEGIN")  # Stable source snapshot across audit and extraction.
+        formal = _audit_formal(db)  # Already independently replays v0.6 and v0.7.
+        nodes = {key: (kind, payload) for key, kind, payload in db.execute(
+            "SELECT node_id,kind,payload FROM federation_nodes")}
+        edges = {key: (src, rel, dst, attrs)
+                 for key, src, rel, dst, attrs in db.execute(
+                     "SELECT edge_id,source,relation,target,attrs FROM federation_edges")}
         fingerprint = _source_fingerprint(db)
 
     investigations = defaultdict(set)
