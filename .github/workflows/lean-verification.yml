@@ -1,0 +1,59 @@
+name: AXIOM Lean 4 verification
+on:
+  push:
+    branches: [main, "axiom-v0.3-*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lean-kernel:
+    name: Lean 4 / Mathlib proof checking
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install AXIOM
+        run: python -m pip install -e '.[dev]'
+      - name: Run unit and regression suite
+        run: pytest -q
+      - name: Install pinned Lean toolchain and Mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          use-mathlib-cache: true
+      - name: Show exact versions and packages
+        run: |
+          lake env lean --version
+          git -C .lake/packages/mathlib rev-parse HEAD
+          cat lean-toolchain
+          sha256sum lake-manifest.json
+      - name: Check example identity in Lean kernel
+        run: |
+          axiom lean-verify research/certificates/example_identity.json \
+            --project-root . \
+            --output research/lean_verified/ci_identity.json \
+            --source research/lean_verified/ci_identity.lean
+      - name: Check SOS inequality in Lean kernel
+        run: |
+          axiom lean-verify research/certificates/example_sos.json \
+            --project-root . \
+            --output research/lean_verified/ci_sos.json \
+            --source research/lean_verified/ci_sos.lean
+      - name: Run genuine kernel-negative integration tests
+        run: AXIOM_REAL_LEAN=1 pytest -q tests/test_lean_integration.py
+      - name: Preserve verification evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axiom-v03-lean-kernel-evidence
+          path: research/lean_verified/
+          if-no-files-found: warn

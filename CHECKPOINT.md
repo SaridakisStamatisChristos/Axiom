@@ -1,59 +1,54 @@
-# AXIOM — Verified continuation checkpoint
+# AXIOM — continuation checkpoint (v0.3 Lean integration)
 
-- **Release:** v0.2.0, 2026-11-13.
-- **Canonical repository:** https://github.com/SaridakisStamatisChristos/Axiom (branch `main`).
-- **Preservation:** v0.1 project files and historical baseline report remain unchanged in `research/baseline_*`. This checkpoint describes only v0.2. Full v0.2 SQLite/report and v0.1 database are in the release archive; GitHub also carries self-contained JSON/NDJSON evidence and sample proof certificates.
-- **Status:** locally executable and tested. `pytest -q`: **31 passed**; deterministic fresh-database replay of 300-position campaign: **passed**; `axiom audit-report research/v02_campaign_report.json`: **passed**; standalone checker subprocess on identity and SOS examples: **accepted**.
+- **Development target:** AXIOM v0.3, Lean 4 proof verification adapter, 13 November 2026.
+- **Upstream verified stable release:** AXIOM v0.2; commit `a0723b61f492768a9cd695b1175fe93a6fc69520`, branch `main`, https://github.com/SaridakisStamatisChristos/Axiom.
+- **Current code state:** Lean adapter/source generation implemented and Python-tested. The local sandbox **does not have `lean` or `lake` installed**, and has no network access for toolchain downloads. Therefore actual kernel success **cannot be claimed locally**; CI must be inspected separately. The presence of a workflow file is not proof of its successful execution.
+- **Research originality:** `NOT_ASSESSED`; no new theorem novelty claim.
 
-## Implemented and tested
+## Verified local engineering
 
-1. Typed exact integer-polynomial AST (x,y, total operators `const`,`var`,`add`,`sub`,`mul`,`pow`, exponent 0–8) with closed integer interval assumptions and relations `==`,`>=`,`<=`.
-2. Deterministic expanded candidate templates; structural canonicalization, SQLite deduplication, and per-candidate transactional checkpoints with version-specific campaign IDs.
-3. Boundary-first deterministic bounded falsification; independent iterative witness evaluation and bounded coordinate-descent minimization (up to 64 probes); search grid = intersection of explicit assumption intervals and configured test window.
-4. SymPy and sparse-Python polynomial normalization before proof construction.
-5. Sound proof strategy **coefficient identity** with a SHA-256-bound standalone certificate, rechecked using `src/axiom/certificate_checker.py` without SymPy or discovery imports.
-6. Sound proof strategy **sum of squares** for selected separable quadratic integer inequalities, checked by exact polynomial coefficient equality and sign restrictions in the same independent certificate checker.
-7. Separate evidence auditor `src/axiom/evidence.py`: validates allowed status traces, all stored proofs and witnesses on restore; full report auditor replays seeded candidate generation, deduplication, every bounded search, certificate checks and all counts.
-8. CLI `axiom run`, `axiom audit-report`, `axiom check-certificate` and standalone checker invocation; tests for tampered certificates, forged status, modified search evidence, database proof corruption, bounds, false statements, randomized quadratic regression, checkpoint restore.
+- Complete v0.2 discovery, proof-certificate and counterexample pipeline preserved without semantic changes.
+- Optional formalizer `src/axiom/lean_backend.py`: source generation only from exact independently checked certificates; explicit integer variables and bounds; SHA-256 statement/source hashes; `ring` for identities; SOS `sq_nonneg`/`ring`/`nlinarith` proof source for inequalities; `#print axioms` transitive dependency audit; allowed only empty or standard Lean axioms (`propext`, `Classical.choice`, `Quot.sound`).
+- Pinned toolchain `leanprover/lean4:v4.35.0`, Mathlib tag `v4.35.0`; runtime checks exact actual `lake-manifest.json` Mathlib commit against installed checkout and records version, dependency manifest digest, sources, process result, diagnostic excerpt and axiom output.
+- CLI `axiom lean-verify` writes a single proof execution record and optional `.lean` source; `axiom lean-verify-report` first audits complete campaign, then attempts at most N formal proofs without mutating the original campaign.
+- Local `pytest -q` **43 passed, 3 skipped** (real-Lean integration tests deliberately skipped when no pinned Lean environment exists). Local tests use mocked subprocess outputs for parsing/error branches, which are **not actual kernel proof evidence**.
+- Local negative tests: tampered certificates, false candidate, altered assumptions, missing compiler, invalid version, timeout, missing axiom output, duplicate output, `sorryAx`/custom axioms, nonzero exit, stderr and forged source binding.
+- Local `AXIOM_REAL_LEAN=1 pytest -q tests/test_lean_integration.py` **not executed**: Lean unavailable. GitHub workflow `.github/workflows/lean-verification.yml` is intended to run genuine Lean tests when executed.
 
-## Research campaign (executed, not simulated)
+## Actual local research rerun
 
-- Name: `integer_polynomial_discovery`; seed 42, domain mixed, 300 generated positions, search interval −8 to 8, max 289 tests per candidate.
-- Generated positions: **300**; structural duplicates: **132**; unique investigated candidates: **168**.
-- Supported-fragment proofs: **85** (48 exact coefficient-identity certificates, 37 SOS inequality certificates).
-- Independently confirmed counterexamples/refutations: **82**.
-- Experimentally supported, not proved: **1**.
-- Universal Lean/kernel formal verification: **0**, not installed/executed.
-- Replayed all 85 accepted v0.2 certificates with independent checker implementation and all 82 witnesses; tested standalone checker subprocess on two representative artifacts.
-- Deterministic replay in a separate SQLite database produced equal candidate statements, proof artifacts, witnesses and status records.
-- Measured initial campaign: **0.329021 s**, **911.8 generated positions/s**, peak Linux process RSS **135012 KiB**. Machine/software and environment are recorded in `research/v02_summary.json`. These are local measurements only, not cross-platform promises.
-- Originality: **NOT_ASSESSED**; template-generated relations are not claimed as novel mathematical discoveries.
-- Evidence on GitHub: `research/v02_summary.json`, `research/v02_findings.ndjson`, `research/certificates/example_identity.json`, `research/certificates/example_sos.json`. In release ZIP: `research/v02_campaign_report.json`, `research/v02_campaign.sqlite3`, and historical v0.1 SQLite + reports.
+- `PYTHONPATH=src python -m axiom run --seed 42 --candidates 300 --domain mixed --lower -8 --upper 8 --max-evals 289 --db research/v03_campaign.sqlite3 --report research/v03_campaign_report.json` completed.
+- `PYTHONPATH=src python -m axiom audit-report research/v03_campaign_report.json` **ACCEPTED**, 168 findings audited.
+- Generated positions 300; structural duplicates 132; investigated candidates 168; locally checked certificates 85; refutations with valid counterexamples 82; experimentally supported, not proved 1.
+- Rerun measured: 0.383581 s, 782.1 generated positions/second and peak Linux process RSS 135128 KiB, on Python 3.13.5 and SymPy 1.14.0. Workload is identical to v0.2; these are measurements, not claims of improved performance.
+- Local `lean-verify-report` attempt on 3 historical locally proved findings: **3 `LEAN_UNAVAILABLE`; 0 actual kernel verified**, exit nonzero. This is correct fail-closed behavior.
+- `research/lean_examples/example_identity.lean` and `example_sos.lean` are generated **but not locally compiled**; CI must verify.
 
-## Mathematical trust boundary and budgets
+## Required real formal verification gate
 
-- `PROVED_IN_SUPPORTED_FRAGMENT` means locally checker-validated exact integer-polynomial certificate. This is **not** Lean, Isabelle/HOL, or Rocq formal verification. The standalone checker itself is not formally verified.
-- Universal identity is decided via coefficient-map equality; SOS inequality is accepted only if `M*P = Σ(w_i*q_i²)+C` with **strictly positive** `M,w_i` and **nonnegative** `C` and the polynomial equality independently rechecked.
-- No random experiment or bounded UNSAT result is treated as universal proof. All `FORMALLY_VERIFIED` counts are zero.
-- Checker budgets: 128 AST nodes, polynomial degree <=128, <=4096 nonzero terms, <=4096-bit coefficients, <=200000 term-pair multiplication work, <=16 SOS terms. Search has <=100000 grid width and <=1000000 evaluated assignments per candidate; witness minimization bounded by 64 probes. Resource-bound cases are not claimed proved.
+1. Obtain actual GitHub Actions workflow run and inspect `lean-kernel` job conclusion and log.
+2. Confirm pinned Lean version 4.35.0, Mathlib revision in `lake-manifest.json`, successful core test suite.
+3. Confirm actual Lean execution for `research/certificates/example_identity.json` and `example_sos.json`, success exit codes, `#print axioms` with no disallowed axioms and evidence artifact `axiom-v03-lean-kernel-evidence`.
+4. Confirm real-negative test observes the forbidden `sorryAx` dependency in Lean's theorem audit.
+5. Only after all succeed may the kernel-verified example count be raised; do not infer success from Python mocks, documentation, or source generation.
+6. Actual mathlib build/bandwidth requirements may prevent CI from completing; if so preserve the v0.3 implementation branch and leave the milestone labeled pending.
 
-## Known limits / unresolved work
-
-- Integer interval assumptions only; no arbitrary formula assumptions, induction, rational expressions, nonpolynomial algebra, or general theorem proving.
-- Template-based grammar; candidate deduplication is structural, not complete polynomial-equivalence deduplication.
-- SOS proof strategy is only sufficient for a narrow family of separable quadratics. True inequalities outside it are often unresolved or only experimentally supported.
-- No Lean 4 or Z3 backend executed. No claim of mathematical novelty or literature validation.
-- Global optimality of minimized witnesses not established. Persistent SQLite is local data, while GitHub stores text evidence; binaries are preserved in the release archive.
-
-## Reproduction / next milestone
+## Reproduction
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 python -m pip install -e '.[dev]'
 pytest -q
-axiom run --seed 42 --candidates 300 --domain mixed --lower -8 --upper 8 --max-evals 289 --db research/new.sqlite3 --report research/new.json
-axiom audit-report research/new.json
-axiom check-certificate research/certificates/example_sos.json
+lake update && lake exe cache get
+axiom lean-verify research/certificates/example_identity.json --project-root . --output research/lean_verified/identity.json --source research/lean_verified/identity.lean
+axiom lean-verify research/certificates/example_sos.json --project-root . --output research/lean_verified/sos.json --source research/lean_verified/sos.lean
+AXIOM_REAL_LEAN=1 pytest -q tests/test_lean_integration.py
 ```
 
-**Next target: AXIOM v0.3** — optional **real Lean 4** adapter with actual installed compiler/kernel invocation, declaration/axiom dependency audit, `sorry`/admit rejection, version pinning, compiled proof artifacts, and intentionally negative integration tests. Do not change a candidate's status to `FORMALLY_VERIFIED` until an authentic trusted checker result is recorded. Continue preserving verified v0.1 and v0.2 releases.
+## Known limitations and next engineering action
+
+- Lean generated proof for arbitrary certified SOS inequalities may fail `nlinarith`; compiler failure remains UNVERIFIED and is not hidden.
+- No formal proof that the Python AST-to-Lean translation is semantics-preserving; only manually audited restricted grammar and explicit source records.
+- Offline JSON evidence audits cannot authenticate a forged Lean execution record; preserve actual independent CI logs or re-run checker locally.
+- No arbitrary external Lean imports, custom axioms, quantifier alternation, induction, rational expressions, or mathematical novelty assessment.
+- **Next:** complete real Lean 4 CI proof execution and close any actual compiler or tactic failures. If verification succeeds, promote the v0.3 branch to `main`; then progress to v0.4 number theory.

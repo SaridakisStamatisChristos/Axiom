@@ -1,8 +1,8 @@
-# AXIOM v0.2 — Automated Mathematical Discovery Foundation
+# AXIOM v0.3 — Mathematical Discovery and Optional Lean 4 Proof Checking
 
 **AXIOM** is an executable, local-first, budgeted experimental-mathematics engine. Its research campaigns generate conjectures from deterministic grammars, look for exact counterexamples, attempt narrow algebraic proof strategies, independently check proof certificates, audit persisted evidence, and checkpoint every candidate in SQLite.
 
-**Scientific interpretation:** A bounded search is not a proof. A `PROVED_IN_SUPPORTED_FRAGMENT` finding has a certificate checked by a separate, **stdlib-only** integer-polynomial checker, *not* by Lean, Rocq, or another formally verified kernel. `FORMALLY_VERIFIED` is never emitted. No AXIOM results have been established as mathematically novel. The v0.1 results remain preserved separately.
+**Scientific interpretation:** A bounded search is not a proof. A `PROVED_IN_SUPPORTED_FRAGMENT` finding has a certificate checked by a separate, **stdlib-only** integer-polynomial checker, *not* by Lean, Rocq, or another formally verified kernel. `FORMALLY_VERIFIED` is never emitted by the core research campaigns; the optional v0.3 Lean backend records formal evidence separately, only after an actual successful kernel check. No AXIOM results have been established as mathematically novel. The v0.1 results remain preserved separately.
 
 ## Installation (Ubuntu / Linux Mint; Python 3.11+)
 
@@ -108,3 +108,59 @@ For v0.2, the full *executed* 300-position campaign uses `--domain mixed --lower
 The generator is still a bounded template grammar, and mathematical deduplication is mostly structural; it is not general theorem invention. Counterexample minimization is local, not optimal. Proof methods exclude induction, nonpolynomial algebra, generic inequalities, Z3 and external proof assistants. An external Lean 4 verification integration, including actual compiler execution, dependency and axiom auditing, and artifact preservation, is the recommended v0.3 milestone. No asynchronous research scheduling is claimed.
 
 **Preservation rule:** keep previous releases and research evidence intact; do not overwrite historical v0.1 results. Reproduce all claimed metrics and proof artifacts before advancing any version.
+
+---
+
+## AXIOM v0.3 — optional Lean 4 kernel verification
+
+The v0.3 adapter does **not** treat a locally accepted algebraic certificate as a Lean theorem. It builds a separate, uniquely named Lean theorem from the exact typed statement, exact assumptions and locally validated certificate, runs an actual external Lean 4 process, checks the theorem's transitive axioms with `#print axioms`, and writes source-bound execution evidence. The existing v0.2 research database and statuses are never silently overwritten.
+
+**Pinned verification environment:** Lean `leanprover/lean4:v4.35.0`, Mathlib revision tag `v4.35.0` as declared in `lakefile.toml`. A genuine success record also requires the actual `lake-manifest.json` and checked-out Mathlib commit to agree. All other axiom names, including `sorryAx`, custom axioms and native evaluation axioms, are rejected. The generated source contains neither `sorry` nor arbitrary user-supplied Lean text. The only current proof strategies are integer polynomial ring normalization and an SOS decomposition with `sq_nonneg`/`nlinarith`. Not all locally certified proofs are guaranteed to be accepted by Lean tactics.
+
+### Install Lean on Linux Mint / Ubuntu
+
+Install the Python package as above. Follow the official Lean 4 `elan` instructions to install the toolchain manager, then from this repo:
+
+```bash
+lake update
+lake exe cache get
+lake env lean --version
+pytest -q
+```
+
+The first Mathlib cache download can be large. No Lean or Mathlib installation is required to run the v0.2 discovery engine, verify local certificates, or execute the Python unit tests. The actual Lean integration tests require a working pinned installation:
+
+```bash
+AXIOM_REAL_LEAN=1 pytest -q tests/test_lean_integration.py
+```
+
+### Verify and retain proof artifacts
+
+```bash
+axiom lean-verify research/certificates/example_identity.json \
+  --project-root . \
+  --output research/lean_verified/identity.json \
+  --source research/lean_verified/identity.lean
+
+axiom lean-verify research/certificates/example_sos.json \
+  --project-root . \
+  --output research/lean_verified/sos.json \
+  --source research/lean_verified/sos.lean
+
+axiom lean-verify-report research/v02_campaign_report.json \
+  --project-root . --output-dir research/lean_verified/campaign --limit 10
+```
+
+Exit code `0` indicates that actual Lean invocation succeeded and the transitive axiom policy accepted the theorem. Exit code `1` means unavailable, incomplete, rejected or failed verification; `2` indicates invalid configuration or inputs. The saved JSON captures theorem, imports, exact assumptions, full proof source, source hash, statement and certificate, pinned toolchain, actual Lean version, Mathlib revision and manifest hash, axiom dependencies, checker exit status and time. A Python-only audit of this JSON is **not** authentication that Lean actually executed: retain GitHub Actions CI logs and artifact provenance for external verification.
+
+When Lean is unavailable, AXIOM exits nonzero, saves a record labeled `LEAN_UNAVAILABLE`, and reports no formally verified theorems. There is no hidden fallback that promotes status based on symbolic proof or simulated compiler output.
+
+The GitHub Actions workflow `.github/workflows/lean-verification.yml` installs pinned Lean and Mathlib, reruns the full Python suite, compiles the two saved proof benchmarks, audits admitted axiom dependencies, and attaches the generated proof source and evidence JSON as a workflow artifact. **Do not label v0.3 kernel-verified until the workflow run itself has been inspected and accepted.**
+
+### Trust limitations
+
+- Lean kernel checks the generated Lean theorem, not necessarily every nuance of the mathematical interpretation of a human's informal description. The typed AST-to-Lean translator therefore remains part of the trusted interface.
+- A GitHub Action is execution evidence only after its actual run and logs are checked; a workflow file alone proves nothing.
+- Local `FORMALLY_VERIFIED` labels never imply novelty, independent human review or a machine-checked specification of the entire AXIOM application.
+- Python unit tests mock subprocesses in some cases to test failure boundaries. Those mock results are never counted as real kernel verifications.
+- Algebraic certificates still use the independent Python verifier from v0.2 and do not depend on paid model services.

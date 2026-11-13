@@ -4,7 +4,7 @@
 
 **v0.2 — implemented:** Standalone, stdlib-only coefficient identity certificates and independently replayable SOS inequality certificates; certificate SHA-256 binding to full statement; safe restricted complete-square constructor; persisted-evidence auditing and report-audit CLI; bounded counterexample minimization with search/assumption intersection; expanded deterministic grammar; adversarial tests and campaign evidence. These are local Python proof certificates, *not* formal proof-assistant verification.
 
-**v0.3 — next:** Actual optional Lean 4 integration on real installed executable with checked proof source and dependency manifest, axiom audits, rejection of `sorry`/admitted goals, reliable version capture, kernel-verification evidence. Preserve the local checker and do not conflate its acceptance with Lean acceptance.
+**v0.3 — implemented integration candidate, kernel evidence gated:** Optional pinned Lean 4 backend with typed source generation, certificate replay, exact Mathlib manifest checks, `#print axioms` audit, real subprocess invocation, independent evidence records, bounded campaign verification, integration workflow and adversarial tests. It is not called formally verified until the real Lean workflow completes and its evidence is inspected.
 
 **v0.4:** Elementary number theory, modular arithmetic and recurrences with domain-specific soundness rules, counterexample exploration and proof methods.
 

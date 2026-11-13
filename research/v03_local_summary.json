@@ -1,0 +1,48 @@
+{
+  "campaign_id": "0f376fbe499fa0dcce5d3f44",
+  "configuration": {
+    "campaign": "integer_polynomial_discovery",
+    "candidates": 300,
+    "domain": "mixed",
+    "engine_version": "0.2.0",
+    "lower": -8,
+    "max_evals": 289,
+    "seed": 42,
+    "upper": 8
+  },
+  "counts": {
+    "EXPERIMENTALLY_SUPPORTED": 1,
+    "FORMALLY_VERIFIED": 0,
+    "GENERATED": 0,
+    "INVALID": 0,
+    "PROOF_CANDIDATE": 0,
+    "PROVED_IN_SUPPORTED_FRAGMENT": 85,
+    "REFUTED": 82,
+    "UNDER_TEST": 0,
+    "UNRESOLVED": 0
+  },
+  "formal_verification": {
+    "count": 0,
+    "real_lean_executed": false,
+    "reason": "LEAN_UNAVAILABLE in local container"
+  },
+  "measurement": {
+    "candidate_positions_per_second": 782.1,
+    "execution_seconds": 0.383581,
+    "peak_process_rss_kb_linux": 135128
+  },
+  "originality": "NOT_ASSESSED",
+  "progress": {
+    "candidate_budget": 300,
+    "complete": true,
+    "cursor": 300,
+    "duplicates_rejected": 132,
+    "unique_candidates": 168
+  },
+  "tests": {
+    "note": "three real-Lean integration tests gated by installed toolchain",
+    "passed": 43,
+    "skipped": 3
+  },
+  "version": "0.3.0-local-build"
+}
