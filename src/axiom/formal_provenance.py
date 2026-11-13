@@ -118,9 +118,11 @@ def _materialize(batch: dict, report: dict, nodes: dict) -> dict[str, tuple]:
             if type(meta) is not dict:
                 raise ValueError("number-theory record requires index metadata")
             candidate = meta.get("candidate_id")
+            expected_path = (
+                "research/lean_verified/number_theory/"
+                + str(candidate)[:24] + ".json")
             if (meta.get("campaign_id") != report["campaign_id"] or
-                    not isinstance(meta.get("evidence_path"), str) or
-                    Path(meta["evidence_path"]).name != str(candidate)[:24] + ".json"):
+                    meta.get("evidence_path") != expected_path):
                 raise ValueError("number-theory index campaign/path mismatch")
             verify_nt_record_integrity(record)
         if type(candidate) is not str or candidate not in by_candidate or candidate in seen:
@@ -265,15 +267,25 @@ def import_formal(db_path: str, *, algebra_ndjson: str | None = None,
         # No writes before verifying the current materialized evidence and
         # every incoming full record.
         _audit(db)
-        reports = {r["schema"]: r for r in _sources(db)}
+        reports = {_source_id(r): r for r in _sources(db)}
         batches = []
         for domain, entries in incoming:
-            schema = ("axiom.v0.2.report" if domain == "algebra"
-                      else "axiom.number_theory.report.v1")
-            report = reports.get(schema)
+            if domain == "algebra":
+                campaign_ids = {entry["record"].get("origin_campaign_id")
+                                for entry in entries}
+            else:
+                campaign_ids = {entry["metadata"].get("campaign_id")
+                                for entry in entries}
+            if len(campaign_ids) != 1:
+                raise ValueError("formal records span multiple campaigns")
+            campaign_id = next(iter(campaign_ids))
+            if not isinstance(campaign_id, str):
+                raise ValueError("invalid formal source campaign identity")
+            source_ref = domain + ":" + campaign_id
+            report = reports.get(source_ref)
             if report is None:
-                raise ValueError("formal import source domain not federated")
-            sid = "source:" + _source_id(report)
+                raise ValueError("exact formal source campaign not federated")
+            sid = "source:" + source_ref
             batch = _batch(domain, sid, entries)
             nodes, _ = audit_federation(db)
             _materialize(batch, report, nodes)
