@@ -1,3 +1,28 @@
+# AXIOM v0.13 — Source-Bound Exact Graph Proof Knowledge (development)
+
+AXIOM now preserves independently checked **exact n=6 finite certificates**
+and refutations in the same SQLite mathematical research laboratory as
+the earlier historical proof graph, four-domain federation, original
+Lean metadata and n6/n7 bounded experimental frontier.
+
+Importing the exact reports cannot silently alter older findings.
+The new source-replay knowledge overlay cross-checks exact-n6 statements
+against any previously recorded bounded frontier findings of exactly the
+same statement and graph order. A valid counterexample is never overwritten
+by a supposed proof, and bounded survival does not count as a proof.
+
+    axiom knowledge-exact-n6-import --db research/knowledge/axiom.sqlite3 \
+      research/graphs/n6_exact_report.json
+    axiom knowledge-exact-n6-audit --db research/knowledge/axiom.sqlite3
+    axiom knowledge-exact-n6-query --db research/knowledge/axiom.sqlite3 \
+      --status PROVED_IN_SUPPORTED_FRAGMENT
+
+All exact n6 certificates remain finite **Python independently checked**
+results, not universal all-order theorems or Lean kernel verification.
+See [v0.13 source-bound evidence documentation](docs/knowledge_exact_n6.md).
+
+---
+
 # AXIOM v0.12 — Independently Checked Exact-Order-Six Graph Proofs (development)
 
 AXIOM v0.12 extends the **exhaustively checked finite graph proof boundary**
