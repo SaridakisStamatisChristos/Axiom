@@ -5,7 +5,7 @@ from .research import run_campaign
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.9 mathematical research")
+    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.10 mathematical research")
     sub = p.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="create or resume a deterministic research campaign")
     run.add_argument("--db", default="research/axiom.sqlite3")
@@ -139,7 +139,36 @@ def main() -> None:
         "graph-frontier-audit", help="independently replay a bounded n=6/7 frontier report")
     graph_frontier_audit.add_argument("report", help="saved research frontier JSON")
     graph_frontier_audit.add_argument("reports", nargs="+", help="original source graph campaigns")
+    agenda = sub.add_parser("knowledge-plan", help="derive reproducible evidence-gated next research actions")
+    agenda.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    agenda.add_argument("--domain", choices=("graph", "algebra", "number_theory", "recurrence"))
+    agenda.add_argument("--limit", type=int, default=30)
+    agenda.add_argument("--offset", type=int, default=0,
+                        help="skip earlier ranked tasks; supports complete paged exploration")
+    agenda.add_argument("--output", help="optional deterministic research agenda JSON artifact")
+    agenda_audit = sub.add_parser("knowledge-plan-audit", help="replay all sources and audit a saved agenda")
+    agenda_audit.add_argument("report_file")
+    agenda_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
     args = p.parse_args()
+    if args.command in {"knowledge-plan", "knowledge-plan-audit"}:
+        from .knowledge_agenda import research_agenda, write_agenda, audit_agenda
+        import sqlite3
+        try:
+            if args.command == "knowledge-plan-audit":
+                result = audit_agenda(args.db, args.report_file)
+            elif args.output:
+                result = write_agenda(args.db, args.output,
+                                      domain=args.domain, limit=args.limit,
+                                      offset=args.offset)
+            else:
+                result = research_agenda(args.db, domain=args.domain,
+                                         limit=args.limit, offset=args.offset)
+        except (ValueError, TypeError, KeyError, OSError, sqlite3.DatabaseError,
+                json.JSONDecodeError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(result, sort_keys=True, indent=2))
+        return
+
     if args.command in {"graph-frontier-run", "graph-frontier-audit"}:
         from .graph_frontier import (
             run_frontier, audit_frontier, load_graph_sources)

@@ -1,3 +1,36 @@
+# AXIOM v0.10 — Evidence-gated research continuation (13 November 2026)
+
+**Verified source checkpoint:** AXIOM v0.9 was merged into \`main\` at
+\`8896db88c833dbf2998ea456c2bbaeb8e3d38f8e\` following successful graph
+frontier, knowledge, federation, historical provenance and pinned Lean CI.
+
+**Development branch:** \`axiom-v0.10-evidence-agenda\`.
+
+## New implementation
+
+- \`src/axiom/knowledge_agenda.py\`: deterministic source-fingerprint-bound
+  selection of exact-domain next research tasks, with full v0.6–v0.8 evidence
+  replay before ranking.
+- Refuted claims are excluded; surviving experiments are prioritized for
+  independent falsification, unformalized local certificates for formalization,
+  and source-bound historical Lean records for actual kernel reexecution.
+- Historical Lean JSON is never treated as proof of external execution;
+  original finite graph order and recurrence theorem scopes are preserved.
+- New CLI: \`knowledge-plan\` and \`knowledge-plan-audit\`.
+- Adversarial tests: \`tests/test_knowledge_agenda.py\`.
+- Reproducible Python 3.11/3.13 CI: \`.github/workflows/research-agenda.yml\`.
+- Scope, algorithm, trust boundaries and instructions:
+  \`docs/research_agenda.md\`.
+
+**Evidence state:** Source implementation committed; do not claim CI success
+or a new mathematical theorem until the final v0.10 PR checks establish
+the actual validation outcome.
+
+**Preservation:** No mutation of historical v0.1–v0.9 research records,
+finite-order proofs, original Lean evidence or result archives.
+
+---
+
 # AXIOM v0.9 — Mathematical graph research continuation (13 November 2026)
 
 **Last released checkpoint:** v0.8 on GitHub main commit
