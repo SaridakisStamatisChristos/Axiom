@@ -19,6 +19,8 @@ After building and federating the historical knowledge database:
       research/knowledge/research_agenda_v010.json
     axiom knowledge-plan --db research/knowledge/axiom.sqlite3 \
       --domain graph --limit 10
+    axiom knowledge-plan --db research/knowledge/axiom.sqlite3 \
+      --limit 100 --offset 100
 
 For complete installation and the reproducible build of the knowledge
 database, see [the v0.10 research agenda protocol](docs/research_agenda.md).
