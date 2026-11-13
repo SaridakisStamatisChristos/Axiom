@@ -27,11 +27,13 @@ ACTIONS = frozenset({
 })
 
 
-def _arguments(domain: str | None, limit: int) -> None:
+def _arguments(domain: str | None, limit: int, offset: int) -> None:
     if domain is not None and domain not in DOMAINS:
         raise ValueError("unsupported research domain")
     if type(limit) is not int or not 1 <= limit <= 100:
         raise ValueError("agenda limit must be 1..100")
+    if type(offset) is not int or not 0 <= offset <= 100_000:
+        raise ValueError("agenda offset must be 0..100000")
 
 
 def _source_fingerprint(db) -> str:
@@ -46,14 +48,14 @@ def _source_fingerprint(db) -> str:
 
 
 def research_agenda(db_path: str, *, domain: str | None = None,
-                    limit: int = 30) -> dict:
+                    limit: int = 30, offset: int = 0) -> dict:
     """Plan auditable action proposals from already established evidence.
 
     REFUTED statements are excluded; tests never imply proof. A preserved
     Lean JSON record creates a *reexecution* task, not a FORMALLY_VERIFIED
     database status. Graph proof scopes never expand across graph orders.
     """
-    _arguments(domain, limit)
+    _arguments(domain, limit, offset)
     with _open(db_path, existing=True) as db:
         formal = _audit_formal(db)  # Already independently replays v0.6 and v0.7.
         nodes = {key: (kind, payload) for key, kind, payload in db.execute(
@@ -157,15 +159,17 @@ def research_agenda(db_path: str, *, domain: str | None = None,
     return {
         "schema": SCHEMA,
         "policy": POLICY,
-        "configuration": {"domain": domain, "limit": limit},
+        "configuration": {"domain": domain, "limit": limit, "offset": offset},
         "source_fingerprint": fingerprint,
         "source_audit": "ACCEPTED",
         "statements_examined": examined,
         "refuted_statements_excluded": excluded_refuted,
         "eligible_action_count": len(tasks),
         "action_counts": dict(sorted(counts.items())),
-        "returned_count": min(len(tasks), limit),
-        "tasks": tasks[:limit],
+        "returned_count": len(tasks[offset:offset + limit]),
+        "page_offset": offset,
+        "next_offset": (offset + limit if offset + limit < len(tasks) else None),
+        "tasks": tasks[offset:offset + limit],
         "proof_status_upgrades": 0,
         "historical_lean_execution_attestation":
             "NOT_ESTABLISHED_BY_OFFLINE_AUDIT",
@@ -174,8 +178,9 @@ def research_agenda(db_path: str, *, domain: str | None = None,
 
 
 def write_agenda(db_path: str, output: str, *, domain: str | None = None,
-                 limit: int = 30) -> dict:
-    report = research_agenda(db_path, domain=domain, limit=limit)
+                 limit: int = 30, offset: int = 0) -> dict:
+    report = research_agenda(db_path, domain=domain, limit=limit,
+                             offset=offset)
     path = Path(output)
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp_name = None
@@ -200,10 +205,10 @@ def audit_agenda(db_path: str, report_path: str) -> dict:
     if type(report) is not dict or report.get("schema") != SCHEMA:
         raise ValueError("unrecognized agenda schema")
     config = report.get("configuration")
-    if type(config) is not dict or set(config) != {"domain", "limit"}:
+    if type(config) is not dict or set(config) != {"domain", "limit", "offset"}:
         raise ValueError("malformed agenda configuration")
     expected = research_agenda(db_path, domain=config["domain"],
-                               limit=config["limit"])
+                               limit=config["limit"], offset=config["offset"])
     if stable(report) != stable(expected):
         raise ValueError("agenda differs from independently replayed evidence")
     return {
