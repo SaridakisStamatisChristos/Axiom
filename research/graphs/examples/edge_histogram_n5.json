@@ -1,0 +1,22 @@
+{
+  "counts_by_number_of_edges": [
+    1,
+    10,
+    45,
+    120,
+    210,
+    252,
+    210,
+    120,
+    45,
+    10,
+    1
+  ],
+  "formal_verification": "NOT_PERFORMED",
+  "order": 5,
+  "originality": "KNOWN_COMBINATORIAL_IDENTITY",
+  "possible_edges": 10,
+  "schema": "axiom.graph.edge_count_distribution.v1",
+  "statement_sha256": "086616466113094c9a07411fbcd0b5773ae0a3f632941494b2b928831419661f",
+  "total_labelled_graphs": 1024
+}

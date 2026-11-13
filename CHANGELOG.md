@@ -1,6 +1,19 @@
 # Changelog
 
-## v0.4.0 — Number Theory Laboratory (verified release, 2026-11-13)- Introduced typed integer `divides` and strictly positive-modulus `congruent` statements with exact zero-divisor semantics and explicit bounds.
+## v0.5.0 — Finite Graph Mathematics (13 November 2026)
+
+- Added a strictly typed finite undirected simple-graph representation, exact isomorphism canonicalization, and exhaustive representative enumeration up to five vertices.
+- Implemented exact graph invariants: degrees, components, connectivity, forest/tree, bipartiteness, triangles, chromatic/clique/independence/matching numbers.
+- Added declarative fixed-order graph conjecture grammar with seeded generation, configurable bounded falsification, verified counterexamples, deduplication, and a SQLite-resumable research campaign.
+- Added independent standard-library graph-invariant reference checker and exhaustive proof certificates for **all labelled graphs with the exact fixed n<=5**. Larger sampled statements are experimental; graph results have **no Lean formal-verification status**.
+- Added known binomial graph edge-count distribution examples, independent finite combinatorial checker, CLI commands, full research reports, and adversarial tests injecting false discovered invariants.
+- Executed 240-position and 700-position research campaigns with independently replayed evidence; completed a **117-pass, 6-skipped** local regression suite (the six skipped require Lean).
+- Preserved v0.1–v0.4 source/proofs/archives; introduced independent Python 3.11/3.13 graph verification CI. No mathematical novelty claims.
+
+
+## v0.4.0 — Number Theory Laboratory (verified release, 2026-11-13)
+
+- Introduced typed integer `divides` and strictly positive-modulus `congruent` statements with exact zero-divisor semantics and explicit bounds.
 - Added SymPy exact polynomial quotient discovery, plus standalone standard-library integer coefficient-checking certificates bound to original statements.
 - Added deterministic, budgeted number-theory candidate generation, independently checked/minimized counterexamples, SQLite checkpoint/resume and research-report replay audit.
 - Added order-two linear recurrence finite-state period certificates over finite modular state pairs, including known Fibonacci benchmark checks and complete transition replay.

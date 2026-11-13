@@ -1,3 +1,64 @@
+# AXIOM v0.5.0 — Continuation checkpoint
+
+**Release classification:** v0.5 locally verified, preserving v0.4 kernel-verification records; GitHub verification details are to be recorded separately after the new CI workflow finishes.
+
+**Date:** 2026-11-13. **Repository:** https://github.com/SaridakisStamatisChristos/Axiom
+
+## Actual new v0.5 capabilities
+
+- Typed `SimpleGraph(n,edges)` domain for simple undirected graphs on exactly `n` vertices, `0<=n<=7`; strictly rejects malformed vertices, duplicate edges, loops, and invalid edge masks.
+- Exact graph isomorphism canonicalization by degree-class permutation; exhaustive unlabeled simple graph classes for n=0..5: `1,1,2,4,11,34`.
+- Exact graph invariants: degree sequence, edge count, components, connectivity, forest/tree, bipartiteness, triangles, chromatic number, clique number, independence number, matching number.
+- Closed typed grammar of 25 finite-graph claim templates with explicit antecedents, known benchmarks, negative cases and optional bounded integer parameter k. Every graph statement quantifies over ALL simple graphs of **a fixed exact order n**, never freely over all n.
+- Two intentionally independent invariant implementations; `graph_checker.py` checks concrete counterexamples and, for n<=5 only, enumerates **every labelled simple graph** to check a finite-domain proof certificate. The declarative claim interpreter is shared and is part of the trusted specification. Certificates have statement SHA-256 linkage, order, full labelled graph count, and coverage/vacuity metadata.
+- For n=6,7, seeded explicit bounded sampling only, never proof. Counterexample minimization is within the enumerated/sampled graph set, not globally for sampled higher orders.
+- SQLite candidate-per-position checkpoints, fail-closed persisted-evidence replay before resume, independent report audit, deterministic seed, deduplication, timings/RSS and version details.
+- Finite combinatorial edge-count distribution `C(C(n,2), k)` compared against brute-force enumeration for each n<=5.
+- New CLI: `graph-run`, `graph-audit`, `graph-enumerate`, `graph-count`, `graph-check-certificate`. Complete source semantics: `docs/graph_mathematics.md`.
+
+## Executed local validation
+
+- **Regression suite:** `117 passed, 6 skipped` on Python 3.13.5, Linux. The skipped cases are actual Lean-integrated tests gated by `AXIOM_REAL_LEAN`; no Lean is locally installed and no graph Lean results are asserted.
+- **Graph baseline** (seed 42; budget 240, max order 6, max sampled graphs 128): 133 unique / 107 duplicate; 102 finite-order proofs (**98 nonvacuous + 4 vacuous**), 20 independently verified refutations, 11 bounded experiments. 0 Lean graph proofs. Time 0.362387s, peak RSS 133336 KiB. Campaign ID `6df4269cf6caccee554e042f`.
+- **Scale campaign** (seed 2026; budget 700, max order 7, sampled cap 160): 224 unique / 476 duplicate; 139 finite-order proofs (**133 nonvacuous + 6 vacuous**), 50 refuted, 35 experimental. Time 1.190172s, peak RSS 139360 KiB. Campaign ID `fc067ac1c4bf0f64403987e1`.
+- Both full reports pass `axiom graph-audit`, both SQLite databases pass `PRAGMA integrity_check`.
+- Independent invariant-reference equality checked for all labelled n<=5 graph masks, with additional random n=6,7 masks; count of n=5 isomorphism classes is 34. Explicit five-cycle refutations preserved.
+
+## Exact proof epistemology
+
+`PROVED_IN_SUPPORTED_FRAGMENT` means a Python checker completely enumerated the finite class of labelled simple graphs with **exactly n<=5** vertices for the given statement. It does not mean the result holds for any other n. Graph `FORMALLY_VERIFIED` count is **zero**: no Lean kernel has yet verified the new graph statements. A vacuous antecedent is recorded but should not be called an interesting discovery. The older v0.3/v0.4 algebra/number-theory Lean proof records remain preserved and unchanged; they are separate from these new graph findings. Mathematical originality remains `NOT_ASSESSED`.
+
+## Local reproduction
+
+```bash
+python -m pip install -e '.[dev]'
+pytest -q
+axiom graph-enumerate --max-order 5
+axiom graph-count --max-order 5
+axiom graph-run --seed 42 --candidates 240 --max-order 6 --search-budget 128 \
+    --db research/graphs/replay.sqlite3 --report research/graphs/replay.json
+axiom graph-audit research/graphs/replay.json
+axiom graph-run --seed 2026 --candidates 700 --max-order 7 --search-budget 160 \
+    --db research/graphs/replay_scale.sqlite3 --report research/graphs/replay_scale.json
+axiom graph-audit research/graphs/replay_scale.json
+axiom graph-check-certificate research/graphs/examples/handshake_n5.json
+```
+
+## Preserved research artifacts
+
+`src/axiom/graph_model.py`, `graph_invariants.py`, `graph_claims.py`, `graph_checker.py`, `graph_campaign.py`, `graph_combinatorics.py`; `tests/test_graph_*.py`; `research/graphs/v05_baseline_report.json`, `v05_scale_report.json`, `v05_summary.json`, `v05_baseline.sqlite3`, `v05_scale.sqlite3`, `research/graphs/examples/`; `.github/workflows/graph-research.yml`; the previous release archive and `research/lean_verified/` remain unchanged.
+
+## Known open limitations and next milestone
+
+- Only up to seven graph vertices; global finite exhaustiveness stops at five. Fixed-template search can rediscover known identities and refute known errors but cannot generate novel graph-theoretical concepts reliably. Exact graph algorithms are intentionally exponential.
+- Certificate checker is an independent **Python** verifier, not a Lean kernel. The statement interpreter is shared and its correctness is trusted; a formalized graph model with independently kernel-checked finite certificates could be added later.
+- No proof beyond the fixed-n finite fragment, no graph planarity proofs, graph minors, general induction, literature novelty assurance, or autonomous open-problem resolution.
+- **Next target v0.6** — a cumulative graph-backed mathematical knowledge store with typed nodes/edges, provenance constraints, theorem dependency tracking, and source-bound lemma reuse, preserving all earlier verified artifacts.
+
+---
+
+## Preserved historical v0.4 checkpoint
+
 # AXIOM v0.4.0 — Number Theory Laboratory continuation checkpoint
 
 **Status:** **v0.4.0 VERIFIED RELEASE** — all 96 supported-fragment number-theory research proofs accepted by Lean 4.35.0 in the actual recorded CI run; recurrence certificates remain Python checked only.

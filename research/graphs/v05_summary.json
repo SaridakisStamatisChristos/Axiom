@@ -1,0 +1,50 @@
+{
+  "baseline": {
+    "campaign_id": "6df4269cf6caccee554e042f",
+    "counts": {
+      "EXPERIMENTALLY_SUPPORTED": 11,
+      "PROVED_IN_SUPPORTED_FRAGMENT": 102,
+      "REFUTED": 20
+    },
+    "lean_graph_results": 0,
+    "measurement": {
+      "elapsed_seconds": 0.362387,
+      "process_platform": "linux",
+      "python_version": "3.13.5",
+      "rss_kib": 133336,
+      "sqlite_version": "3.46.1"
+    },
+    "nonvacuous_fixed_order_proofs": 98,
+    "progress": {
+      "complete": true,
+      "cursor": 240,
+      "duplicates_rejected": 107,
+      "unique_candidates": 133
+    },
+    "vacuous_fixed_order_proofs": 4
+  },
+  "scale": {
+    "campaign_id": "fc067ac1c4bf0f64403987e1",
+    "counts": {
+      "EXPERIMENTALLY_SUPPORTED": 35,
+      "PROVED_IN_SUPPORTED_FRAGMENT": 139,
+      "REFUTED": 50
+    },
+    "lean_graph_results": 0,
+    "measurement": {
+      "elapsed_seconds": 1.190172,
+      "process_platform": "linux",
+      "python_version": "3.13.5",
+      "rss_kib": 139360,
+      "sqlite_version": "3.46.1"
+    },
+    "nonvacuous_fixed_order_proofs": 133,
+    "progress": {
+      "complete": true,
+      "cursor": 700,
+      "duplicates_rejected": 476,
+      "unique_candidates": 224
+    },
+    "vacuous_fixed_order_proofs": 6
+  }
+}

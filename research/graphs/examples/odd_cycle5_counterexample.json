@@ -1,0 +1,36 @@
+{
+  "originality": "KNOWN_BENCHMARK",
+  "statement": {
+    "assumption": "triangle_free",
+    "claim": "bipartite",
+    "k": 0,
+    "n": 5,
+    "quantifier": "forall_finite_simple_graphs_of_exact_order",
+    "template": "triangle_free_is_bipartite"
+  },
+  "witness": {
+    "edges": [
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "n": 5
+  }
+}

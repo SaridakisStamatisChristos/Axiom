@@ -1,10 +1,28 @@
-# AXIOM v0.3 — Mathematical Discovery and Optional Lean 4 Proof Checking
+# AXIOM v0.5 — Mathematical Discovery, Number Theory, and Finite Graphs
 
-**AXIOM** is an executable, local-first, budgeted experimental-mathematics engine. Its research campaigns generate conjectures from deterministic grammars, look for exact counterexamples, attempt narrow algebraic proof strategies, independently check proof certificates, audit persisted evidence, and checkpoint every candidate in SQLite.
+**AXIOM** is an executable, local-first, reproducible mathematical research laboratory. Version 0.5 adds a **Combinatorics and Graph Mathematics** module to the already developed integer polynomial, number-theory and Lean 4 workflows. Autonomous campaigns generate exact typed conjectures, search for counterexamples, independently validate proof certificates within narrowly specified fragments, checkpoint to SQLite, and produce reproducible experiment reports.
 
-**Release status (2026-11-13):** AXIOM v0.3 has 85 distinct generated research proof certificates independently accepted by a real Lean 4.35.0 / Mathlib v4.35.0 CI run. All results are from the deliberately restricted, known-template polynomial fragment; originality is `NOT_ASSESSED`. The original research SQLite statuses remain separate from external Lean evidence.
+**Version 0.5 evidence:** the local release suite passed **117 tests**, with **6 genuine-Lean tests skipped locally**; the previous v0.4 real-Lean CI run (96/96 number-theory and 85/85 algebraic proofs) remains separately recorded. The new graph module has **no Lean kernel-verification claims**. It produces finite-domain proofs only for simple graphs with a *specific* n≤5 using an independent checker which enumerates every labelled graph of that fixed order. The project never infers all-n graph theorems from these results.
 
-**Scientific interpretation:** A bounded search is not a proof. A `PROVED_IN_SUPPORTED_FRAGMENT` finding has a certificate checked by a separate, **stdlib-only** integer-polynomial checker, *not* by Lean, Rocq, or another formally verified kernel. `FORMALLY_VERIFIED` is never emitted by the core research campaigns; the optional v0.3 Lean backend records formal evidence separately, only after an actual successful kernel check. No AXIOM results have been established as mathematically novel. The v0.1 results remain preserved separately.
+**Important:** All graph-generation methods use known templates. Originality is `NOT_ASSESSED`, and statements valid for exactly five vertices must not be described as theorems for all graph orders. Finite sampled graph searches for n=6 or 7 yield only bounded evidence. See [graph trust boundaries and proofs](docs/graph_mathematics.md) and [the exact checkpoint](CHECKPOINT.md).
+
+## v0.5 — Run the graph mathematics laboratory
+
+```bash
+# After installing the project as shown below:
+axiom graph-enumerate --max-order 5
+axiom graph-count --max-order 5
+axiom graph-run --seed 42 --candidates 240 --max-order 6 --search-budget 128 \
+  --db research/graphs/new.sqlite3 --report research/graphs/new.json
+axiom graph-audit research/graphs/new.json
+axiom graph-check-certificate research/graphs/examples/handshake_n5.json
+```
+
+The first example enumerates **1, 1, 2, 4, 11, 34** unlabelled graphs for orders zero through five. The second verifies the labelled edge-count distribution via complete enumeration. Campaign outputs classify candidates into independently checked finite-order proofs, confirmed counterexamples, and unresolved sampled claims. `--step-limit N` permits checkpointed interruption; reusing the identical configuration and database resumes the next position. All capabilities work locally without paid AI APIs, a GPU, or external formal tools.
+
+**Executed v0.5 baseline:** 240 positions → 133 distinct statements, 107 duplicates, 102 fixed-order proofs (98 nonvacuous + 4 vacuous), 20 refutations, 11 experimentally supported statements. **Scale test:** 700 positions → 224 distinct statements, 139 finite-order proofs (133 nonvacuous + 6 vacuous), 50 refutations, 35 experimental statements. The experiment databases, full reports, statement-linked examples, and measurements are under `research/graphs/`; no result is presented as novel. These rates are specific to the bounded template grammar and are not measures of general mathematical intelligence.
+
+## Existing v0.1–v0.4 capabilities (preserved)
 
 ## Installation (Ubuntu / Linux Mint; Python 3.11+)
 

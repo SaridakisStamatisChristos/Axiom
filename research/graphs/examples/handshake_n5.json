@@ -1,0 +1,20 @@
+{
+  "certificate": {
+    "assumption_satisfying": 1024,
+    "labelled_graphs_checked": 1024,
+    "method": "exhaustive_all_labelled_simple_graphs",
+    "order": 5,
+    "schema": "axiom.graph.exhaustive_finite.v1",
+    "search_scope": "ALL graphs of exactly n vertices; no claim for other n",
+    "statement_sha256": "1c5c672f050026a5c976e2e0119321a3d7b3e56a020cd7c61ac2bf787a843554",
+    "vacuous": false
+  },
+  "statement": {
+    "assumption": null,
+    "claim": "sum degrees = 2|E|",
+    "k": 0,
+    "n": 5,
+    "quantifier": "forall_finite_simple_graphs_of_exact_order",
+    "template": "handshake"
+  }
+}

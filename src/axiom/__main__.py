@@ -5,7 +5,7 @@ from .research import run_campaign
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.4 mathematical research")
+    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.5 mathematical research")
     sub = p.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="create or resume a deterministic research campaign")
     run.add_argument("--db", default="research/axiom.sqlite3")
@@ -74,7 +74,77 @@ def main() -> None:
     ntfa.add_argument("result_dir")
     ntfa.add_argument("--expected-attempts", type=int, default=None)
     ntfa.add_argument("--require-verified", action="store_true")
+    graph = sub.add_parser("graph-run", help="research exact finite simple-graph conjectures")
+    graph.add_argument("--db", default="research/graphs/axiom_graphs.sqlite3")
+    graph.add_argument("--report", default="research/graphs/latest.json")
+    graph.add_argument("--seed", type=int, default=42)
+    graph.add_argument("--candidates", type=int, default=240)
+    graph.add_argument("--max-order", type=int, default=6)
+    graph.add_argument("--search-budget", type=int, default=128)
+    graph.add_argument("--step-limit", type=int, default=None)
+    graph_audit = sub.add_parser("graph-audit", help="independently replay graph experiment and certificates")
+    graph_audit.add_argument("report_file")
+    graph_cert = sub.add_parser("graph-check-certificate", help="recheck finite proof over all labelled graphs")
+    graph_cert.add_argument("artifact")
+    graph_enum = sub.add_parser("graph-enumerate", help="enumerate exact graph isomorphism classes for n<=5")
+    graph_enum.add_argument("--max-order", type=int, default=5)
+    graph_hist = sub.add_parser("graph-count", help="independently check binomial edge histograms for n<=5")
+    graph_hist.add_argument("--max-order", type=int, default=5)
     args = p.parse_args()
+    if args.command == "graph-count":
+        from .graph_combinatorics import edge_count_histogram, check_edge_count_histogram
+        if not 0<=args.max_order<=5:
+            p.exit(2, "REJECTED: finite graph count capped at n=5\n")
+        histograms = []
+        for n in range(args.max_order+1):
+            record=edge_count_histogram(n)
+            check_edge_count_histogram(record)
+            histograms.append(record)
+        print(json.dumps({"histograms":histograms,"proof_scope":"exact fixed finite n<=5",
+                          "lean_formal_verification":"NOT_PERFORMED"},indent=2))
+        return
+    if args.command == "graph-run":
+        from .graph_campaign import run_graph_campaign
+        try:
+            report = run_graph_campaign(args.db,seed=args.seed,candidates=args.candidates,
+                max_order=args.max_order,search_budget=args.search_budget,
+                step_limit=args.step_limit,report_path=args.report)
+        except (ValueError, TypeError, KeyError, RecursionError, OSError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps({"campaign_id":report["campaign_id"],"progress":report["progress"],
+                          "counts":report["counts"],"measurement":report["measurement"],
+                          "report":args.report},indent=2))
+        return
+    if args.command == "graph-audit":
+        from pathlib import Path
+        from .graph_campaign import audit_graph_report
+        try:
+            report = json.loads(Path(args.report_file).read_text(encoding="utf-8"))
+            counts = audit_graph_report(report)
+        except (ValueError, TypeError, KeyError, RecursionError, OSError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps({"outcome":"ACCEPTED","counts":counts,
+                          "lean_formal_verification":"NOT_PERFORMED"},indent=2))
+        return
+    if args.command == "graph-check-certificate":
+        from pathlib import Path
+        from .graph_checker import check_finite_certificate
+        try:
+            artifact = json.loads(Path(args.artifact).read_text(encoding="utf-8"))
+            if type(artifact) is not dict or set(artifact)!={"statement","certificate"}:
+                raise ValueError("artifact must contain statement and certificate")
+            check_finite_certificate(artifact['statement'],artifact['certificate'])
+        except (ValueError, TypeError, KeyError, RecursionError, OSError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print("ACCEPTED: exhaustive fixed-order finite graph proof; NOT Lean formally verified")
+        return
+    if args.command == "graph-enumerate":
+        from .graph_model import isomorphism_representatives
+        if not 0<=args.max_order<=5:
+            p.exit(2, "REJECTED: exact isomorphism enumeration capped at n=5\n")
+        print(json.dumps({"unlabeled_simple_graphs":
+            {n:len(isomorphism_representatives(n)) for n in range(args.max_order+1)}},indent=2))
+        return
     if args.command == "nt-audit-lean-results":
         from pathlib import Path
         from .number_theory_lean import audit_nt_lean_report
