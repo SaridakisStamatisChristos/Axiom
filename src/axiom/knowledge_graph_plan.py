@@ -35,8 +35,8 @@ ACTIONS = {
 
 
 def _arguments(order: int | None, limit: int, offset: int) -> None:
-    if order is not None and (type(order) is not int or order not in (5, 6, 7)):
-        raise ValueError("graph order filter must be 5, 6 or 7")
+    if order is not None and (type(order) is not int or order not in range(8)):
+        raise ValueError("graph order filter must be an integer from 0 through 7")
     if type(limit) is not int or not 1 <= limit <= 100:
         raise ValueError("graph agenda limit must be 1..100")
     if type(offset) is not int or not 0 <= offset <= 100_000:
