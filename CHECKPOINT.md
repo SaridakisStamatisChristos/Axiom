@@ -1,3 +1,29 @@
+# AXIOM v0.6 — Active development checkpoint (13 November 2026)
+
+**Based on verified main commit:** 119b1a72aa554ec50723e42aaab7df709923c2bf (v0.5). **Development branch:** axiom-v0.6-knowledge-graph. **Engineering state:** implementation and tests committed; CI review/promotion not yet claimed in this checkpoint.
+
+## Added architecture
+
+- src/axiom/knowledge_graph.py: deterministic materialization of typed campaign/statement/finding/search/proof/counterexample/checker/template-family nodes and provenance relationships into SQLite.
+- Existing complete v0.5 graph reports are re-audited before import and replayed again during full-graph audits. An imported campaign is immutable and identified by its original campaign ID.
+- Graph-order analogy relationships carry explicit non-entailment metadata. No generalization is claimed from fixed-order finite proofs. The existing graph Lean verification count remains zero.
+- New commands: knowledge-build, knowledge-audit, knowledge-query, knowledge-neighbors; tests/test_knowledge_graph.py includes adversarial integrity checks.
+- Graph database built by CI from both preserved reports is uploaded as a run artifact; the source research artifacts are not overwritten.
+
+## Reproduce
+
+```bash
+python -m pip install -e '.[dev]'
+pytest -q
+axiom knowledge-build --db research/knowledge/axiom.sqlite3 \
+  research/graphs/v05_baseline_report.json research/graphs/v05_scale_report.json
+axiom knowledge-audit --db research/knowledge/axiom.sqlite3
+```
+
+**Trust boundary:** v0.6 is an evidence index, not a generalized theorem prover. The current adapter only imports v0.5 graph reports; v0.1–v0.4 scientific and Lean evidence remains preserved separately. Mathematical originality NOT_ASSESSED.
+
+---
+
 # AXIOM v0.5.0 — Continuation checkpoint
 
 **Release classification:** v0.5 graph research validated locally **and** in real GitHub CI on Python 3.11/3.13; v0.4 Lean proof evidence preserved unchanged. Graph finite-order proofs remain Python-checked, not Lean kernel-verified.
