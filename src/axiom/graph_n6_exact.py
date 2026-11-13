@@ -114,9 +114,30 @@ def _facts_reference(mask: int) -> dict:
             if adjacent[a] & (1 << b):
                 triangles += (adjacent[a] & adjacent[b] &
                               ~((1 << (b + 1)) - 1)).bit_count()
-    # Characterization of a finite undirected simple forest:
-    # |E| = |V| - number of connected components.
-    forest = edges == N - component_count
+    # Independently recognize acyclicity by an undirected DFS with
+    # parent tracking. NEVER define "forest" using |E| = n-components
+    # here: that is the very claim the finite certificate must test.
+    visited = [False] * N
+
+    def cycle_found(u: int, parent: int) -> bool:
+        visited[u] = True
+        neighbors = adjacent[u]
+        while neighbors:
+            bit = neighbors & -neighbors
+            neighbors ^= bit
+            v = bit.bit_length() - 1
+            if not visited[v]:
+                if cycle_found(v, u):
+                    return True
+            elif v != parent:
+                return True
+        return False
+
+    forest = True
+    for root in range(N):
+        if not visited[root] and cycle_found(root, -1):
+            forest = False
+            break
     connected = component_count == 1
     return {
         "n": N, "edges": edges,
