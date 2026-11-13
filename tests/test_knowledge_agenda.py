@@ -63,6 +63,21 @@ def test_deterministic_priorities_and_refutation_exclusion(db_path):
         t["priority"], t["domain"], t["statement_id"]))
 
 
+def test_pagination_exposes_every_ranked_task_once(db_path):
+    first = research_agenda(db_path, limit=10, offset=0)
+    second = research_agenda(db_path, limit=10, offset=10)
+    assert first["page_offset"] == 0
+    assert first["next_offset"] == 10
+    assert second["page_offset"] == 10
+    assert first["eligible_action_count"] == second["eligible_action_count"]
+    assert {x["task_id"] for x in first["tasks"]}.isdisjoint(
+        x["task_id"] for x in second["tasks"])
+    final = research_agenda(db_path, limit=10,
+                            offset=first["eligible_action_count"])
+    assert final["tasks"] == []
+    assert final["next_offset"] is None
+
+
 def test_domain_scope_does_not_infer_cross_order_theorems(db_path):
     graph = research_agenda(db_path, domain="graph", limit=100)
     assert graph["statements_examined"] > 0
@@ -106,7 +121,13 @@ def test_offline_lean_index_is_not_execution_attestation(db_path, tmp_path):
     after = research_agenda(db_path, limit=100)
     assert after["source_fingerprint"] != before["source_fingerprint"]
     assert after["proof_status_upgrades"] == 0
-    replays = [t for t in after["tasks"] if t["action"] == "REEXECUTE_PINNED_LEAN"]
+    # Formal rechecks may follow more than 100 falsification/formalization
+    # tasks. Pagination must make the complete agenda reachable.
+    replay_start = (after["action_counts"].get("FALSIFY_WITH_INDEPENDENT_SEARCH", 0)
+                    + after["action_counts"].get("FORMALIZE_SUPPORTED_FRAGMENT", 0))
+    replay_page = research_agenda(db_path, offset=replay_start, limit=100)
+    replays = [t for t in replay_page["tasks"]
+               if t["action"] == "REEXECUTE_PINNED_LEAN"]
     assert replays
     assert all(t["source_bound_offline_lean_record_ids"] for t in replays)
     assert all("PROVED_IN_SUPPORTED_FRAGMENT" in t["evidence_statuses"]
@@ -126,6 +147,7 @@ def test_reject_database_tampering_before_task_scheduling(db_path):
 
 def test_invalid_limits_domains_and_manifest_fail_closed(db_path, tmp_path):
     for kw in [{"limit": 0}, {"limit": True}, {"limit": 101},
+               {"offset": -1}, {"offset": True}, {"offset": 100001},
                {"domain": "fiction"}, {"domain": 17}]:
         with pytest.raises((ValueError, TypeError)):
             research_agenda(db_path, **kw)
