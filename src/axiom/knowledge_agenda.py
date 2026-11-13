@@ -55,7 +55,6 @@ def research_agenda(db_path: str, *, domain: str | None = None,
     """
     _arguments(domain, limit)
     with _open(db_path, existing=True) as db:
-        db.execute("BEGIN")  # Stable source snapshot across audit and extraction.
         formal = _audit_formal(db)  # Already independently replays v0.6 and v0.7.
         nodes = {key: (kind, payload) for key, kind, payload in db.execute(
             "SELECT node_id,kind,payload FROM federation_nodes")}
