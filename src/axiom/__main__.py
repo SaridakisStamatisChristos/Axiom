@@ -5,7 +5,7 @@ from .research import run_campaign
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.10 mathematical research")
+    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.11 mathematical research")
     sub = p.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="create or resume a deterministic research campaign")
     run.add_argument("--db", default="research/axiom.sqlite3")
@@ -149,7 +149,42 @@ def main() -> None:
     agenda_audit = sub.add_parser("knowledge-plan-audit", help="replay all sources and audit a saved agenda")
     agenda_audit.add_argument("report_file")
     agenda_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    frontier_import = sub.add_parser(
+        "knowledge-frontier-import",
+        help="import fully replayed n=6/7 bounded graph experiments into separate evidence overlay")
+    frontier_import.add_argument("reports", nargs="+", help="v0.9 exact source-bound frontier reports")
+    frontier_import.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    frontier_audit = sub.add_parser(
+        "knowledge-frontier-audit", help="independently recheck all imported graph frontier findings")
+    frontier_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    frontier_query = sub.add_parser(
+        "knowledge-frontier-query", help="query typed n=6/7 experimental evidence with provenance")
+    frontier_query.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    frontier_query.add_argument("--order", type=int, choices=(6, 7))
+    frontier_query.add_argument("--status", choices=("REFUTED", "EXPERIMENTALLY_SUPPORTED"))
+    frontier_query.add_argument("--offset", type=int, default=0)
+    frontier_query.add_argument("--limit", type=int, default=20)
     args = p.parse_args()
+    if args.command in {"knowledge-frontier-import", "knowledge-frontier-audit",
+                        "knowledge-frontier-query"}:
+        from .frontier_lineage import (
+            import_frontier_lineage, frontier_lineage_summary, query_frontier_lineage)
+        import sqlite3
+        try:
+            if args.command == "knowledge-frontier-import":
+                result = import_frontier_lineage(args.db, args.reports)
+            elif args.command == "knowledge-frontier-audit":
+                result = frontier_lineage_summary(args.db)
+            else:
+                result = {"statements": query_frontier_lineage(
+                    args.db, order=args.order, status=args.status,
+                    offset=args.offset, limit=args.limit)}
+        except (ValueError, TypeError, KeyError, OSError, sqlite3.DatabaseError,
+                json.JSONDecodeError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(result, sort_keys=True, indent=2))
+        return
+
     if args.command in {"knowledge-plan", "knowledge-plan-audit"}:
         from .knowledge_agenda import research_agenda, write_agenda, audit_agenda
         import sqlite3
