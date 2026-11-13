@@ -1,0 +1,65 @@
+name: AXIOM v0.10 evidence-gated research agenda
+on:
+  push:
+    branches: [main, "axiom-v0.10-*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: axiom-v010-agenda-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  source-replayed-research-agenda:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install AXIOM and test dependencies
+        run: python -m pip install -e '.[dev]'
+      - name: Adversarial evidence-gated agenda regressions
+        run: pytest -q tests/test_knowledge_agenda.py
+      - name: Rebuild and replay complete historical mathematical sources
+        run: |
+          mkdir -p research/knowledge
+          axiom knowledge-build --db research/knowledge/ci_v010.sqlite3 \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+          axiom knowledge-federate --db research/knowledge/ci_v010.sqlite3 \
+            research/v03_campaign_report.json \
+            research/number_theory/v04_report.json \
+            research/number_theory/v04_sequences.json
+      - name: Index complete historical source-bound Lean records (not kernel reexecution)
+        run: |
+          axiom knowledge-formal-import --db research/knowledge/ci_v010.sqlite3 \
+            --algebra-ndjson research/v03_formal_results.ndjson \
+            --number-index research/number_theory/v04_formal_results.ndjson \
+            --number-records-dir research/lean_verified/number_theory
+      - name: Generate and independently audit the new research agenda
+        run: |
+          axiom knowledge-plan --db research/knowledge/ci_v010.sqlite3 \
+            --limit 100 --output research/knowledge/ci_v010_agenda.json \
+            > research/knowledge/ci_v010_summary.json
+          axiom knowledge-plan-audit --db research/knowledge/ci_v010.sqlite3 \
+            research/knowledge/ci_v010_agenda.json
+      - name: Preserve all audited research evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axiom-v010-agenda-python-${{ matrix.python-version }}
+          path: |
+            research/knowledge/ci_v010.sqlite3
+            research/knowledge/ci_v010_agenda.json
+            research/knowledge/ci_v010_summary.json
+          if-no-files-found: warn
