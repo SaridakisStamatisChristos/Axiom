@@ -86,7 +86,11 @@ jobs:
         run: |
           axiom nt-lean-verify-report research/nt_ci_report.json \
             --project-root . --output-dir research/lean_verified/number_theory \
-            --limit 15 --timeout 180
+            --limit 96 --timeout 180
+      - name: Independently audit number-theory Lean evidence against full research provenance
+        run: |
+          axiom nt-audit-lean-results research/nt_ci_report.json \
+            research/lean_verified/number_theory --expected-attempts 96 --require-verified
       - name: Preserve verification evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4

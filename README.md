@@ -212,8 +212,10 @@ axiom nt-check-certificate research/number_theory/nt_example_74754e364917.json
 # Optional real Lean 4 + Mathlib: pin resolution and verification:
 lake update && lake exe cache get
 axiom nt-lean-verify-report research/nt_replay.json \
-  --project-root . --output-dir research/nt_lean_verify --limit 15
+  --project-root . --output-dir research/nt_lean_verify --limit 96
 AXIOM_REAL_LEAN=1 pytest -q tests/test_number_theory_lean_integration.py
+axiom nt-audit-lean-results research/nt_replay.json research/nt_lean_verify \
+  --expected-attempts 96 --require-verified
 ```
 
 Full mathematical semantics, trust boundaries and limitations: [`docs/number_theory.md`](docs/number_theory.md).

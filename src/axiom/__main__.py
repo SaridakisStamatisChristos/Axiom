@@ -69,7 +69,23 @@ def main() -> None:
     seq.add_argument("--report", default="research/sequence_latest.json")
     seq_audit = sub.add_parser("nt-sequence-audit", help="replay independent finite-state recurrence certificates")
     seq_audit.add_argument("report_file")
+    ntfa = sub.add_parser("nt-audit-lean-results", help="replay original number-theory candidates against saved Lean records")
+    ntfa.add_argument("report_file")
+    ntfa.add_argument("result_dir")
+    ntfa.add_argument("--expected-attempts", type=int, default=None)
+    ntfa.add_argument("--require-verified", action="store_true")
     args = p.parse_args()
+    if args.command == "nt-audit-lean-results":
+        from pathlib import Path
+        from .number_theory_lean import audit_nt_lean_report
+        try:
+            source=json.loads(Path(args.report_file).read_text(encoding='utf-8'))
+            result=audit_nt_lean_report(source,args.result_dir,
+                expected_attempts=args.expected_attempts,require_verified=args.require_verified)
+        except (ValueError,TypeError,KeyError,RecursionError,OSError) as exc:
+            p.exit(2,f"REJECTED: {exc}\n")
+        print(json.dumps(result,indent=2,sort_keys=True))
+        return
     if args.command == "nt-sequence-run":
         from pathlib import Path
         from .recurrences import sequence_campaign, audit_sequence_campaign

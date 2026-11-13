@@ -3,7 +3,7 @@
 ## Supported mathematical universe
 
 - Quantification: universal quantification over one or two typed integers, named `x`/`y`.
-- Expression grammar: exact `Int` constants, variables, `+`, `-`, `*`, nonnegative integer powers 0–8.
+- Expression grammar: exact `Int` constants, variables, `+`, `-`, `*`, nonnegative integer powers 0–8 (including the polynomial-ring convention `0^0 = 1`).
 - Divisibility `a ∣ b` means `∃ k∈ℤ, b=a*k`. Negative divisors are allowed. **Zero divides zero**, but zero never divides nonzero integers.
 - Positive-modulus congruence `a ≡ b (mod m)` means `m ∣ (a-b)`, with `m∈[1,2³¹]`. Modulus 0 or negative modulus is rejected rather than silently normalized.
 - Optional explicit inclusive integer bounds are logical assumptions; a search interval is only an experimental limit, not a universal quantifier restriction.
@@ -40,3 +40,18 @@ Fibonacci `(a₀,a₁,p,q)=(0,1,1,1)` mod 2 has preperiod 0 and period 3; mod 5 
 - Originality always `NOT_ASSESSED` unless a separate scholarly literature comparison is performed.
 
 The recurrence certificates do not currently have a Lean backend. Factorization proof search is not completeness-preserving for integer-valued polynomials and is not a full Diophantine theorem prover. Source grammar remains a maximum of two variables. See `CHECKPOINT.md` and CI logs for exactly what was actually executed.
+
+## Independent offline audit of Lean result provenance
+
+After a genuinely executed Lean batch, replay the exact source-bound evidence
+against the original deterministic research campaign with:
+
+```bash
+axiom nt-audit-lean-results research/number_theory/v04_report.json \
+  research/lean_verified/number_theory --expected-attempts 96 --require-verified
+```
+
+This validates canonical statements, original proof certificates, generated
+Lean source hashes, allowed transitive axioms, filenames and evidence totals.
+It does **not** prove that a given JSON record came from a historical CI run;
+that claim must also be backed by the external GitHub Actions run and logs.

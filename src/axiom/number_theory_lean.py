@@ -179,3 +179,64 @@ def verify_nt_report(report: dict,*,project_root: str | Path,
              'results':records}
     (path/'summary.json').write_text(json.dumps(summary,sort_keys=True,indent=2)+'\n',encoding='utf-8')
     return summary
+
+
+def audit_nt_lean_report(report: dict, result_dir: str | Path, *,
+                         expected_attempts: int | None = None,
+                         require_verified: bool = False) -> dict[str,Any]:
+    """Replay campaign, map every formal record to its exact originating certificate.
+
+    This checks internal record integrity; CI logs are the external attestation
+    that Lean actually executed. No offline audit itself proves execution.
+    """
+    from .number_theory_campaign import audit_nt_report
+    audit_nt_report(report)
+    if expected_attempts is not None and (type(expected_attempts) is not int or expected_attempts < 0):
+        raise LeanBackendError('invalid expected formal attempt count')
+    path=Path(result_dir)
+    if not path.is_dir():
+        raise LeanBackendError('formal evidence directory does not exist')
+    summary_path=path/'summary.json'
+    if not summary_path.is_file():
+        raise LeanBackendError('formal verification batch summary missing')
+    summary=json.loads(summary_path.read_text(encoding='utf-8'))
+    if summary.get('schema')!='axiom.number_theory.lean_batch.v1' or summary.get('campaign_id')!=report['campaign_id']:
+        raise LeanBackendError('formal summary refers to different campaign')
+    proved=[f for f in report['findings'] if f['status']=='PROVED_IN_SUPPORTED_FRAGMENT']
+    by_id={f['candidate_id']:f for f in proved}
+    indexed=summary.get('results')
+    if not isinstance(indexed,list) or len(indexed)>len(proved) or \
+            summary.get('attempted')!=len(indexed) or summary.get('locally_proved')!=len(proved):
+        raise LeanBackendError('inconsistent formal result totals')
+    if expected_attempts is not None and len(indexed)!=expected_attempts:
+        raise LeanBackendError('formal batch incomplete for declared attempt budget')
+    seen=set();verified=0
+    for item in indexed:
+        if not isinstance(item,dict) or set(item)!={'candidate_id','theorem','status','accepted'}:
+            raise LeanBackendError('malformed formal summary entry')
+        cid=item['candidate_id']
+        if cid not in by_id or cid in seen:
+            raise LeanBackendError('duplicated or unknown formally checked candidate')
+        seen.add(cid)
+        file=path/(cid[:24]+'.json')
+        if not file.is_file():
+            raise LeanBackendError('formal proof record missing')
+        record=json.loads(file.read_text(encoding='utf-8'))
+        verify_nt_record_integrity(record)
+        origin=by_id[cid]
+        if record['statement']!=origin['statement'] or \
+                record['certificate']!=origin['proof']['certificate'] or \
+                any(item[k]!=record[k] for k in ('theorem','status','accepted')):
+            raise LeanBackendError('formal result not bound to original research candidate')
+        if require_verified and record['status']!='FORMALLY_VERIFIED':
+            raise LeanBackendError('unverified candidate in required formal proof batch')
+        verified+=record['status']=='FORMALLY_VERIFIED'
+    present={p.name for p in path.glob('*.json')}
+    expected={cid[:24]+'.json' for cid in seen}|{'summary.json'}
+    if present!=expected:
+        raise LeanBackendError('unknown/missing formal verification JSON files')
+    if summary.get('formally_verified')!=verified:
+        raise LeanBackendError('forged formal verification summary totals')
+    return {'origin_campaign_id':report['campaign_id'],'attempted':len(indexed),
+            'formally_verified':verified,'unverified':len(indexed)-verified,
+            'historical_ci_attestation':'NOT_ESTABLISHED_BY_OFFLINE_AUDIT'}
