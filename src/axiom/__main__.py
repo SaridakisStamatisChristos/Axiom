@@ -5,7 +5,7 @@ from .research import run_campaign
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.6 mathematical research")
+    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.7 mathematical research")
     sub = p.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="create or resume a deterministic research campaign")
     run.add_argument("--db", default="research/axiom.sqlite3")
@@ -105,7 +105,35 @@ def main() -> None:
     kn_neighbors.add_argument("node_id")
     kn_neighbors.add_argument("--db", default="research/knowledge/axiom.sqlite3")
     kn_neighbors.add_argument("--limit", type=int, default=100)
+    federation = sub.add_parser("knowledge-federate", help="attach audited algebra/number-theory/recurrence evidence to v0.6 graph DB")
+    federation.add_argument("reports", nargs="+", help="complete historical domain-specific campaign reports")
+    federation.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    fed_audit = sub.add_parser("knowledge-federation-audit", help="replay all native source auditors and verify the typed federation")
+    fed_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    fed_q = sub.add_parser("knowledge-cross-query", help="query domain-separated mathematical findings")
+    fed_q.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    fed_q.add_argument("--domain", choices=("graph", "algebra", "number_theory", "recurrence"))
+    fed_q.add_argument("--status")
+    fed_q.add_argument("--limit", type=int, default=20)
     args = p.parse_args()
+    if args.command in {"knowledge-federate", "knowledge-federation-audit", "knowledge-cross-query"}:
+        from .knowledge_federation import federate, federation_summary, query_federation
+        import sqlite3
+        try:
+            if args.command == "knowledge-federate":
+                result = federate(args.db, args.reports)
+            elif args.command == "knowledge-federation-audit":
+                result = federation_summary(args.db)
+            else:
+                result = {"statements": query_federation(
+                    args.db, domain=args.domain, status=args.status,
+                    limit=args.limit)}
+        except (ValueError, TypeError, KeyError, OSError, sqlite3.DatabaseError,
+                json.JSONDecodeError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return
+
     if args.command in {"knowledge-build", "knowledge-audit", "knowledge-query", "knowledge-neighbors"}:
         import sqlite3
         from .knowledge_graph import (build_knowledge_graph, knowledge_summary,
