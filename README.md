@@ -1,3 +1,20 @@
+# AXIOM v0.6 — Mathematical Knowledge Graph (development branch)
+
+Version 0.6 adds an **auditable cumulative knowledge graph** for the v0.5 finite-graph campaigns, preserving source evidence, exact-order proof boundaries, counterexamples, historical evidence states, checker dependencies, and navigable higher-order analogues without inferring any universal theorem. The old research modules and v0.5 reports are preserved.
+
+Run after installation:
+
+```bash
+axiom knowledge-build --db research/knowledge/axiom.sqlite3 \
+  research/graphs/v05_baseline_report.json research/graphs/v05_scale_report.json
+axiom knowledge-audit --db research/knowledge/axiom.sqlite3
+axiom knowledge-query --db research/knowledge/axiom.sqlite3 --template handshake --order 5
+```
+
+Full design, limits, tests and provenance model: [Knowledge Graph v0.6](docs/knowledge_graph.md). **Proof-status policy:** no new graph Lean verifications, originality claims, or all-order graph theorems are asserted. The remainder of this README documents the fully preserved v0.5 capabilities.
+
+---
+
 # AXIOM v0.5 — Mathematical Discovery, Number Theory, and Finite Graphs
 
 **AXIOM** is an executable, local-first, reproducible mathematical research laboratory. Version 0.5 adds a **Combinatorics and Graph Mathematics** module to the already developed integer polynomial, number-theory and Lean 4 workflows. Autonomous campaigns generate exact typed conjectures, search for counterexamples, independently validate proof certificates within narrowly specified fragments, checkpoint to SQLite, and produce reproducible experiment reports.
