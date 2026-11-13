@@ -180,3 +180,44 @@ def test_cli_produces_independently_auditable_evidence(tmp_path):
         "graph-frontier-audit", str(output), *SOURCES],
         capture_output=True, text=True, env=env)
     assert failed.returncode != 0
+
+
+def test_preserved_ci_research_digest_and_explicit_refutations(six, seven, historical):
+    """A durable release ledger must match fully recomputed mathematical evidence."""
+    import hashlib
+    from axiom.graph_claims import GraphStatement, digest
+
+    ledger = json.loads((ROOT / "research/graphs/v09_results_summary.json").read_text())
+    assert ledger["schema"] == "axiom.graph.frontier.research_release_summary.v1"
+    assert ledger["target_order_proofs"] == 0
+    assert ledger["novelty"] == "NOT_ASSESSED"
+    expected_sources = {x["campaign_id"]: x["sha256"]
+                        for x in ledger["source_reports"]}
+    assert expected_sources == {r["campaign_id"]: digest(r) for r in historical}
+    totals = {"candidates": 0, "refuted": 0, "surviving": 0}
+    for record, report in zip(ledger["reports"], (six, seven)):
+        assert report["configuration"]["max_candidates"] == 24  # actual set below quota
+        assert report["candidate_count"] <= 24
+        assert report["configuration"]["target_order"] == record["order"]
+        assert record["campaign_id"] == report["campaign_id"]
+        file_content = json.dumps(report, indent=2, sort_keys=True) + "\n"
+        assert hashlib.sha256(file_content.encode()).hexdigest() == record["report_sha256"]
+        assert record["candidates"] == report["candidate_count"]
+        assert record["refuted"] == report["counts"]["REFUTED"]
+        assert (record["experimentally_supported_not_proved"] ==
+                report["counts"]["EXPERIMENTALLY_SUPPORTED"])
+        totals["candidates"] += record["candidates"]
+        totals["refuted"] += record["refuted"]
+        totals["surviving"] += record["experimentally_supported_not_proved"]
+    assert totals == {"candidates": 39, "refuted": 3, "surviving": 36}
+    assert len(ledger["refutations"]) == 3
+    for counterexample in ledger["refutations"]:
+        statement = GraphStatement(
+            counterexample["order"], counterexample["template"],
+            counterexample["k"])
+        n = counterexample["order"]
+        assert len(counterexample["witness_edges"]) == counterexample["observed_edge_count"]
+        assert counterexample["observed_edge_count"] > n + counterexample["k"]
+        assert counterexample["claimed_max_edges"] == n + counterexample["k"]
+        assert check_graph_witness(statement.to_dict(),
+                                   {"n": n, "edges": counterexample["witness_edges"]})
