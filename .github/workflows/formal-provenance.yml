@@ -1,0 +1,64 @@
+name: AXIOM v0.8 source-bound Lean provenance
+on:
+  push:
+    branches: [main, "axiom-v0.8-*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  formal-provenance-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: python -m pip install -e '.[dev]'
+      - name: Test against actual archived historical Lean records
+        run: pytest -q tests/test_formal_provenance.py
+      - name: Reconstruct audited v0.6 finite-graph knowledge
+        run: |
+          mkdir -p research/knowledge
+          axiom knowledge-build \
+            --db research/knowledge/ci_v08.sqlite3 \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+      - name: Independently replay all supported mathematical domains
+        run: |
+          axiom knowledge-federate --db research/knowledge/ci_v08.sqlite3 \
+            research/v03_campaign_report.json \
+            research/number_theory/v04_report.json \
+            research/number_theory/v04_sequences.json
+      - name: Source-bind original 85 algebra and 96 number-theory formal records
+        run: |
+          axiom knowledge-formal-import --db research/knowledge/ci_v08.sqlite3 \
+            --algebra-ndjson research/v03_formal_results.ndjson \
+            --number-index research/number_theory/v04_formal_results.ndjson \
+            --number-records-dir research/lean_verified/number_theory \
+            > research/knowledge/ci_v08_summary.json
+      - name: Replay complete local and formal source linkage
+        run: |
+          axiom knowledge-audit --db research/knowledge/ci_v08.sqlite3
+          axiom knowledge-federation-audit --db research/knowledge/ci_v08.sqlite3
+          axiom knowledge-formal-audit --db research/knowledge/ci_v08.sqlite3
+          axiom knowledge-formal-query --db research/knowledge/ci_v08.sqlite3 \
+            --domain number_theory --limit 2
+      - name: Preserve auditable proof index and source-bound summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axiom-v08-source-bound-python-${{ matrix.python-version }}
+          path: |
+            research/knowledge/ci_v08.sqlite3
+            research/knowledge/ci_v08_summary.json
+          if-no-files-found: warn
