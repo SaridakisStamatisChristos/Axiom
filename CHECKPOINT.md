@@ -1,3 +1,34 @@
+# AXIOM v0.13 — Exact-n6 proof evidence integrated with mathematical knowledge
+
+**Development source:** \`axiom-v0.12-exact-n6\` at head
+\`e62dbee65188e26304dfeb25960880ce1183a749\`.
+The v0.13 branch \`axiom-v0.13-exact-knowledge\` is stacked on v0.12.
+
+## Implemented
+- New \`src/axiom/knowledge_exact_n6.py\`: four separate source-bound
+  SQLite evidence tables, immutable canonical campaign snapshots,
+  auditable exact-order statements, 32768-graph finite proof or original
+  counterexample, and explicit, non-entailing reconciliation with prior
+  bounded frontier observations.
+- Independent full source replay on **every** import, audit and query:
+  original n=5 graph campaigns, four-domain typed federation, source-bound
+  historical Lean metadata, n6/n7 bounded graph frontier, and the entire
+  exact n6 finite certificate research campaign.
+- Nonvacuous proof enforcement, no contradictory exact graph-order
+  evidence, no fabricated Lean verification, no universal graph theorem.
+  Older datasets and statuses remain unmodified.
+- CLI: \`knowledge-exact-n6-import\`, \`knowledge-exact-n6-audit\`,
+  \`knowledge-exact-n6-query\` with type-checked pagination/filtering.
+- New adversarial source mutation tests, a dedicated Python 3.11/3.13
+  reproducible science workflow, preserved scientific artifacts and full
+  installation and epistemic-boundary documentation.
+
+**Release gate:** No release until dedicated v0.13 CI, all historical
+research CI and actual Lean 4 kernel checks pass on the exact final
+PR commit. Prerequisite v0.12 must be released/merged first.
+
+---
+
 # AXIOM v0.12 — Independent complete six-vertex graph proof engine (13 November 2026)
 
 **Starting source:** v0.11 development head
