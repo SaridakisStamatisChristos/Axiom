@@ -1,0 +1,54 @@
+name: AXIOM v0.12 exact six-vertex graph proofs
+on:
+  push:
+    branches: [main, "axiom-v0.12-*"]
+  pull_request:
+    branches: [main, "axiom-v0.11-frontier-lineage"]
+  workflow_dispatch:
+
+concurrency:
+  group: axiom-v012-n6-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  independent-exhaustive-n6:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install exact AXIOM source and dependencies
+        run: python -m pip install -e '.[dev]'
+      - name: Dual-oracle adversarial exhaustive six-vertex regression
+        run: pytest -q tests/test_graph_n6_exact.py
+      - name: Enumerate all 32768 labelled graphs for every supported structural claim
+        run: |
+          mkdir -p research/graphs
+          axiom graph-n6-run --templates \
+            handshake degree_bound triangle_upper_bound \
+            forest_edge_count tree_edge_count connected_edge_lower_bound \
+            bipartite_no_triangles edges_le_vertices connected_edges_ge_n \
+            --output research/graphs/ci_n6_exact.json \
+            > research/graphs/ci_n6_exact_summary.json
+      - name: Independently reconstruct every certified proof and falsification
+        run: |
+          axiom graph-n6-audit research/graphs/ci_n6_exact.json
+          python -c 'import json; d=json.load(open("research/graphs/ci_n6_exact.json")); assert d["counts"]["PROVED_IN_SUPPORTED_FRAGMENT"] == 7 and d["counts"]["REFUTED"] == 2; assert all(f["labelled_graphs_checked"]==32768 for f in d["findings"])'
+      - name: Preserve reproducible finite proof and falsification artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axiom-v012-exact-n6-python-${{ matrix.python-version }}
+          path: |
+            research/graphs/ci_n6_exact.json
+            research/graphs/ci_n6_exact_summary.json
+          if-no-files-found: warn
