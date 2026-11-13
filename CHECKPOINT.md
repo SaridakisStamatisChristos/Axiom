@@ -1,3 +1,39 @@
+# AXIOM v0.11 — Source-bound frontier experiment lineage (13 November 2026)
+
+**Source checkpoint:** AXIOM v0.10 merged successfully to \`main\` commit
+\`fd53716d57acb6c7ce6ad4660f9ba62c7abd442b\` after full research,
+knowledge and actual Lean 4 CI checks succeeded on the final PR.
+
+**Development branch:** \`axiom-v0.11-frontier-lineage\`.
+
+## Implementation
+
+- New source-bound \`src/axiom/frontier_lineage.py\` overlays *bounded*
+  exact n=6/7 graph experiments on the unchanged v0.6–v0.8 cumulative
+  SQLite database.
+- Every import and audit independently replays all original v0.5 graph
+  campaigns, domain source auditors and historical Lean record bindings,
+  then the original v0.9 n6/n7 research algorithm.
+- Content-addressed typed statements, campaign evidence, independently
+  rechecked counterexamples and foreign-key links to true original
+  n=5 finite proof motivations. Such links are never logical entailment.
+- CLI: \`knowledge-frontier-import\`, \`knowledge-frontier-audit\`,
+  \`knowledge-frontier-query\`.
+- New adversarial tests, dedicated Python 3.11/3.13 CI with genuine
+  target-order experiments, complete reproduction guide.
+- Original v0.1–v0.10 code, historical scientific records and Lean
+  formal verification remain unchanged.
+
+**Proof boundary:** 0 proven or Lean formally verified statements at
+target n=6/7 from these bounded searches; absence of counterexample is not
+proof. Originality remains NOT_ASSESSED.
+
+**Release gate:** the v0.11 source requires actual passing dedicated CI,
+all old regression suites and pinned Lean verification on the same final
+pull-request head before merging to main.
+
+---
+
 # AXIOM v0.10 — Evidence-gated research continuation (13 November 2026)
 
 **Verified source checkpoint:** AXIOM v0.9 was merged into \`main\` at

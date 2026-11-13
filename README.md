@@ -1,3 +1,38 @@
+# AXIOM v0.11 — Source-Bound Graph Frontier Lineage (development)
+
+AXIOM v0.11 connects the **real v0.9 bounded n=6/n=7 graph
+experiments** to the cumulative v0.6–v0.8 mathematical knowledge store
+without modifying previous results or claiming any new graph theorem.
+
+It separately materializes exact typed experimental statements, independently
+checked counterexamples, campaign-specific bounded searches, and
+non-entailing links to the original complete n=5 source proofs. Every import
+and audit deterministically replays the full original mathematical sources,
+historical Lean proof provenance and the actual v0.9 experiment algorithm.
+
+Once the original database is populated (see v0.10/v0.8 instructions):
+
+    axiom graph-frontier-run --target-order 6 --search-budget 256 \
+      --max-candidates 40 --output research/graphs/n6.json \
+      research/graphs/v05_baseline_report.json research/graphs/v05_scale_report.json
+
+    axiom graph-frontier-run --target-order 7 --search-budget 256 \
+      --max-candidates 40 --output research/graphs/n7.json \
+      research/graphs/v05_baseline_report.json research/graphs/v05_scale_report.json
+
+    axiom knowledge-frontier-import --db research/knowledge/axiom.sqlite3 \
+      research/graphs/n6.json research/graphs/n7.json
+
+    axiom knowledge-frontier-audit --db research/knowledge/axiom.sqlite3
+    axiom knowledge-frontier-query --db research/knowledge/axiom.sqlite3 \
+      --order 6 --status REFUTED
+
+See [the v0.11 frontier lineage specification](docs/frontier_lineage.md)
+for evidence boundaries, complete setup, independent audits, testing and CI.
+The existing v0.10 and older research architecture follows unchanged.
+
+---
+
 # AXIOM v0.10 — Evidence-Gated Mathematical Research Agenda (development)
 
 AXIOM v0.10 adds a deterministic, provenance-checked research task planner
