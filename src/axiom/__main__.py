@@ -5,7 +5,7 @@ from .research import run_campaign
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.11 mathematical research")
+    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.12 mathematical research")
     sub = p.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="create or resume a deterministic research campaign")
     run.add_argument("--db", default="research/axiom.sqlite3")
@@ -164,7 +164,56 @@ def main() -> None:
     frontier_query.add_argument("--status", choices=("REFUTED", "EXPERIMENTALLY_SUPPORTED"))
     frontier_query.add_argument("--offset", type=int, default=0)
     frontier_query.add_argument("--limit", type=int, default=20)
+    n6run = sub.add_parser(
+        "graph-n6-run", help="exhaustively examine 32768 labelled simple graphs at exactly n=6")
+    n6run.add_argument("--templates", nargs="+",
+                       help="closed list of supported structural claim templates")
+    n6run.add_argument("--output", default="research/graphs/n6_exact_report.json")
+    n6audit = sub.add_parser(
+        "graph-n6-audit", help="independently replay all exact-n6 finite proofs and refutations")
+    n6audit.add_argument("report_file")
+    n6cert = sub.add_parser(
+        "graph-n6-check-certificate",
+        help="independently check a saved exact-six-vertex finite proof certificate")
+    n6cert.add_argument("artifact")
     args = p.parse_args()
+    if args.command in {"graph-n6-run", "graph-n6-audit",
+                        "graph-n6-check-certificate"}:
+        from .graph_n6_exact import (
+            research_n6, audit_n6, save_n6, check_n6_certificate,
+            DEFAULT_TEMPLATES)
+        try:
+            if args.command == "graph-n6-run":
+                report = research_n6(
+                    args.templates if args.templates is not None else
+                    list(DEFAULT_TEMPLATES))
+                save_n6(report, args.output)
+                result = {"schema": report["schema"],
+                          "output": args.output,
+                          "campaign_id": report["campaign_id"],
+                          "counts": report["counts"],
+                          "labelled_graphs_per_statement": 32768,
+                          "formal_lean_verification": "NOT_PERFORMED"}
+            elif args.command == "graph-n6-audit":
+                with open(args.report_file, "r", encoding="utf-8") as stream:
+                    result = audit_n6(json.load(stream))
+            else:
+                with open(args.artifact, "r", encoding="utf-8") as stream:
+                    artifact = json.load(stream)
+                if type(artifact) is not dict or set(artifact) != {
+                        "statement", "certificate"}:
+                    raise ValueError("n6 proof artifact must contain statement and certificate")
+                check_n6_certificate(artifact["statement"], artifact["certificate"])
+                result = {"audit": "ACCEPTED", "exact_graph_order": 6,
+                          "labelled_graphs_exhaustively_checked": 32768,
+                          "formal_lean_verification": "NOT_PERFORMED",
+                          "all_order_generalization": "NOT_PROVED"}
+        except (ValueError, TypeError, KeyError, OSError,
+                json.JSONDecodeError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(result, sort_keys=True, indent=2))
+        return
+
     if args.command in {"knowledge-frontier-import", "knowledge-frontier-audit",
                         "knowledge-frontier-query"}:
         from .frontier_lineage import (
