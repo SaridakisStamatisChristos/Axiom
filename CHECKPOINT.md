@@ -1,6 +1,6 @@
 # AXIOM v0.5.0 — Continuation checkpoint
 
-**Release classification:** v0.5 locally verified, preserving v0.4 kernel-verification records; GitHub verification details are to be recorded separately after the new CI workflow finishes.
+**Release classification:** v0.5 graph research validated locally **and** in real GitHub CI on Python 3.11/3.13; v0.4 Lean proof evidence preserved unchanged. Graph finite-order proofs remain Python-checked, not Lean kernel-verified.
 
 **Date:** 2026-11-13. **Repository:** https://github.com/SaridakisStamatisChristos/Axiom
 
@@ -19,6 +19,7 @@
 ## Executed local validation
 
 - **Regression suite:** `117 passed, 6 skipped` on Python 3.13.5, Linux. The skipped cases are actual Lean-integrated tests gated by `AXIOM_REAL_LEAN`; no Lean is locally installed and no graph Lean results are asserted.
+- **GitHub graph CI:** [run 43371399269](https://github.com/SaridakisStamatisChristos/Axiom/actions/runs/43371399269), development commit `a2acb6d5b46df35ea7c39387ee9bb3f94aa641bc`, completed successfully in both Python 3.11 and 3.13 jobs. Each job reported **116 passed, 7 skipped** (the optional NetworkX test and six real-Lean integrations were unavailable); both independently replayed graph campaigns and the combinatorial count checks passed. The local Python 3.13 environment additionally had NetworkX, yielding **117 passed, 6 skipped**. The final release-builder manifest-collision regression was also tested locally.
 - **Graph baseline** (seed 42; budget 240, max order 6, max sampled graphs 128): 133 unique / 107 duplicate; 102 finite-order proofs (**98 nonvacuous + 4 vacuous**), 20 independently verified refutations, 11 bounded experiments. 0 Lean graph proofs. Time 0.362387s, peak RSS 133336 KiB. Campaign ID `6df4269cf6caccee554e042f`.
 - **Scale campaign** (seed 2026; budget 700, max order 7, sampled cap 160): 224 unique / 476 duplicate; 139 finite-order proofs (**133 nonvacuous + 6 vacuous**), 50 refuted, 35 experimental. Time 1.190172s, peak RSS 139360 KiB. Campaign ID `fc067ac1c4bf0f64403987e1`.
 - Both full reports pass `axiom graph-audit`, both SQLite databases pass `PRAGMA integrity_check`.

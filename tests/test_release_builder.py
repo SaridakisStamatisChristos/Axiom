@@ -15,6 +15,7 @@ def test_release_builder_deterministic_and_manifests_files(tmp_path):
     (root/'pyproject.toml').write_text('[project]\nname="axiom"\n')
     (root/'CHECKPOINT.md').write_text('checkpoint\n')
     (root/'file.txt').write_text('proof evidence\n')
+    (root/'RELEASE_MANIFEST.sha256').write_text('stale previous manifest\n')
     (root/'__pycache__').mkdir();(root/'__pycache__'/'ignored.pyc').write_bytes(b'junk')
     a=tmp_path/'a.zip';b=tmp_path/'b.zip'
     ra=module.build(a,root);rb=module.build(b,root)
@@ -23,6 +24,7 @@ def test_release_builder_deterministic_and_manifests_files(tmp_path):
     assert ra['archive_sha256']==hashlib.sha256(a.read_bytes()).hexdigest()
     with ZipFile(a) as z:
         assert 'AXIOM/file.txt' in z.namelist()
+        assert z.namelist().count('AXIOM/RELEASE_MANIFEST.sha256')==1
         assert 'AXIOM/__pycache__/ignored.pyc' not in z.namelist()
         manifest=z.read('AXIOM/RELEASE_MANIFEST.sha256').decode()
         assert hashlib.sha256(b'proof evidence\n').hexdigest() in manifest

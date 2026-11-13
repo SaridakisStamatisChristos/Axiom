@@ -8,7 +8,7 @@
 - Added independent standard-library graph-invariant reference checker and exhaustive proof certificates for **all labelled graphs with the exact fixed n<=5**. Larger sampled statements are experimental; graph results have **no Lean formal-verification status**.
 - Added known binomial graph edge-count distribution examples, independent finite combinatorial checker, CLI commands, full research reports, and adversarial tests injecting false discovered invariants.
 - Executed 240-position and 700-position research campaigns with independently replayed evidence; completed a **117-pass, 6-skipped** local regression suite (the six skipped require Lean).
-- Preserved v0.1–v0.4 source/proofs/archives; introduced independent Python 3.11/3.13 graph verification CI. No mathematical novelty claims.
+- Preserved v0.1–v0.4 source/proofs/archives; actual Python 3.11/3.13 graph CI run 43371399269 succeeded with 116 passed / 7 skipped per runner. Patched release archive builder to exclude inherited `RELEASE_MANIFEST.sha256` duplicates, with regression coverage. No mathematical novelty claims.
 
 
 ## v0.4.0 — Number Theory Laboratory (verified release, 2026-11-13)

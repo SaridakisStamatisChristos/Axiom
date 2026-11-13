@@ -15,7 +15,7 @@ from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 SKIP_DIRECTORIES = {'.git','.venv','venv','__pycache__','.pytest_cache',
                     '.mypy_cache','.ruff_cache','node_modules','.lake','.tox'}
 SKIP_FILE_SUFFIXES = {'.pyc','.pyo','.tmp','.swp','.log','.sqlite3-wal','.sqlite3-shm'}
-SKIP_NAMES = {'coverage.xml','.coverage','lake-manifest.json'}
+SKIP_NAMES = {'coverage.xml','.coverage','lake-manifest.json','RELEASE_MANIFEST.sha256'}
 
 
 def enumerated_files(root: Path, output: Path) -> list[Path]:
