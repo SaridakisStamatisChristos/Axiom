@@ -1,2 +1,2 @@
-"""AXIOM — exact, bounded automated mathematical investigation."""
-__version__ = "0.3.0"
+"""AXIOM mathematical research platform."""
+__version__ = "0.4.0"

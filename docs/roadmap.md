@@ -1,21 +1,12 @@
-# AXIOM — verified-first roadmap
+# AXIOM development roadmap and verified scope
 
-**v0.1 — preserved:** Typed two-variable integer-polynomial AST, seeded template conjectures, exact bounded counterexample checks, dual symbolic normalization identity proofs, SQLite and CLI, initial tests, verified baseline with no Lean or novelty claims.
-
-**v0.2 — implemented:** Standalone, stdlib-only coefficient identity certificates and independently replayable SOS inequality certificates; certificate SHA-256 binding to full statement; safe restricted complete-square constructor; persisted-evidence auditing and report-audit CLI; bounded counterexample minimization with search/assumption intersection; expanded deterministic grammar; adversarial tests and campaign evidence. These are local Python proof certificates, *not* formal proof-assistant verification.
-
-**v0.3 — independently kernel checked (2026-11-13):** Optional pinned Lean 4 backend with typed source generation, certificate replay, exact Mathlib manifest checks, `#print axioms` audit, real subprocess invocation, independent evidence records, bounded campaign verification, integration workflow and adversarial tests. Successful GitHub Actions run 43342422453 produced 85 authentic Lean-accepted theorems in the supported fragment, with exact proof-source records and independent evidence auditing; no novelty claim.
-
-**v0.4:** Elementary number theory, modular arithmetic and recurrences with domain-specific soundness rules, counterexample exploration and proof methods.
-
-**v0.5:** Finite combinatorics and graph structures with exhaustive enumeration and relevant certified invariants.
-
-**v0.6:** Theorem/lemma dependency graph, explicit verified edges and reuse with assumptions.
-
-**v0.7:** Priority- and evidence-aware orchestration with bounded worker scheduling, pause/restart and cost metrics.
-
-**v0.8:** Optional machine-guided proposal engines, including configurable local models, behind unchanged independent proof gates.
-
-**v0.9:** Observatory and optimization of proven algorithms, with reproducible benchmarks.
-
-**v1.0:** Integrated local-first research laboratory with cumulative evidence and multiple verified mathematical domains. No milestone automatically establishes originality or guarantees solutions to open problems.
+- v0.1: exact integer polynomial grammar, deterministic campaigns, boundary falsification, SQLite checkpoints.
+- v0.2: independent polynomial and sum-of-squares certificate checking; candidate evidence audit.
+- v0.3: real Lean 4 checker adapter for supported algebraic identities/SOS, 85 successful external Lean checks documented in research registry.
+- **v0.4: elementary number theory laboratory** — typed divisibility and positive-modulus congruences, exact integer polynomial-factor certificates, independently verified bounded counterexamples, resumable SQLite campaign, recurrence finite-state periodicity certificates and separate Lean converter for the proven integer-polynomial factor fragment. External kernel status is reported separately from local certificates.
+- v0.5 candidate: finite graphs, invariants and structural enumerators. An optional intermediate advancement is the integer-valued polynomial basis to prove e.g. `2 | x(x-1)` using binomial basis or modular induction with a separately checked certificate.
+- v0.6 candidate: cumulative knowledge graph with provenance-linked theorems, derived implications and verified lemma use.
+- v0.7 candidate: evidence-aware autonomous planning and interruptible campaign prioritization.
+- v0.8 candidate: optional, provenance-tracked model-generated conjectures.
+- v0.9 candidate: observatory, resource tracking and optimization.
+- v1.0 target: integrated, multi-domain, reproducible mathematical research laboratory. Version number never implies a mathematical breakthrough.

@@ -187,3 +187,37 @@ The **actual** completed GitHub run [43342422453](https://github.com/SaridakisSt
 The 85 proofs comprise 48 polynomial identities and 37 supported sum-of-squares inequalities. They are **not 85 novel mathematical theorems**. `audit-lean-results` checks data integrity and exact source/statement binding but cannot by itself establish a signed attestation that historical CI ran; the independently accessible GitHub Actions logs establish that execution.
 
 **Next:** v0.4 number theory laboratory: typed divisibility, congruence and recurrence exploration with separately justified soundness rules and Lean checking for supported statements.
+
+## v0.4 Number Theory Laboratory
+
+The v0.4 research engine adds exact typed integer divisibility `a ∣ b`, strictly
+positive integer modular congruence `a ≡ b (mod m)` (represented as `m ∣ a-b`),
+independent integer-polynomial-factor proof certificates, adversarial bounded
+falsification and resumable SQLite campaigns. It also includes an independently
+checked finite-state periodicity engine for order-two integer recurrences.
+
+```bash
+# Run and independently replay an autonomous number theory research campaign.
+axiom nt-run --seed 42 --candidates 300 --lower -8 --upper 8 --max-evals 289 \
+  --db research/nt_replay.sqlite3 --report research/nt_replay.json
+axiom nt-audit research/nt_replay.json
+
+# Exact modular recurrence proofs (not Lean verification):
+axiom nt-sequence-run --seed 42 --budget 40 --report research/nt_sequences.json
+axiom nt-sequence-audit research/nt_sequences.json
+
+# Independently check a saved number-theory quotient certificate:
+axiom nt-check-certificate research/number_theory/nt_example_74754e364917.json
+
+# Optional real Lean 4 + Mathlib: pin resolution and verification:
+lake update && lake exe cache get
+axiom nt-lean-verify-report research/nt_replay.json \
+  --project-root . --output-dir research/nt_lean_verify --limit 15
+AXIOM_REAL_LEAN=1 pytest -q tests/test_number_theory_lean_integration.py
+```
+
+Full mathematical semantics, trust boundaries and limitations: [`docs/number_theory.md`](docs/number_theory.md).
+For direct research artifacts: [`research/number_theory/`](research/number_theory/).
+A locally accepted number-theory certificate is not automatically a Lean-verified theorem.
+Fibonacci periods 3 mod 2 and 20 mod 5 are known benchmarks, not discoveries.
+The generated candidate grammar is deliberately small; originality remains unassessed.

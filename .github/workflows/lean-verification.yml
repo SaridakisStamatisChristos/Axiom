@@ -1,7 +1,7 @@
 name: AXIOM Lean 4 verification
 on:
   push:
-    branches: [main, "axiom-v0.3-*"]
+    branches: [main, "axiom-v0.3-*", "axiom-v0.4-*"]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -71,10 +71,26 @@ jobs:
         run: |
           axiom audit-lean-results research/ci_replay_report.json \
             research/lean_verified/campaign --require-complete
+      - name: Reproduce integer number-theory campaign and independent audit
+        run: |
+          axiom nt-run --seed 42 --candidates 300 --lower -8 --upper 8 --max-evals 289 \
+            --db research/nt_ci_replay.sqlite3 --report research/nt_ci_report.json
+          axiom nt-audit research/nt_ci_report.json
+      - name: Check and replay recurrence finite-state periodicity certificates
+        run: |
+          axiom nt-sequence-run --seed 42 --budget 40 --report research/nt_sequences_ci.json
+          axiom nt-sequence-audit research/nt_sequences_ci.json
+      - name: Run real number-theory Lean positive and negative integration tests
+        run: AXIOM_REAL_LEAN=1 pytest -q tests/test_number_theory_lean_integration.py
+      - name: Lean-check number-theory campaign proofs
+        run: |
+          axiom nt-lean-verify-report research/nt_ci_report.json \
+            --project-root . --output-dir research/lean_verified/number_theory \
+            --limit 15 --timeout 180
       - name: Preserve verification evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: axiom-v03-lean-kernel-evidence
+          name: axiom-v04-lean-and-number-theory-evidence
           path: research/lean_verified/
           if-no-files-found: warn

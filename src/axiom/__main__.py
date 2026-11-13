@@ -5,7 +5,7 @@ from .research import run_campaign
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.3 local mathematical research")
+    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.4 mathematical research")
     sub = p.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="create or resume a deterministic research campaign")
     run.add_argument("--db", default="research/axiom.sqlite3")
@@ -38,7 +38,127 @@ def main() -> None:
     formal_audit.add_argument("report_file")
     formal_audit.add_argument("result_dir")
     formal_audit.add_argument("--require-complete", action="store_true")
+    nt = sub.add_parser("nt-run", help="create or resume typed elementary number-theory campaign")
+    nt.add_argument("--db", default="research/number_theory.sqlite3")
+    nt.add_argument("--report", default="research/number_theory_latest.json")
+    nt.add_argument("--seed", type=int, default=42)
+    nt.add_argument("--candidates", type=int, default=200)
+    nt.add_argument("--lower", type=int, default=-8)
+    nt.add_argument("--upper", type=int, default=8)
+    nt.add_argument("--max-evals", type=int, default=300)
+    nt.add_argument("--step-limit", type=int, default=None)
+    nta = sub.add_parser("nt-audit", help="replay number-theory campaign and verify all evidence")
+    nta.add_argument("report_file")
+    ntc = sub.add_parser("nt-check-certificate", help="check integer polynomial divisibility certificate")
+    ntc.add_argument("artifact")
+    ntl = sub.add_parser("nt-lean-verify", help="check number-theory certificate using actual Lean kernel")
+    ntl.add_argument("artifact")
+    ntl.add_argument("--project-root", default=".")
+    ntl.add_argument("--output")
+    ntl.add_argument("--source")
+    ntl.add_argument("--timeout", type=int, default=120)
+    ntb = sub.add_parser("nt-lean-verify-report", help="submit audited number-theory research proofs to Lean")
+    ntb.add_argument("report_file")
+    ntb.add_argument("--project-root", default=".")
+    ntb.add_argument("--output-dir", default="research/lean_verified/number_theory")
+    ntb.add_argument("--limit", type=int, default=20)
+    ntb.add_argument("--timeout", type=int, default=120)
+    seq = sub.add_parser("nt-sequence-run", help="explore and certify modular periodicity of order-two recurrences")
+    seq.add_argument("--seed", type=int, default=42)
+    seq.add_argument("--budget", type=int, default=30)
+    seq.add_argument("--report", default="research/sequence_latest.json")
+    seq_audit = sub.add_parser("nt-sequence-audit", help="replay independent finite-state recurrence certificates")
+    seq_audit.add_argument("report_file")
     args = p.parse_args()
+    if args.command == "nt-sequence-run":
+        from pathlib import Path
+        from .recurrences import sequence_campaign, audit_sequence_campaign
+        report=sequence_campaign(args.seed,args.budget)
+        audit_sequence_campaign(report)
+        target=Path(args.report);target.parent.mkdir(parents=True,exist_ok=True)
+        target.write_text(json.dumps(report,sort_keys=True,indent=2)+"\n",encoding="utf-8")
+        print(json.dumps({"budget":args.budget,"independently_checked_periodicity_certificates":len(report['findings']),
+                          "formal_verification":"NOT_EXECUTED","report":str(target)},indent=2))
+        return
+    if args.command == "nt-sequence-audit":
+        from pathlib import Path
+        from .recurrences import audit_sequence_campaign
+        try:
+            report=json.loads(Path(args.report_file).read_text(encoding='utf-8'))
+            audit_sequence_campaign(report)
+        except (ValueError,TypeError,KeyError,RecursionError,OSError) as exc:
+            p.exit(2,f"REJECTED: {exc}\n")
+        print(json.dumps({"outcome":"ACCEPTED","certificates":len(report['findings']),
+                          "formal_verification":"NOT_EXECUTED"},indent=2))
+        return
+    if args.command == "nt-run":
+        from .number_theory_campaign import run_nt_campaign
+        result = run_nt_campaign(args.db,seed=args.seed,candidates=args.candidates,
+                                 lower=args.lower,upper=args.upper,max_evals=args.max_evals,
+                                 step_limit=args.step_limit,report_path=args.report)
+        print(json.dumps({"campaign_id":result["campaign_id"],"progress":result["progress"],
+                          "counts":result["counts"],"measurement":result["measurement"],
+                          "report":args.report},indent=2))
+        return
+    if args.command == "nt-audit":
+        from pathlib import Path
+        from .number_theory_campaign import audit_nt_report
+        try:
+            report=json.loads(Path(args.report_file).read_text(encoding="utf-8"))
+            counts=audit_nt_report(report)
+        except (ValueError,TypeError,KeyError,RecursionError,OSError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps({"outcome":"ACCEPTED","counts":counts,
+                          "formal_verification":"NOT_PERFORMED"},indent=2))
+        return
+    if args.command == "nt-check-certificate":
+        from pathlib import Path
+        from .number_theory_checker import check_nt_certificate
+        try:
+            artifact=json.loads(Path(args.artifact).read_text(encoding="utf-8"))
+            if not isinstance(artifact,dict) or set(artifact)!={"statement","certificate"}:
+                raise ValueError("artifact must contain statement and certificate")
+            check_nt_certificate(artifact['statement'],artifact['certificate'])
+        except (ValueError,TypeError,KeyError,RecursionError,OSError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print("ACCEPTED: independently checked Z-polynomial factor certificate (not Lean)")
+        return
+    if args.command == "nt-lean-verify":
+        from pathlib import Path
+        from .number_theory_lean import verify_nt_with_lean
+        from .lean_backend import LeanBackendError
+        try:
+            artifact=json.loads(Path(args.artifact).read_text(encoding="utf-8"))
+            if not isinstance(artifact,dict) or set(artifact)!={"statement","certificate"}:
+                raise ValueError("artifact must contain statement and certificate")
+            result=verify_nt_with_lean(artifact['statement'],artifact['certificate'],
+                                       project_root=args.project_root,timeout_seconds=args.timeout)
+        except (ValueError,TypeError,KeyError,RecursionError,OSError,LeanBackendError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        if args.output:
+            path=Path(args.output);path.parent.mkdir(parents=True,exist_ok=True)
+            path.write_text(json.dumps(result,sort_keys=True,indent=2)+"\n",encoding="utf-8")
+        if args.source:
+            path=Path(args.source);path.parent.mkdir(parents=True,exist_ok=True)
+            path.write_text(result['source'],encoding="utf-8")
+        print(json.dumps({k:result[k] for k in ("status","accepted","theorem","lean_version","axioms")},indent=2))
+        if not result['accepted']:
+            p.exit(1)
+        return
+    if args.command == "nt-lean-verify-report":
+        from pathlib import Path
+        from .number_theory_lean import verify_nt_report
+        try:
+            report=json.loads(Path(args.report_file).read_text(encoding="utf-8"))
+            summary=verify_nt_report(report,project_root=args.project_root,
+                                     output_dir=args.output_dir,limit=args.limit,
+                                     timeout_seconds=args.timeout)
+        except (ValueError,TypeError,KeyError,RecursionError,OSError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps({k:summary[k] for k in ("campaign_id","attempted","formally_verified")},indent=2))
+        if summary['attempted']!=summary['formally_verified']:
+            p.exit(1)
+        return
     if args.command == "audit-lean-results":
         from .formal_campaign import audit_formal_report
         from .lean_backend import LeanBackendError
