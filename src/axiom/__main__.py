@@ -126,7 +126,46 @@ def main() -> None:
     form_q.add_argument("--db", default="research/knowledge/axiom.sqlite3")
     form_q.add_argument("--domain", choices=("algebra", "number_theory"))
     form_q.add_argument("--limit", type=int, default=20)
+    graph_frontier = sub.add_parser(
+        "graph-frontier-run",
+        help="boundedly falsify n=6/7 graph conjectures motivated by n=5 finite proofs")
+    graph_frontier.add_argument("reports", nargs="+", help="complete v0.5 source graph campaigns")
+    graph_frontier.add_argument("--output", default="research/graphs/v09_frontier_report.json")
+    graph_frontier.add_argument("--target-order", type=int, choices=(6, 7), default=6)
+    graph_frontier.add_argument("--search-budget", type=int, default=512)
+    graph_frontier.add_argument("--max-candidates", type=int, default=200)
+    graph_frontier.add_argument("--seed", type=int, default=42)
+    graph_frontier_audit = sub.add_parser(
+        "graph-frontier-audit", help="independently replay a bounded n=6/7 frontier report")
+    graph_frontier_audit.add_argument("report", help="saved research frontier JSON")
+    graph_frontier_audit.add_argument("reports", nargs="+", help="original source graph campaigns")
     args = p.parse_args()
+    if args.command in {"graph-frontier-run", "graph-frontier-audit"}:
+        from .graph_frontier import (
+            run_frontier, audit_frontier, load_graph_sources)
+        import sqlite3
+        try:
+            if args.command == "graph-frontier-run":
+                result = run_frontier(args.reports, output=args.output,
+                                      seed=args.seed, target_order=args.target_order,
+                                      search_budget=args.search_budget,
+                                      max_candidates=args.max_candidates)
+                result = {"schema": result["schema"],
+                          "campaign_id": result["campaign_id"],
+                          "output": args.output, "counts": result["counts"],
+                          "candidates": result["candidate_count"],
+                          "proofs_at_target_order": 0}
+            else:
+                with open(args.report, "r", encoding="utf-8") as source_file:
+                    report = json.load(source_file)
+                result = audit_frontier(
+                    report, load_graph_sources(args.reports))
+        except (ValueError, KeyError, OSError, TypeError, sqlite3.DatabaseError,
+                json.JSONDecodeError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(result, sort_keys=True, indent=2))
+        return
+
     if args.command in {"knowledge-formal-import", "knowledge-formal-audit", "knowledge-formal-query"}:
         from .formal_provenance import import_formal, formal_summary, formal_query
         import sqlite3
