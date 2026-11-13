@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.7.0 — Typed mathematical evidence federation (development; 13 November 2026)
+
+- Added an auditable, domain-separated evidence overlay for graph, algebraic polynomial, number theory, and modular recurrence research, backed by the existing v0.6 SQLite graph database.
+- Replayed each original full research campaign under its native auditor, retaining original certificates, witnesses, statuses, and immutable reports.
+- Provided federation import, audit, and domain-specific cross-query CLI commands; added adversarial regression tests and real historical artifact CI replay.
+- Preserved historical Lean execution evidence separately and explicitly prevented any unsupported FORMALLY_VERIFIED promotion.
+- All previous graph database tables, source findings, historical release archives, and theorem boundaries preserved.
+
 ## v0.5.0 — Finite Graph Mathematics (13 November 2026)
 
 - Added a strictly typed finite undirected simple-graph representation, exact isomorphism canonicalization, and exhaustive representative enumeration up to five vertices.
