@@ -38,6 +38,27 @@ def test_correct_graph_space_size_and_two_independent_property_oracles():
             assert primary[property_name] == generic[property_name]
 
 
+def test_independent_dfs_forest_detection_not_defined_by_claim():
+    from axiom.graph_model import SimpleGraph
+    # Six isolated vertices form a forest but not a tree.
+    empty = _facts_reference(0)
+    assert empty["forest"] is True and empty["tree"] is False
+    # Path on all six vertices: connected and acyclic.
+    path = SimpleGraph(6, ((0, 1), (1, 2), (2, 3), (3, 4), (4, 5)))
+    path_props = _facts_reference(path.mask)
+    assert path_props["forest"] is True
+    assert path_props["tree"] is True
+    assert path_props["edges"] == 5
+    # Closing a 3-cycle makes the graph cyclic, even if disconnected.
+    triangle = SimpleGraph(6, ((0, 1), (0, 2), (1, 2)))
+    triangle_props = _facts_reference(triangle.mask)
+    assert triangle_props["forest"] is False
+    assert triangle_props["tree"] is False
+    # More than one cycle and all vertices connected.
+    complete = _facts_reference(32767)
+    assert complete["forest"] is False and complete["tree"] is False
+
+
 def test_exhaustive_certificates_and_real_counterexample(full_campaign):
     assert full_campaign["complete"] is True
     assert full_campaign["labelled_graph_space"] == 32768
