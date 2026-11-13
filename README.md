@@ -1,3 +1,23 @@
+# AXIOM v0.7 — Cross-domain mathematical evidence federation (development)
+
+AXIOM v0.7 adds a fail-closed typed evidence federation to the existing v0.6 SQLite knowledge graph. It connects **finite graphs, integer-polynomial algebra, elementary number theory, and modular recurrences** without changing original mathematical claims, verification statuses, or historical research files. Each imported report is replayed with its original mathematical auditor.
+
+After installation:
+
+    axiom knowledge-build --db research/knowledge/axiom.sqlite3 \
+      research/graphs/v05_baseline_report.json \
+      research/graphs/v05_scale_report.json
+    axiom knowledge-federate --db research/knowledge/axiom.sqlite3 \
+      research/v03_campaign_report.json \
+      research/number_theory/v04_report.json \
+      research/number_theory/v04_sequences.json
+    axiom knowledge-federation-audit --db research/knowledge/axiom.sqlite3
+    axiom knowledge-cross-query --db research/knowledge/axiom.sqlite3 --domain recurrence
+
+See [v0.7 federation specifications](docs/knowledge_federation.md). This is **not** a new mathematical theorem prover or formal Lean re-verification: source Lean proof artifacts remain separate, and federation never invents FORMALLY_VERIFIED statuses. The remaining v0.6/v0.5 documentation below is preserved.
+
+---
+
 # AXIOM v0.6 — Mathematical Knowledge Graph (development branch)
 
 Version 0.6 adds an **auditable cumulative knowledge graph** for the v0.5 finite-graph campaigns, preserving source evidence, exact-order proof boundaries, counterexamples, historical evidence states, checker dependencies, and navigable higher-order analogues without inferring any universal theorem. The old research modules and v0.5 reports are preserved.
