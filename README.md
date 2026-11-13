@@ -1,3 +1,33 @@
+# AXIOM v0.10 — Evidence-Gated Mathematical Research Agenda (development)
+
+AXIOM v0.10 adds a deterministic, provenance-checked research task planner
+across **finite graphs, polynomial algebra, number theory and modular
+recurrences**. Its output recommends the next concrete falsification or
+proof-verification action without claiming that any action was performed.
+
+The agenda re-audits the original graph source records, the typed
+mathematical federation, and any source-bound historical Lean proof records
+before scheduling. It **excludes already refuted statements**, never turns a
+bounded experiment into a proof, and distinguishes historical offline Lean
+record integrity from a fresh real kernel execution.
+
+After building and federating the historical knowledge database:
+
+    axiom knowledge-plan --db research/knowledge/axiom.sqlite3 \
+      --limit 30 --output research/knowledge/research_agenda_v010.json
+    axiom knowledge-plan-audit --db research/knowledge/axiom.sqlite3 \
+      research/knowledge/research_agenda_v010.json
+    axiom knowledge-plan --db research/knowledge/axiom.sqlite3 \
+      --domain graph --limit 10
+
+For complete installation and the reproducible build of the knowledge
+database, see [the v0.10 research agenda protocol](docs/research_agenda.md).
+This component prioritizes work but does not itself execute new research
+or formally prove new mathematical claims. The older AXIOM releases and
+original experiment records follow unchanged.
+
+---
+
 # AXIOM v0.9 — Graph Conjecture Frontier (development)
 
 AXIOM v0.9 starts a new bounded mathematical discovery campaign: it uses
