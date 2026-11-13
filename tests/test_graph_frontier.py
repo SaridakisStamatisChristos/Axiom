@@ -27,13 +27,13 @@ def historical():
 @pytest.fixture(scope="module")
 def six(historical):
     return research_frontier(historical, seed=42, target_order=6,
-                             search_budget=256, max_candidates=24)
+                             search_budget=256, max_candidates=40)
 
 
 @pytest.fixture(scope="module")
 def seven(historical):
     return research_frontier(historical, seed=42, target_order=7,
-                             search_budget=256, max_candidates=24)
+                             search_budget=256, max_candidates=40)
 
 
 def test_all_probes_replayed_and_no_universal_proofs(six, historical):
@@ -69,13 +69,13 @@ def test_order_seven_is_independent_scope(seven, historical):
                for f in seven["findings"])
     assert seven["campaign_id"] != research_frontier(
         historical, seed=42, target_order=6,
-        search_budget=256, max_candidates=24)["campaign_id"]
+        search_budget=256, max_candidates=40)["campaign_id"]
 
 
 def test_deterministic_replay(six, historical):
     assert six == research_frontier(
         historical, seed=42, target_order=6,
-        search_budget=256, max_candidates=24)
+        search_budget=256, max_candidates=40)
 
 
 def test_bounded_search_enforced_and_no_false_promotion(six, historical):
@@ -196,7 +196,7 @@ def test_preserved_ci_research_digest_and_explicit_refutations(six, seven, histo
     assert expected_sources == {r["campaign_id"]: digest(r) for r in historical}
     totals = {"candidates": 0, "refuted": 0, "surviving": 0}
     for record, report in zip(ledger["reports"], (six, seven)):
-        assert report["configuration"]["max_candidates"] == 24  # actual set below quota
+        assert report["configuration"]["max_candidates"] == 40  # actual set below quota
         assert report["candidate_count"] <= 24
         assert report["configuration"]["target_order"] == record["order"]
         assert record["campaign_id"] == report["campaign_id"]
