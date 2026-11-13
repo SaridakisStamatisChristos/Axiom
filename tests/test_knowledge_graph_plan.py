@@ -108,6 +108,8 @@ def test_known_finite_n6_proof_only_gets_formalization_task(all_ranked_tasks):
             and t["statement"]["template"] == "handshake"]
     assert five and all(t["action"] == "FORMALIZE_LOCAL_FINITE_PROOF_IN_LEAN"
                         for t in five)
+    assert all(t["original_local_proof_ids"] and not t["exact_certificate_sha256"]
+               for t in five)
 
 
 def test_exact_refutation_never_reproposed_for_search(all_ranked_tasks):
