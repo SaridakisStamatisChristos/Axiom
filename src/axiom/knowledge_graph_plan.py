@@ -97,12 +97,15 @@ def _materialized_plan(db, exact) -> tuple[list[dict], int, int]:
     }
     investigations = defaultdict(set)
     local_proof_links = defaultdict(set)
+    search_links = defaultdict(set)
     for src, relation, dst in db.execute(
             "SELECT source,relation,target FROM federation_edges"):
         if relation == "INVESTIGATES":
             investigations[dst].add(src)
         elif relation == "LOCALLY_CERTIFIED_BY":
             local_proof_links[src].add(dst)
+        elif relation == "SEARCH_EVIDENCE":
+            search_links[src].add(dst)
 
     for sid, (kind, node) in sorted(federation_nodes.items()):
         if kind != "statement" or node["domain"] != "graph":
@@ -122,9 +125,32 @@ def _materialized_plan(db, exact) -> tuple[list[dict], int, int]:
             graph = GraphStatement.from_dict(statement)
             if status == "PROVED_IN_SUPPORTED_FRAGMENT" and graph.n > 5:
                 raise ValueError("original certificate used outside verified n<=5 domain")
+            # Historical n<=5 proofs enumerate ALL labelled graphs in
+            # their independent certificates. The original discovery search
+            # itself may enumerate *unlabelled isomorphism classes*, which
+            # must never be misreported as labelled-graph sample coverage.
+            labelled_coverage = 0
+            for proof_id in local_ids:
+                proof_kind, proof = federation_nodes[proof_id]
+                if proof_kind != "local_proof":
+                    raise ValueError("original proof link has wrong node type")
+                cert = proof["certificate"]
+                if type(cert.get("labelled_graphs_checked")) is int:
+                    labelled_coverage = max(
+                        labelled_coverage, cert["labelled_graphs_checked"])
+            for search_id in search_links.get(fid, set()):
+                search_kind, search_node = federation_nodes[search_id]
+                if search_kind != "search" or search_node["domain"] != "graph":
+                    raise ValueError("original graph search link malformed")
+                source_search = search_node["search"]
+                if (source_search.get("method") ==
+                        "BOUNDED_LABELLED_GRAPH_SEARCH"):
+                    labelled_coverage = max(
+                        labelled_coverage, source_search["structures_checked"])
             _add(groups, statement, "original", status,
                  finding["source_id"], fid,
-                 local_proof_ids=sorted(local_ids))
+                 local_proof_ids=sorted(local_ids),
+                 sampled=labelled_coverage)
 
     frontier_statements = {
         sid: json.loads(payload)
