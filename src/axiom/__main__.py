@@ -143,6 +143,8 @@ def main() -> None:
     agenda.add_argument("--db", default="research/knowledge/axiom.sqlite3")
     agenda.add_argument("--domain", choices=("graph", "algebra", "number_theory", "recurrence"))
     agenda.add_argument("--limit", type=int, default=30)
+    agenda.add_argument("--offset", type=int, default=0,
+                        help="skip earlier ranked tasks; supports complete paged exploration")
     agenda.add_argument("--output", help="optional deterministic research agenda JSON artifact")
     agenda_audit = sub.add_parser("knowledge-plan-audit", help="replay all sources and audit a saved agenda")
     agenda_audit.add_argument("report_file")
@@ -156,10 +158,11 @@ def main() -> None:
                 result = audit_agenda(args.db, args.report_file)
             elif args.output:
                 result = write_agenda(args.db, args.output,
-                                      domain=args.domain, limit=args.limit)
+                                      domain=args.domain, limit=args.limit,
+                                      offset=args.offset)
             else:
                 result = research_agenda(args.db, domain=args.domain,
-                                         limit=args.limit)
+                                         limit=args.limit, offset=args.offset)
         except (ValueError, TypeError, KeyError, OSError, sqlite3.DatabaseError,
                 json.JSONDecodeError) as exc:
             p.exit(2, f"REJECTED: {exc}\n")
