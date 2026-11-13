@@ -54,6 +54,19 @@ jobs:
             --source research/lean_verified/ci_sos.lean
       - name: Run genuine kernel-negative integration tests
         run: AXIOM_REAL_LEAN=1 pytest -q tests/test_lean_integration.py
+      - name: Reproduce entire v0.2 mathematical research campaign
+        run: |
+          axiom run --seed 42 --candidates 300 --domain mixed \
+            --lower -8 --upper 8 --max-evals 289 \
+            --db research/ci_replay.sqlite3 \
+            --report research/ci_replay_report.json
+          axiom audit-report research/ci_replay_report.json
+      - name: Check all 85 supported-fragment proofs in the actual Lean kernel
+        run: |
+          axiom lean-verify-report research/ci_replay_report.json \
+            --project-root . \
+            --output-dir research/lean_verified/campaign \
+            --limit 85 --timeout 180
       - name: Preserve verification evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
