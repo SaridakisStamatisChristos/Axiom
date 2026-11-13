@@ -1,3 +1,26 @@
+# AXIOM v0.12 — Independently Checked Exact-Order-Six Graph Proofs (development)
+
+AXIOM v0.12 extends the **exhaustively checked finite graph proof boundary**
+from five to **six vertices** for seven structural graph templates.
+Every certificate now covers **all 32,768 labelled simple graphs at exactly
+n=6**, using a primary discovery evaluator and an independently implemented
+bitset/BFS verifier. Two deliberately false structural claims are included
+as counterexample controls.
+
+These are known mathematical results, not original discoveries; the new
+contribution is runnable exhaustive checking, independently auditable proof
+artifacts and precise exact-order evidence. No all-order theorem or new Lean
+kernel proof is claimed.
+
+    axiom graph-n6-run --output research/graphs/n6_exact_report.json
+    axiom graph-n6-audit research/graphs/n6_exact_report.json
+
+Full reproducibility, invariants, complexity and epistemic boundaries:
+[AXIOM v0.12 exact n=6 specification](docs/exact_n6.md). Previous v0.11
+source-bound frontier and all historical results remain preserved below.
+
+---
+
 # AXIOM v0.11 — Source-Bound Graph Frontier Lineage (development)
 
 AXIOM v0.11 connects the **real v0.9 bounded n=6/n=7 graph
