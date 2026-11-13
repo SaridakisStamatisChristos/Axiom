@@ -1,3 +1,29 @@
+# AXIOM v0.8 — Development continuation checkpoint (13 November 2026)
+
+**Baseline main:** v0.7 release commit 8434fbaaaa5ff799f0a604fd768475836b9212b4 (merged after Python 3.11/3.13 graph, federation and pinned Lean regression passed).
+
+**Development branch:** axiom-v0.8-formal-provenance.
+
+New engine source: src/axiom/formal_provenance.py. This extends the intact
+v0.7 database with separate immutable formal evidence batches and foreign-key
+checked, source-bound finding/statement/local-proof links.
+
+Replays both complete legacy evidence sets: algebra v0.3 (85 historical Lean
+records) and number theory v0.4 (96 historical Lean records). Every record
+is checked by the original trusted Python source-binding verifier; offline
+integrity never claims authentic external historical execution. No new Lean
+results or theorem novelty asserted.
+
+New CLI commands: knowledge-formal-import, knowledge-formal-audit and
+knowledge-formal-query. New tests: tests/test_formal_provenance.py. CI:
+.github/workflows/formal-provenance.yml.
+
+Preservation: no mutation of historical v0.1–v0.7 source/research records.
+Release gate: no v0.8 merge until new full-source CI, older regression CI,
+and the pinned actual Lean CI pass on the same PR commit.
+
+---
+
 # AXIOM v0.7 — Development continuation checkpoint (13 November 2026)
 
 **Source:** v0.6 merged into main in commit c3cfd3139e8c2aa3b27831b6620b91e398c7fae8 after the verified Lean 4 CI, graph CI, and knowledge-graph CI. **Branch:** axiom-v0.7-cross-domain-federation.
