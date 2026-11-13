@@ -127,6 +127,11 @@ def test_missing_number_record_and_tampered_index(cloned_db, small_records, tmp_
     fake.write_text(json.dumps(meta) + "\n")
     with pytest.raises(ValueError, match="disagree"):
         import_formal(cloned_db, number_index=str(fake), number_records_dir=str(NT_DIR))
+    meta = json.loads(np.read_text().splitlines()[0])
+    meta["evidence_path"] = "forged_folder/" + meta["candidate_id"][:24] + ".json"
+    fake.write_text(json.dumps(meta) + "\n")
+    with pytest.raises(ValueError, match="campaign/path mismatch"):
+        import_formal(cloned_db, number_index=str(fake), number_records_dir=str(NT_DIR))
 
 
 def test_changed_source_snapshot_is_rejected(cloned_db, small_records, tmp_path):
