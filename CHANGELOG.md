@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.9.0 — Graph Conjecture Frontier (development, 13 November 2026)
+
+- Added deterministic counterexample discovery campaigns for target graph
+  orders 6 and 7, prompted by nonvacuous exact-order proofs at 5 vertices.
+- Added independently replayable source reports, precise candidate provenance,
+  bounded search-budget accounting, and explicit non-proved statuses.
+- Excluded prior counterexamples and prevented automatic theorem/Lean promotions.
+- Added CLI, adversarial tests, GitHub CI research campaigns and full instructions.
+- All previous mathematical proofs, experiments, source artifacts and databases
+  remain unmodified.
+
 ## v0.8.0 — Historical formal proof provenance (development, 13 November 2026)
 
 - Added typed source-bound Lean record links connecting historical algebra and
