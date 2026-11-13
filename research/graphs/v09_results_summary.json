@@ -1,0 +1,256 @@
+{
+  "schema": "axiom.graph.frontier.research_release_summary.v1",
+  "version": "0.9.0-development",
+  "research_date_utc": "2026-11-13",
+  "seed": 42,
+  "search_budget_per_target": 256,
+  "scope": "exact n=6 or n=7 bounded labelled graph sampling; no exhaustive proof",
+  "source_proof_order": 5,
+  "source_reports": [
+    {
+      "campaign_id": "6df4269cf6caccee554e042f",
+      "sha256": "9297c0832c95e2b38a0f3d194a8fa3198e90ad55c3a652f73593da46c99208d1"
+    },
+    {
+      "campaign_id": "fc067ac1c4bf0f64403987e1",
+      "sha256": "55a07a4f902212e6eb78f1e367770b3162e966b32ef4c84be0abbf29cc079a63"
+    }
+  ],
+  "completed_python_3_13_ci": {
+    "run_id": 43422689748,
+    "artifact_id": 14034217867,
+    "url": "https://github.com/SaridakisStamatisChristos/Axiom/actions/runs/43422689748",
+    "note": "Actual Python 3.13 graph-frontier tests and generated n6/n7 research reports with independent replay completed successfully."
+  },
+  "reports": [
+    {
+      "order": 6,
+      "campaign_id": "99324df0cf02d7566ca35cd5",
+      "report_file": "n6.json",
+      "report_sha256": "911b8b80d2e69dc566330c5872357efffe582c040d851c8d1ba4ae167fcae7d8",
+      "candidates": 19,
+      "refuted": 1,
+      "experimentally_supported_not_proved": 18
+    },
+    {
+      "order": 7,
+      "campaign_id": "7eea016c3c677115315f8656",
+      "report_file": "n7.json",
+      "report_sha256": "3d228a3b7e402d6dab4e445e6d598518949e569bf75515912683e0bae4d7f3dc",
+      "candidates": 20,
+      "refuted": 2,
+      "experimentally_supported_not_proved": 18
+    }
+  ],
+  "refutations": [
+    {
+      "order": 6,
+      "template": "edges_le_n_plus_k",
+      "k": 7,
+      "inequality": "|E| <= n+7",
+      "witness_edges": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          5
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          5
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          3,
+          5
+        ],
+        [
+          4,
+          5
+        ]
+      ],
+      "observed_edge_count": 15,
+      "claimed_max_edges": 13
+    },
+    {
+      "order": 7,
+      "template": "edges_le_n_plus_k",
+      "k": 5,
+      "inequality": "|E| <= n+5",
+      "witness_edges": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          5
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          5
+        ],
+        [
+          2,
+          6
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          3,
+          5
+        ],
+        [
+          3,
+          6
+        ]
+      ],
+      "observed_edge_count": 13,
+      "claimed_max_edges": 12
+    },
+    {
+      "order": 7,
+      "template": "edges_le_n_plus_k",
+      "k": 7,
+      "inequality": "|E| <= n+7",
+      "witness_edges": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          5
+        ],
+        [
+          0,
+          6
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          6
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          5
+        ],
+        [
+          2,
+          6
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          3,
+          5
+        ],
+        [
+          3,
+          6
+        ]
+      ],
+      "observed_edge_count": 15,
+      "claimed_max_edges": 14
+    }
+  ],
+  "total_candidate_evaluations": 39,
+  "total_independent_counterexamples": 3,
+  "total_experimentally_supported_not_proved": 36,
+  "target_order_proofs": 0,
+  "formal_lean_verification": "NOT_PERFORMED",
+  "novelty": "NOT_ASSESSED",
+  "provenance_note": "Summary extracted from real GitHub Actions CI artifacts. Recreate full reports with graph-frontier-run and verify with graph-frontier-audit. Individual counterexample edge lists are recorded here for durable preservation."
+}
