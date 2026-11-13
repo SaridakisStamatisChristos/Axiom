@@ -7,3 +7,8 @@ dist/
 build/
 research/*.sqlite3*
 research/latest_report.json
+
+# Lean/Lake local build products
+.lake/
+*.olean
+*.ilean

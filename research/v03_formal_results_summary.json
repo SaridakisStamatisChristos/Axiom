@@ -1,0 +1,33 @@
+{
+  "auditing_policy": "Source and statement hashes replayed; external execution grounded in named successful CI run and its logs. No originality claim.",
+  "campaign_id": "0f376fbe499fa0dcce5d3f44",
+  "candidate_positions": 300,
+  "ci_commit": "b49bf6dce45dcc663ca411c8a8ec6f77b363ad3c",
+  "ci_job_id": 131613668932,
+  "ci_python_integration_tests_passed": 3,
+  "ci_python_tests_passed": 43,
+  "ci_run_id": 43342422453,
+  "ci_status": "completed_success",
+  "ci_url": "https://github.com/SaridakisStamatisChristos/Axiom/actions/runs/43342422453",
+  "experimentally_supported_not_proved": 1,
+  "external_ci_evidence_artifact_id": 13999333923,
+  "externally_formally_verified": 85,
+  "formally_verified_by_method": {
+    "coefficient_identity": 48,
+    "sum_of_squares": 37
+  },
+  "github_action_artifact_digest": "sha256:109813a97f370ff5fadd08e46ee8c88408f2e00568c30d2167aa5d9d74523300",
+  "independent_local_certificates": 85,
+  "lake_manifest_sha256": "a19b8a2e5b1293ae2beadbc3ae84812adcdae07162ab07d2232d023da83841cd",
+  "lean_version": "4.35.0",
+  "local_python_tests_passed_after_integrity_auditor": 44,
+  "mathlib_resolved_revision": "56a005855ea17e0b0958f73ec801ae140b0a1679",
+  "mathlib_tag": "v4.35.0",
+  "ndjson_count": 85,
+  "ndjson_sha256": "1afbd6d5bff9e13ebd6f2bb09849781acc853711b98c96c64c354a817f1e1a4f",
+  "originality": "NOT_ASSESSED",
+  "refuted_with_counterexample": 82,
+  "schema": "axiom.v0.3.formal_verification_release.v1",
+  "unique_findings": 168,
+  "verification_backend": "Lean 4 kernel (actual executed GitHub Actions runner)"
+}

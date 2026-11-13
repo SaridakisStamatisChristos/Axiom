@@ -42,3 +42,19 @@ GitHub workflow: `.github/workflows/lean-verification.yml`. Its actual job concl
 ## Known limitations
 
 AXIOM's supported domain is deliberately narrow. Lean integration is optional and requires installing Mathlib. Proof source generation is deterministic; no automatic import from untrusted arbitrary Lean source exists. The adapter does not certify the entire reasoning engine and does not independently establish mathematical originality. Its offline `verify_record_integrity` API establishes internal record consistency, not a signed execution attestation.
+
+## Verified real CI results (2026-11-13)
+
+A genuine GitHub Actions runner executed [run 43342422453](https://github.com/SaridakisStamatisChristos/Axiom/actions/runs/43342422453) (job `131613668932`, source commit `b49bf6dce45dcc663ca411c8a8ec6f77b363ad3c`). Its log records `attempted: 85, formally_verified: 85` after deterministic campaign reproduction, with no Lean checking failures, 3 successful real-Lean integration tests, and 43 Python tests passing at that commit. Actual Lean was `4.35.0`; Mathlib resolved git SHA was `56a005855ea17e0b0958f73ec801ae140b0a1679`; Lake manifest SHA-256 was `a19b8a2e5b1293ae2beadbc3ae84812adcdae07162ab07d2232d023da83841cd`. The successful run's uploaded evidence artifact ID is `13999333923` with digest `sha256:109813a97f370ff5fadd08e46ee8c88408f2e00568c30d2167aa5d9d74523300`.
+
+The 85 source-bound JSON proofs, 85 theorem names, exact assumptions, transitive axiom dependencies, two sample Lean source files, and batch summary are preserved in `research/lean_verified/`. A deterministic NDJSON catalogue is at `research/v03_formal_results.ndjson`. Their candidate statements correspond to the audited original campaign (48 polynomial identities, 37 SOS inequalities). The original v0.2 SQLite proof statuses remain distinct from the v0.3 `FORMALLY_VERIFIED` external evidence records. No claim of novel mathematical discovery is made.
+
+For exact internal integrity replay (not historical CI attestation):
+
+```bash
+axiom audit-report research/v03_campaign_report.json
+axiom audit-lean-results research/v03_campaign_report.json \
+    research/lean_verified/campaign --require-complete
+```
+
+The CI workflow includes both commands and adds a `--require-complete` gate after the full batch verification. Final release's Python suite has 44 local passes with 3 genuine Lean checks skipped only because the local environment lacks Lean.

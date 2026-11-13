@@ -67,6 +67,10 @@ jobs:
             --project-root . \
             --output-dir research/lean_verified/campaign \
             --limit 85 --timeout 180
+      - name: Audit all saved Lean records against original mathematical findings
+        run: |
+          axiom audit-lean-results research/ci_replay_report.json \
+            research/lean_verified/campaign --require-complete
       - name: Preserve verification evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4

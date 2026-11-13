@@ -44,3 +44,47 @@ def verify_report_proofs(report_file: str | Path, *, project_root: str | Path,
                'notes': 'Independent Lean verdicts only. Original campaign is unchanged.'}
     (out / 'summary.json').write_text(json.dumps(summary, indent=2, sort_keys=True) + '\n', encoding='utf-8')
     return summary
+
+
+def audit_formal_report(report_file: str | Path, *, result_dir: str | Path,
+                        require_complete: bool = False) -> dict:
+    """Independently replay input claims and source binding of saved Lean records.
+
+    This detects mismatches and duplicated/tampered source records. It cannot,
+    by itself, prove that a historical external Lean process actually ran;
+    the actual CI job and provenance remain separate evidence.
+    """
+    report = json.loads(Path(report_file).read_text(encoding='utf-8'))
+    audit_report(report)
+    proofs = {f['candidate_id']: f for f in report['findings']
+              if f['status'] == 'PROVED_IN_SUPPORTED_FRAGMENT'}
+    files = sorted(Path(result_dir).glob('*.json'))
+    files = [x for x in files if x.name != 'summary.json']
+    if not files:
+        raise ValueError('no individual Lean verification records')
+    seen = set()
+    totals: dict[str, int] = {}
+    for path in files:
+        rec = json.loads(path.read_text(encoding='utf-8'))
+        cid = rec.get('origin_candidate_id')
+        if cid not in proofs or cid in seen:
+            raise ValueError('unknown or duplicate research candidate')
+        seen.add(cid)
+        original = proofs[cid]
+        if (rec.get('origin_campaign_id') != report['campaign_id'] or
+            rec.get('origin_candidate_status') != original['status'] or
+            rec.get('statement') != original['statement'] or
+            rec.get('certificate') != original['proof']['certificate']):
+            raise ValueError('Lean proof record does not match original research candidate')
+        verify_record_integrity(rec)
+        status = rec['status']
+        totals[status] = totals.get(status, 0) + 1
+    if require_complete and seen != set(proofs):
+        raise ValueError('formal records omit locally proved research candidates')
+    return {'schema': 'axiom.v0.3.audit_results.v1',
+            'campaign_id': report['campaign_id'],
+            'records_audited': len(files), 'locally_proved_candidates': len(proofs),
+            'formally_verified_in_records': totals.get('FORMALLY_VERIFIED', 0),
+            'outcomes': totals,
+            'external_provenance_authenticated': False,
+            'note': 'Record integrity is not independent authentication of historic Lean execution.'}

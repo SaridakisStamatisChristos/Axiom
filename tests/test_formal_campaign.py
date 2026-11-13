@@ -37,3 +37,26 @@ def test_batch_rejects_corrupted_mathematical_report(tmp_path):
         verify_report_proofs(report_file, project_root=tmp_path, output_dir=tmp_path/'out')
     with pytest.raises(ValueError):
         verify_report_proofs(report_file, project_root=tmp_path, output_dir=tmp_path/'out', limit=0)
+
+
+def test_lean_result_audit_replays_original_campaign_and_binds_candidates(tmp_path):
+    from axiom.formal_campaign import audit_formal_report
+    report_file = tmp_path / 'report.json'
+    source = run_campaign(str(tmp_path/'campaign.db'), seed=42, candidates=40,
+                          domain='mixed', report_path=str(report_file))
+    output_dir = tmp_path / 'formal'
+    root = Path(__file__).resolve().parent.parent
+    with patch('axiom.lean_backend.shutil.which', return_value=None):
+        verify_report_proofs(report_file, project_root=root, output_dir=output_dir, limit=3)
+    checked = audit_formal_report(report_file, result_dir=output_dir)
+    assert checked['records_audited'] == 3
+    assert checked['formally_verified_in_records'] == 0
+    assert checked['external_provenance_authenticated'] is False
+    with pytest.raises(ValueError):
+        audit_formal_report(report_file, result_dir=output_dir, require_complete=True)
+    record = next(p for p in output_dir.glob('*.json') if p.name != 'summary.json')
+    forged = json.loads(record.read_text())
+    forged['origin_campaign_id'] = 'malicious'
+    record.write_text(json.dumps(forged))
+    with pytest.raises(ValueError):
+        audit_formal_report(report_file, result_dir=output_dir)

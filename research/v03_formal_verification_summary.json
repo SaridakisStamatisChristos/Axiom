@@ -1,0 +1,42 @@
+{
+  "benchmarks_formally_verified": 2,
+  "ci_commit": "05dcb66fe9e43ebfd467fa687d8f9fa358cf0fbb",
+  "ci_run_id": 43341826189,
+  "ci_url": "https://github.com/SaridakisStamatisChristos/Axiom/actions/runs/43341826189",
+  "lean_integration_tests_passed": 3,
+  "proofs": [
+    {
+      "axioms": [
+        "propext"
+      ],
+      "filename": "ci_identity.json",
+      "lean_version": "4.35.0",
+      "mathlib_revision": "56a005855ea17e0b0958f73ec801ae140b0a1679",
+      "source_sha256": "b3e0a4ba1e110fa14f99885e5dd14e47011c61017fa92ad9cb14c713304cc1d9",
+      "statement_sha256": "330ee6127b1c013a72800819dd894fd19b9bf0aa0f9c16ebf767900c6a0899ab",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_330ee6127b1c013a72800819",
+      "toolchain": "leanprover/lean4:v4.35.0"
+    },
+    {
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound"
+      ],
+      "filename": "ci_sos.json",
+      "lean_version": "4.35.0",
+      "mathlib_revision": "56a005855ea17e0b0958f73ec801ae140b0a1679",
+      "source_sha256": "6691c6e8ea62be06d49c6eacf5453ecfd3dc4d64eaa0d69d3cbb085d84d5ad27",
+      "statement_sha256": "5e41838d7e9792d8ffda1f351576b0cc1bc794c86ada2d26d70d1dbce063c546",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_5e41838d7e9792d8ffda1f35",
+      "toolchain": "leanprover/lean4:v4.35.0"
+    }
+  ],
+  "python_tests_skipped_local": 3,
+  "python_unit_tests_passed": 43,
+  "release_verification_scope": "two_known_benchmarks_only",
+  "research_generated_formal_verification_count": 0,
+  "schema": "axiom.v0.3.kernel_evidence_summary.v1"
+}

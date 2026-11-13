@@ -34,7 +34,21 @@ def main() -> None:
     batch.add_argument("--output-dir", default="research/lean_verified")
     batch.add_argument("--limit", type=int, default=10)
     batch.add_argument("--timeout", type=int, default=120)
+    formal_audit = sub.add_parser("audit-lean-results", help="replay campaign and audit Lean result source binding")
+    formal_audit.add_argument("report_file")
+    formal_audit.add_argument("result_dir")
+    formal_audit.add_argument("--require-complete", action="store_true")
     args = p.parse_args()
+    if args.command == "audit-lean-results":
+        from .formal_campaign import audit_formal_report
+        from .lean_backend import LeanBackendError
+        try:
+            result = audit_formal_report(args.report_file, result_dir=args.result_dir,
+                                          require_complete=args.require_complete)
+        except (LeanBackendError, ValueError, KeyError, TypeError, RecursionError, OSError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return
     if args.command == "lean-verify-report":
         from .formal_campaign import verify_report_proofs
         from .lean_backend import LeanBackendError
