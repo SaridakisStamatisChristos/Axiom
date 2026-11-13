@@ -91,10 +91,10 @@ A separate overlay uses four tables:
 
 | Table | Evidence |
 |---|---|
-| \`frontier_reports\` | Immutable canonical full report, campaign ID and SHA-256 |
-| \`frontier_statements\` | Content-addressed exact-order graph statement and explicit no-proof scope |
-| \`frontier_findings\` | Bounded experiment status, full search/counterexample JSON, report/statement foreign keys |
-| \`frontier_motivations\` | Explicit non-entailing links to genuine original n=5 proof findings in the v0.7 federation |
+| `frontier_reports` | Immutable canonical full report, campaign ID and SHA-256 |
+| `frontier_statements` | Content-addressed exact-order graph statement and explicit no-proof scope |
+| `frontier_findings` | Bounded experiment status, full search/counterexample JSON, report/statement foreign keys |
+| `frontier_motivations` | Explicit non-entailing links to genuine original n=5 proof findings in the v0.7 federation |
 
 Every import preflights the complete existing overlay before changing
 anything. It refuses tampered persisted reports, missing source proof links,
@@ -116,10 +116,18 @@ manifest. Therefore preserve GitHub run logs, source reports and artifacts.
 
 ## Tests and CI gates
 
+The new heavyweight `tests/test_frontier_lineage.py` runs **in full** in
+the dedicated Python 3.11/3.13 CI matrix. The older graph and pinned Lean
+workflows exclude only this already-covered file from their `pytest -q`
+regression step to avoid repeated complete source replay. Every historical
+test, graph campaign and actual Lean kernel check remains active.
+The graph workflow has a 25-minute allowance for complete regression.
+
+
     pytest -q tests/test_frontier_lineage.py
     pytest -q
 
-The \`.github/workflows/frontier-lineage.yml\` workflow reconstructs
+The `.github/workflows/frontier-lineage.yml` workflow reconstructs
 the v0.6–v0.8 knowledge layers, generates independent n6/n7 campaign
 reports, imports and audits them, and uploads the SQLite database and JSON
 evidence on Python 3.11 and 3.13.
