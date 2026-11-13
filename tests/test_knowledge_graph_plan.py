@@ -73,7 +73,7 @@ def all_ranked_tasks(prepared_db):
     return all_tasks
 
 
-def test_evidence_priority_and_source_fingerprint(plan):
+def test_evidence_priority_and_source_fingerprint(plan, all_ranked_tasks):
     assert plan["schema"] == SCHEMA
     assert plan["source_audit"] == "ACCEPTED"
     assert plan["eligible_action_count"] > 0
@@ -118,7 +118,7 @@ def test_exact_refutation_never_reproposed_for_search(all_ranked_tasks):
     assert not any(
         t["statement"]["n"] == 6 and
         t["statement"]["template"] == "edges_le_vertices"
-        for t in plan["tasks"])
+        for t in all_ranked_tasks)
 
 
 def test_unresolved_frontier_still_requires_independent_search(all_ranked_tasks):
