@@ -25,11 +25,15 @@ jobs:
         run: python -m pip install -e '.[dev]'
       - name: Run unit and regression suite
         run: pytest -q
-      - name: Install pinned Lean toolchain and Mathlib cache
-        uses: leanprover/lean-action@v1
-        with:
-          auto-config: false
-          use-mathlib-cache: true
+      - name: Install elan toolchain manager
+        run: |
+          curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Resolve pinned Lean/Mathlib dependencies and download compiled cache
+        run: |
+          lake update
+          lake exe cache get
       - name: Show exact versions and packages
         run: |
           lake env lean --version
