@@ -60,6 +60,19 @@ def plan(prepared_db):
     return graph_research_plan(prepared_db, limit=100)
 
 
+@pytest.fixture(scope="module")
+def all_ranked_tasks(prepared_db):
+    # Inspect all tasks on one trusted full source replay rather than
+    # repeatedly re-auditing the complete graph/Lean provenance on pages.
+    from axiom.knowledge_graph import _open
+    from axiom.knowledge_exact_n6 import _audit as audit_exact
+    from axiom.knowledge_graph_plan import _materialized_plan
+    with _open(prepared_db, existing=True) as db:
+        source = audit_exact(db)
+        all_tasks, _, _ = _materialized_plan(db, source)
+    return all_tasks
+
+
 def test_evidence_priority_and_source_fingerprint(plan):
     assert plan["schema"] == SCHEMA
     assert plan["source_audit"] == "ACCEPTED"
@@ -75,11 +88,11 @@ def test_evidence_priority_and_source_fingerprint(plan):
     assert all(t["claim_is_new_theorem"] is False for t in plan["tasks"])
     assert all(t["all_order_generalization"] == "NOT_PROVED"
                and t["lean_formal_verification"] == "NOT_PERFORMED_BY_PLAN"
-               for t in plan["tasks"])
+               for t in all_ranked_tasks)
 
 
-def test_known_finite_n6_proof_only_gets_formalization_task(plan):
-    exact = [t for t in plan["tasks"] if t["statement"]["n"] == 6
+def test_known_finite_n6_proof_only_gets_formalization_task(all_ranked_tasks):
+    exact = [t for t in all_ranked_tasks if t["statement"]["n"] == 6
              and t["statement"]["template"] == "handshake"]
     assert len(exact) == 1
     task = exact[0]
@@ -91,21 +104,21 @@ def test_known_finite_n6_proof_only_gets_formalization_task(plan):
     assert task["exact_certificate_sha256"]
     # The same mathematical identity on n=5 is an independent proof task,
     # never inferred from n=6. This guards against cross-order promotions.
-    five = [t for t in plan["tasks"] if t["statement"]["n"] == 5
+    five = [t for t in all_ranked_tasks if t["statement"]["n"] == 5
             and t["statement"]["template"] == "handshake"]
     assert five and all(t["action"] == "FORMALIZE_LOCAL_FINITE_PROOF_IN_LEAN"
                         for t in five)
 
 
-def test_exact_refutation_never_reproposed_for_search(plan):
+def test_exact_refutation_never_reproposed_for_search(all_ranked_tasks):
     assert not any(
         t["statement"]["n"] == 6 and
         t["statement"]["template"] == "edges_le_vertices"
         for t in plan["tasks"])
 
 
-def test_unresolved_frontier_still_requires_independent_search(plan):
-    pending = [t for t in plan["tasks"]
+def test_unresolved_frontier_still_requires_independent_search(all_ranked_tasks):
+    pending = [t for t in all_ranked_tasks
                if t["action"] == "EXTEND_BOUNDED_FALSIFICATION"]
     assert pending
     assert all("frontier" in t["evidence_by_layer"] for t in pending)
