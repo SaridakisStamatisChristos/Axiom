@@ -5,7 +5,7 @@ from .research import run_campaign
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.5 mathematical research")
+    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.6 mathematical research")
     sub = p.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="create or resume a deterministic research campaign")
     run.add_argument("--db", default="research/axiom.sqlite3")
@@ -90,7 +90,43 @@ def main() -> None:
     graph_enum.add_argument("--max-order", type=int, default=5)
     graph_hist = sub.add_parser("graph-count", help="independently check binomial edge histograms for n<=5")
     graph_hist.add_argument("--max-order", type=int, default=5)
+    knowledge = sub.add_parser("knowledge-build", help="import audited graph research into the cumulative knowledge graph")
+    knowledge.add_argument("reports", nargs="+", help="complete v0.5 graph campaign reports")
+    knowledge.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    kn_audit = sub.add_parser("knowledge-audit", help="replay and audit ALL persisted graph evidence")
+    kn_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    kn_query = sub.add_parser("knowledge-query", help="query statements and evidence without upgrading proof status")
+    kn_query.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    kn_query.add_argument("--template")
+    kn_query.add_argument("--order", type=int)
+    kn_query.add_argument("--status")
+    kn_query.add_argument("--limit", type=int, default=20)
+    kn_neighbors = sub.add_parser("knowledge-neighbors", help="inspect auditable proof, checker and analogue links")
+    kn_neighbors.add_argument("node_id")
+    kn_neighbors.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    kn_neighbors.add_argument("--limit", type=int, default=100)
     args = p.parse_args()
+    if args.command in {"knowledge-build", "knowledge-audit", "knowledge-query", "knowledge-neighbors"}:
+        import sqlite3
+        from .knowledge_graph import (build_knowledge_graph, knowledge_summary,
+                                      query_knowledge, knowledge_neighbors)
+        try:
+            if args.command == "knowledge-build":
+                result = build_knowledge_graph(args.db, args.reports)
+            elif args.command == "knowledge-audit":
+                result = knowledge_summary(args.db)
+            elif args.command == "knowledge-query":
+                result = {"statements": query_knowledge(
+                    args.db, template=args.template, order=args.order,
+                    status=args.status, limit=args.limit)}
+            else:
+                result = knowledge_neighbors(args.db, args.node_id, limit=args.limit)
+        except (ValueError, TypeError, KeyError, OSError, sqlite3.DatabaseError,
+                json.JSONDecodeError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(result, sort_keys=True, indent=2))
+        return
+
     if args.command == "graph-count":
         from .graph_combinatorics import edge_count_histogram, check_edge_count_histogram
         if not 0<=args.max_order<=5:
