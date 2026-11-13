@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.8.0 — Historical formal proof provenance (development, 13 November 2026)
+
+- Added typed source-bound Lean record links connecting historical algebra and
+  number-theory proof execution records to their exact original statements,
+  certificates, theorem source digests, toolchain and transitive axiom metadata.
+- Added complete offline re-audit, idempotent SQLite index import, adversarial
+  tamper tests, and production CLI import/audit/query commands.
+- Historical external Lean execution cannot be independently established by
+  offline JSON record auditing, and the cumulative source finding status is
+  never automatically promoted.
+- Preserved v0.1–v0.7 data and implementations unchanged.
+
 ## v0.7.0 — Typed mathematical evidence federation (development; 13 November 2026)
 
 - Added an auditable, domain-separated evidence overlay for graph, algebraic polynomial, number theory, and modular recurrence research, backed by the existing v0.6 SQLite graph database.
