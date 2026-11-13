@@ -194,7 +194,7 @@ def main() -> None:
         "knowledge-graph-plan",
         help="plan next graph research using full source-replayed exact n6 proofs and bounded frontier")
     reconciled.add_argument("--db", default="research/knowledge/axiom.sqlite3")
-    reconciled.add_argument("--order", type=int, choices=(5, 6, 7))
+    reconciled.add_argument("--order", type=int, choices=range(8))
     reconciled.add_argument("--limit", type=int, default=30)
     reconciled.add_argument("--offset", type=int, default=0)
     reconciled.add_argument("--output")
