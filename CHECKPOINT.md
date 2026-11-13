@@ -1,3 +1,35 @@
+# AXIOM v0.12 — Independent complete six-vertex graph proof engine (13 November 2026)
+
+**Starting source:** v0.11 development head
+\`93f1c58f1a27c658cf80ac906943c515a1272e0b\` (PR #8 still subject to
+final CI and merge gate at the moment of v0.12 branch creation).
+
+**New branch:** \`axiom-v0.12-exact-n6\`. Development is stacked on v0.11,
+without replacing any existing v0.1–v0.11 research source or proof record.
+
+## Implementation
+
+- \`src/axiom/graph_n6_exact.py\`: complete enumeration of all
+  2^C(6,2)=32768 labelled simple graphs, separately for every supported
+  typed n=6 structural graph claim.
+- Dual graph-property oracles: original graph discovery algorithms versus
+  independently implemented reference bitset graph invariants.
+- Strict exact-n=6 source-bound certificate with complete labelled coverage,
+  independently recomputed antecedent count, explicit vacuity and NO claim
+  beyond graph order n=6.
+- Seven known true structural templates and two known false negative controls.
+- New CLI: \`graph-n6-run\`, \`graph-n6-audit\`,
+  \`graph-n6-check-certificate\`; adversarial proof metadata regression tests,
+  dedicated Python 3.11/3.13 CI and full documentation.
+- No changes to original n<=5 certificate checker or new Lean claims.
+
+**Release gate:** v0.12 has no verified release classification until the
+dedicated actual 32768-graph experiment and independent audit pass on both
+Python runners, and the entire historical regression/Lean CI passes at the
+final pull-request SHA. Do NOT generalize proof status beyond exact n=6.
+
+---
+
 # AXIOM v0.11 — Source-bound frontier experiment lineage (13 November 2026)
 
 **Source checkpoint:** AXIOM v0.10 merged successfully to \`main\` commit
