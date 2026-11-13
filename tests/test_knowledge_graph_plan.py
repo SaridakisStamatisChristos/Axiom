@@ -110,6 +110,8 @@ def test_known_finite_n6_proof_only_gets_formalization_task(all_ranked_tasks):
                         for t in five)
     assert all(t["original_local_proof_ids"] and not t["exact_certificate_sha256"]
                for t in five)
+    assert all(t["maximum_labelled_graphs_checked_in_source"] == 1024
+               for t in five)
 
 
 def test_exact_refutation_never_reproposed_for_search(all_ranked_tasks):
