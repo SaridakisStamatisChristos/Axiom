@@ -20,8 +20,8 @@ automatic research execution or newly proved theorems.
 ## Exact-typed statement identity
 
 All three layers are normalized against the entire closed
-\`GraphStatement\` type, including template, graph order \`n\`, and integer
-parameter \`k\`. An n=5 proof does not prove n=6; a verified exact-n6
+`GraphStatement` type, including template, graph order `n`, and integer
+parameter `k`. An n=5 proof does not prove n=6; a verified exact-n6
 certificate does not prove n=7. Bounded n6 observations never count as
 complete n6 proofs.
 
@@ -88,7 +88,7 @@ Run the planner:
       --order 7 --limit 20 --offset 0
 
 Pagination is explicit and stable; tasks have canonical content-addressed
-IDs. \`source_fingerprint\` includes the original graph and federation
+IDs. `source_fingerprint` includes the original graph and federation
 digests, historical source-bound Lean batch digests, and both the bounded
 frontier and exhaustive exact-n6 campaign digests.
 
@@ -119,7 +119,7 @@ kernel-checking implementation, without prematurely attributing one.
 
     pytest -q tests/test_knowledge_graph_plan.py
 
-The dedicated \`.github/workflows/reconciled-graph-agenda.yml\` workflow
+The dedicated `.github/workflows/reconciled-graph-agenda.yml` workflow
 rebuilds every source layer from exact historical reports, runs real
 bounded n6/n7 and full n6 32,768-labelled-graph experiments, imports
 and audits them, generates and independently audits the graph agenda,
