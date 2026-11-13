@@ -88,6 +88,8 @@ From the repository root:
 
     axiom knowledge-plan --db research/knowledge/axiom.sqlite3 \
       --domain graph --limit 10
+    axiom knowledge-plan --db research/knowledge/axiom.sqlite3 \
+      --limit 100 --offset 100
 
 The saved agenda is stable (no timestamps, nondeterministic IDs or secret
 network state) and independently reproducible. The auditor reconstructs the
