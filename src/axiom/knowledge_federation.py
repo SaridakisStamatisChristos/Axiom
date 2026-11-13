@@ -261,8 +261,12 @@ def federate(db_path: str, paths: list[str]) -> dict:
         incoming.append(obj)
     with _open(db_path, existing=True) as db:
         _tables(db)
-        # Audit existing graph and any previously federated material before mutation.
-        _audit(db) if db.execute("SELECT COUNT(*) FROM federation_nodes").fetchone()[0] else _assert_integrity(db)
+        # A damaged federation must NEVER be repaired by an import. Include all
+        # three tables in the preflight: deleting only nodes is also corruption.
+        existing_rows = sum(db.execute("SELECT COUNT(*) FROM " + table).fetchone()[0]
+                            for table in ("federation_sources", "federation_nodes",
+                                          "federation_edges"))
+        _audit(db) if existing_rows else _assert_integrity(db)
         old = _sources(db)
         registry = _registry(old + incoming)
         full = _graph_reports(db) + list(registry.values())
