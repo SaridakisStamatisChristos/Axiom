@@ -1,3 +1,37 @@
+# AXIOM v0.9 — Mathematical graph research continuation (13 November 2026)
+
+**Last released checkpoint:** v0.8 on GitHub main commit
+d2b98c41b38cc84553464db5832905fd1f6d5370. All pinned Lean, historical
+provenance, knowledge graph and full Python regression CI gates passed.
+
+**Current development branch:** axiom-v0.9-graph-frontier.
+
+## Implementation
+
+- src/axiom/graph_frontier.py: typed transfer from independent EXACT n=5
+  finite proofs into bounded target n=6/7 experiments, excluding vacuous
+  premises and previously refuted target claims.
+- New deterministic research candidate selection: unobserved target orders
+  first, previously bounded/experimental statements second, exact template
+  and integer parameter identity.
+- Independent actual counterexample rechecking; complete deterministic
+  replay of original sources and new experiments.
+- New CLI commands: graph-frontier-run, graph-frontier-audit.
+- Adversarial unit tests and an actual GitHub Actions research workflow on
+  Python 3.11 and 3.13.
+- New research protocol: docs/graph_frontier.md.
+
+**Epistemic boundary:** n=6/7 surviving a sample remains experimental.
+No automatic transfer of formal or exact-order proof across graph orders.
+Source reports v0.1–v0.8 are unchanged.
+
+**Release requirement:** Pass the new real graph-frontier campaign,
+original full mathematical regression, graph CI, knowledge federation, formal
+provenance, pinned Lean 4 and Mathlib CI on the final v0.9 PR commit before
+promoting to main.
+
+---
+
 # AXIOM v0.8 — Development continuation checkpoint (13 November 2026)
 
 **Baseline main:** v0.7 release commit 8434fbaaaa5ff799f0a604fd768475836b9212b4 (merged after Python 3.11/3.13 graph, federation and pinned Lean regression passed).

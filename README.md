@@ -1,3 +1,28 @@
+# AXIOM v0.9 — Graph Conjecture Frontier (development)
+
+AXIOM v0.9 starts a new bounded mathematical discovery campaign: it uses
+**nonvacuous n=5 exact-order graph proofs** as motivation to generate and
+falsify similarly structured statements at n=6 and n=7. A surviving
+higher-order statement is only experimentally supported; a false statement
+requires an actual independently rechecked counterexample.
+
+Run from the project root after installing AXIOM:
+
+    axiom graph-frontier-run --target-order 6 --search-budget 256 \
+      --output research/graphs/frontier_n6.json \
+      research/graphs/v05_baseline_report.json \
+      research/graphs/v05_scale_report.json
+    axiom graph-frontier-audit research/graphs/frontier_n6.json \
+      research/graphs/v05_baseline_report.json \
+      research/graphs/v05_scale_report.json
+
+See [AXIOM v0.9 graph frontier research protocol](docs/graph_frontier.md)
+for the n=7 campaign, independent audit, limitations and CI. No new
+universal graph theorem is claimed. All previous v0.8/v0.7/v0.6 materials
+and mathematical evidence are preserved below.
+
+---
+
 # AXIOM v0.8 — Source-bound Lean proof provenance (development)
 
 AXIOM v0.8 connects the complete historical algebra and number-theory Lean

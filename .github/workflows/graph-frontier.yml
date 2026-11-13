@@ -1,0 +1,87 @@
+name: AXIOM v0.9 bounded graph conjecture frontier
+on:
+  push:
+    branches: [main, "axiom-v0.9-*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: axiom-v09-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  graph-frontier-research:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install AXIOM
+        run: python -m pip install -e '.[dev]'
+      - name: Adversarial graph-frontier regression
+        run: pytest -q tests/test_graph_frontier.py
+      - name: Discover target order n=6 counterexamples and surviving hypotheses
+        run: |
+          mkdir -p research/graphs/frontier_ci
+          axiom graph-frontier-run \
+            --target-order 6 --search-budget 256 --seed 42 \
+            --max-candidates 40 --output research/graphs/frontier_ci/n6.json \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+      - name: Independent deterministic evidence replay n=6
+        run: |
+          axiom graph-frontier-audit research/graphs/frontier_ci/n6.json \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+      - name: Discover target order n=7 counterexamples and surviving hypotheses
+        run: |
+          axiom graph-frontier-run \
+            --target-order 7 --search-budget 256 --seed 42 \
+            --max-candidates 40 --output research/graphs/frontier_ci/n7.json \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+      - name: Independent deterministic evidence replay n=7
+        run: |
+          axiom graph-frontier-audit research/graphs/frontier_ci/n7.json \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+      - name: Store research summary with explicit scope
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          out={}
+          for n in (6,7):
+              result=json.loads(Path(f'research/graphs/frontier_ci/n{n}.json').read_text())
+              out[f'n{n}']={
+                  'campaign_id':result['campaign_id'],
+                  'candidate_count':result['candidate_count'],
+                  'counts':result['counts'],
+                  'proofs_at_target_order':0,
+                  'scope':'bounded target-order search; generalization is NOT PROVED',
+                  'novelty':'NOT_ASSESSED'
+              }
+          Path('research/graphs/frontier_ci/summary.json').write_text(
+              json.dumps(out,sort_keys=True,indent=2)+'\n')
+          print(json.dumps(out,sort_keys=True,indent=2))
+          PY
+      - name: Preserve bounded mathematical research reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axiom-v09-graph-frontier-python-${{ matrix.python-version }}
+          path: |
+            research/graphs/frontier_ci/n6.json
+            research/graphs/frontier_ci/n7.json
+            research/graphs/frontier_ci/summary.json
+          if-no-files-found: warn
