@@ -1,0 +1,94 @@
+name: AXIOM v0.13 exact-order graph knowledge provenance
+on:
+  push:
+    branches: [main, "axiom-v0.13-*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: axiom-v013-exact-knowledge-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  exact-six-vertex-knowledge:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install all mathematical research modules
+        run: python -m pip install -e '.[dev]'
+      - name: Adversarial exact-n6 source-bound integration regression
+        run: pytest -q tests/test_knowledge_exact_n6.py
+      - name: Rebuild historical source-bound mathematical knowledge
+        run: |
+          mkdir -p research/knowledge
+          axiom knowledge-build --db research/knowledge/ci_v013.sqlite3 \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+          axiom knowledge-federate --db research/knowledge/ci_v013.sqlite3 \
+            research/v03_campaign_report.json \
+            research/number_theory/v04_report.json \
+            research/number_theory/v04_sequences.json
+          axiom knowledge-formal-import --db research/knowledge/ci_v013.sqlite3 \
+            --algebra-ndjson research/v03_formal_results.ndjson \
+            --number-index research/number_theory/v04_formal_results.ndjson \
+            --number-records-dir research/lean_verified/number_theory
+      - name: Reproduce independent bounded graph frontier at n6 and n7
+        run: |
+          axiom graph-frontier-run --target-order 6 --seed 42 \
+            --search-budget 256 --max-candidates 40 \
+            --output research/knowledge/ci_v013_frontier_n6.json \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+          axiom graph-frontier-run --target-order 7 --seed 42 \
+            --search-budget 256 --max-candidates 40 \
+            --output research/knowledge/ci_v013_frontier_n7.json \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+          axiom knowledge-frontier-import --db research/knowledge/ci_v013.sqlite3 \
+            research/knowledge/ci_v013_frontier_n6.json \
+            research/knowledge/ci_v013_frontier_n7.json
+      - name: Prove and refute exact n6 structural claims using all 32768 labelled graphs
+        run: |
+          axiom graph-n6-run --templates \
+            handshake degree_bound triangle_upper_bound \
+            forest_edge_count tree_edge_count connected_edge_lower_bound \
+            bipartite_no_triangles edges_le_vertices connected_edges_ge_n \
+            --output research/knowledge/ci_v013_exact_n6.json
+          axiom graph-n6-audit research/knowledge/ci_v013_exact_n6.json
+      - name: Index and independently re-audit the complete graph knowledge lineage
+        run: |
+          axiom knowledge-exact-n6-import --db research/knowledge/ci_v013.sqlite3 \
+            research/knowledge/ci_v013_exact_n6.json \
+            > research/knowledge/ci_v013_summary.json
+          axiom knowledge-exact-n6-audit --db research/knowledge/ci_v013.sqlite3
+          axiom knowledge-exact-n6-query --db research/knowledge/ci_v013.sqlite3 \
+            --status PROVED_IN_SUPPORTED_FRAGMENT
+          axiom knowledge-exact-n6-query --db research/knowledge/ci_v013.sqlite3 \
+            --status REFUTED
+          axiom knowledge-federation-audit --db research/knowledge/ci_v013.sqlite3
+          axiom knowledge-frontier-audit --db research/knowledge/ci_v013.sqlite3
+          axiom knowledge-formal-audit --db research/knowledge/ci_v013.sqlite3
+      - name: Preserve complete exact evidence and SQLite snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axiom-v013-knowledge-python-${{ matrix.python-version }}
+          path: |
+            research/knowledge/ci_v013.sqlite3
+            research/knowledge/ci_v013_summary.json
+            research/knowledge/ci_v013_exact_n6.json
+            research/knowledge/ci_v013_frontier_n6.json
+            research/knowledge/ci_v013_frontier_n7.json
+          if-no-files-found: warn
