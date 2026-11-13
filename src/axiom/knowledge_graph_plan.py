@@ -55,7 +55,7 @@ def _fingerprint(db) -> str:
 
 def _add(groups: dict, statement: dict, layer: str, state: str,
          source_id: str, finding_id: str, certificate: dict | None = None,
-         sampled: int = 0) -> None:
+         local_proof_ids: list[str] | None = None, sampled: int = 0) -> None:
     stmt = GraphStatement.from_dict(statement)
     if state not in STATUSES or layer not in ("original", "frontier", "exact_n6"):
         raise ValueError("invalid graph evidence state or source layer")
@@ -70,6 +70,7 @@ def _add(groups: dict, statement: dict, layer: str, state: str,
         "sources": defaultdict(set),
         "findings": defaultdict(set),
         "certificates": set(),
+        "local_proofs": set(),
         "sampled": 0,
     })
     if record["statement"] != stmt.to_dict():
@@ -79,6 +80,8 @@ def _add(groups: dict, statement: dict, layer: str, state: str,
     record["findings"][layer].add(finding_id)
     if certificate is not None:
         record["certificates"].add(digest(certificate))
+    if local_proof_ids:
+        record["local_proofs"].update(local_proof_ids)
     if sampled > record["sampled"]:
         record["sampled"] = sampled
 
@@ -121,8 +124,7 @@ def _materialized_plan(db, exact) -> tuple[list[dict], int, int]:
                 raise ValueError("original certificate used outside verified n<=5 domain")
             _add(groups, statement, "original", status,
                  finding["source_id"], fid,
-                 certificate={"source_local_proof_ids": sorted(local_ids)}
-                 if local_ids else None)
+                 local_proof_ids=sorted(local_ids))
 
     frontier_statements = {
         sid: json.loads(payload)
@@ -206,6 +208,7 @@ def _materialized_plan(db, exact) -> tuple[list[dict], int, int]:
             "originating_findings_by_layer": {
                 k: sorted(v) for k, v in sorted(rec["findings"].items())},
             "exact_certificate_sha256": sorted(rec["certificates"]),
+            "original_local_proof_ids": sorted(rec["local_proofs"]),
             "maximum_labelled_graphs_checked_in_source": rec["sampled"],
             "rationale": rationale,
             "claim_is_new_theorem": False,
