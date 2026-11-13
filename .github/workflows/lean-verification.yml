@@ -27,7 +27,7 @@ jobs:
       # under both supported Python versions; keep this regression focused
       # on the original mathematics before the real Lean kernel checks.
       - name: Run existing math regressions (v0.11 integration in dedicated CI)
-        run: pytest -q --ignore=tests/test_frontier_lineage.py --ignore=tests/test_graph_n6_exact.py --ignore=tests/test_knowledge_exact_n6.py
+        run: pytest -q --ignore=tests/test_frontier_lineage.py --ignore=tests/test_graph_n6_exact.py --ignore=tests/test_knowledge_exact_n6.py --ignore=tests/test_knowledge_graph_plan.py
       - name: Install elan toolchain manager
         run: |
           curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \

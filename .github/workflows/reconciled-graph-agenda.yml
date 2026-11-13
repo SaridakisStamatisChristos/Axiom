@@ -1,0 +1,106 @@
+name: AXIOM v0.14 source-reconciled graph research agenda
+on:
+  push:
+    branches: [main, "axiom-v0.14-*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: axiom-v014-graph-agenda-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  full-provenance-graph-agenda:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install AXIOM test and research dependencies
+        run: python -m pip install -e '.[dev]'
+      - name: Replay adversarial scheduling regression on exact source evidence
+        run: pytest -q tests/test_knowledge_graph_plan.py
+      - name: Reconstruct original source-bound mathematical knowledge
+        run: |
+          mkdir -p research/knowledge
+          axiom knowledge-build --db research/knowledge/ci_v014.sqlite3 \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+          axiom knowledge-federate --db research/knowledge/ci_v014.sqlite3 \
+            research/v03_campaign_report.json \
+            research/number_theory/v04_report.json \
+            research/number_theory/v04_sequences.json
+          axiom knowledge-formal-import --db research/knowledge/ci_v014.sqlite3 \
+            --algebra-ndjson research/v03_formal_results.ndjson \
+            --number-index research/number_theory/v04_formal_results.ndjson \
+            --number-records-dir research/lean_verified/number_theory
+      - name: Independently produce exact n6 and bounded n6/n7 real graph experiments
+        run: |
+          axiom graph-frontier-run --target-order 6 --seed 42 \
+            --search-budget 256 --max-candidates 40 \
+            --output research/knowledge/ci_v014_frontier_n6.json \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+          axiom graph-frontier-run --target-order 7 --seed 42 \
+            --search-budget 256 --max-candidates 40 \
+            --output research/knowledge/ci_v014_frontier_n7.json \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+          axiom knowledge-frontier-import --db research/knowledge/ci_v014.sqlite3 \
+            research/knowledge/ci_v014_frontier_n6.json \
+            research/knowledge/ci_v014_frontier_n7.json
+          axiom graph-n6-run --templates \
+            handshake degree_bound triangle_upper_bound \
+            forest_edge_count tree_edge_count connected_edge_lower_bound \
+            bipartite_no_triangles edges_le_vertices connected_edges_ge_n \
+            --output research/knowledge/ci_v014_exact_n6.json
+          axiom graph-n6-audit research/knowledge/ci_v014_exact_n6.json
+          axiom knowledge-exact-n6-import --db research/knowledge/ci_v014.sqlite3 \
+            research/knowledge/ci_v014_exact_n6.json \
+            > research/knowledge/ci_v014_exact_summary.json
+      - name: Plan unresolved graph work from full independently checked source evidence
+        run: |
+          axiom knowledge-graph-plan --db research/knowledge/ci_v014.sqlite3 \
+            --limit 100 --offset 0 \
+            --output research/knowledge/ci_v014_graph_plan.json \
+            > research/knowledge/ci_v014_plan_summary.json
+          axiom knowledge-graph-plan-audit --db research/knowledge/ci_v014.sqlite3 \
+            research/knowledge/ci_v014_graph_plan.json
+          axiom knowledge-graph-plan --db research/knowledge/ci_v014.sqlite3 \
+            --order 7 --limit 30
+      - name: Enforce exact statement proof/refutation boundaries
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('research/knowledge/ci_v014_graph_plan.json'))
+          assert x['schema']=='axiom.graph_research_agenda.v1'
+          assert x['proof_status_upgrades']==0 and not x['cross_order_inference']
+          assert x['all_orders_refuted_excluded']>0
+          assert x['action_counts'].get('EXTEND_BOUNDED_FALSIFICATION', 0)>0
+          assert x['action_counts'].get('FORMALIZE_EXACT_N6_IN_LEAN', 0)>=7
+          assert all(t['all_order_generalization']=='NOT_PROVED' for t in x['tasks'])
+          PY
+      - name: Retain research planning and all independently replayable sources
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axiom-v014-reconciled-agenda-python-${{ matrix.python-version }}
+          path: |
+            research/knowledge/ci_v014.sqlite3
+            research/knowledge/ci_v014_exact_n6.json
+            research/knowledge/ci_v014_frontier_n6.json
+            research/knowledge/ci_v014_frontier_n7.json
+            research/knowledge/ci_v014_exact_summary.json
+            research/knowledge/ci_v014_graph_plan.json
+            research/knowledge/ci_v014_plan_summary.json
+          if-no-files-found: warn

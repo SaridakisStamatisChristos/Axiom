@@ -1,3 +1,39 @@
+# AXIOM v0.14 — Proof-aware, scope-exact graph research scheduling
+
+**Verified release base:** v0.13 merged to `main` on 13 November 2026,
+commit `6376c3c415011aac21e142a90ba9c71c87a7b31a`, after actual
+Lean 4 and full historical research CI passed.
+
+**Development branch:** `axiom-v0.14-reconciled-graph-agenda`
+stacked on the v0.13 source head.
+
+## Implemented
+- New `src/axiom/knowledge_graph_plan.py`: deterministic, source-
+  replayed graph-only agenda that reconciles original graph campaigns,
+  the bounded n6/n7 frontier and genuine exact n6 finite certificates
+  using the complete typed statement identity.
+- Validated source SHA-256 fingerprint across mathematical graph,
+  federation, formal metadata, bounded frontier and exact-n6 campaigns.
+- Genuine exact-order proofs schedule Lean formalization, never
+  more bounded falsification; experimentally supported claims schedule
+  stronger independent falsification; any verified refutation excludes
+  a claim; inconsistent proof/refutation on the same exact statement
+  aborts without ranking.
+- Original local proof node IDs are separated from new n6 exhaustive
+  certificate SHA-256 fingerprints; no false Lean attestation or
+  cross-order theorem promotion.
+- CLI `knowledge-graph-plan`, `knowledge-graph-plan-audit` with
+  deterministic pagination, order filters, atomic JSON and replay audit.
+- New adversarial tests, dedicated Python 3.11/3.13 GitHub Actions,
+  full historical source replay, genuine graph experiments, separate
+  preservation of JSON and SQLite scientific artifacts.
+
+**Release gate:** all new and original CI, including real pinned Lean
+kernel verification, must pass on the same exact PR head before merging.
+Historical v0.10 planning behavior remains unchanged.
+
+---
+
 # AXIOM v0.13 — Exact-n6 proof evidence integrated with mathematical knowledge
 
 **Development source:** \`axiom-v0.12-exact-n6\` at head

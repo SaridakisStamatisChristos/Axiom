@@ -30,7 +30,7 @@ jobs:
       # New v0.11 integration tests run fully under frontier-lineage.yml
       # on Python 3.11 and 3.13, avoiding repeated full-source replay.
       - name: Run complete historical regression (v0.11 tested separately)
-        run: pytest -q --ignore=tests/test_frontier_lineage.py --ignore=tests/test_graph_n6_exact.py --ignore=tests/test_knowledge_exact_n6.py
+        run: pytest -q --ignore=tests/test_frontier_lineage.py --ignore=tests/test_graph_n6_exact.py --ignore=tests/test_knowledge_exact_n6.py --ignore=tests/test_knowledge_graph_plan.py
       - name: Replay finite graph baseline and independently audit every proof
         run: |
           axiom graph-run --seed 42 --candidates 240 --max-order 6 --search-budget 128 \

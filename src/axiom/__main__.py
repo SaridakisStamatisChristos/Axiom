@@ -190,7 +190,39 @@ def main() -> None:
     exact_query.add_argument("--status", choices=("REFUTED", "PROVED_IN_SUPPORTED_FRAGMENT"))
     exact_query.add_argument("--offset", type=int, default=0)
     exact_query.add_argument("--limit", type=int, default=20)
+    reconciled = sub.add_parser(
+        "knowledge-graph-plan",
+        help="plan next graph research using full source-replayed exact n6 proofs and bounded frontier")
+    reconciled.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    reconciled.add_argument("--order", type=int, choices=range(8))
+    reconciled.add_argument("--limit", type=int, default=30)
+    reconciled.add_argument("--offset", type=int, default=0)
+    reconciled.add_argument("--output")
+    reconciled_audit = sub.add_parser(
+        "knowledge-graph-plan-audit", help="replay all exact/bounded graph evidence and audit graph plan")
+    reconciled_audit.add_argument("report_file")
+    reconciled_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
     args = p.parse_args()
+    if args.command in {"knowledge-graph-plan", "knowledge-graph-plan-audit"}:
+        from .knowledge_graph_plan import (
+            graph_research_plan, write_graph_plan, audit_graph_plan)
+        import sqlite3
+        try:
+            if args.command == "knowledge-graph-plan-audit":
+                result = audit_graph_plan(args.db, args.report_file)
+            elif args.output:
+                result = write_graph_plan(
+                    args.db, args.output, order=args.order,
+                    limit=args.limit, offset=args.offset)
+            else:
+                result = graph_research_plan(
+                    args.db, order=args.order, limit=args.limit, offset=args.offset)
+        except (ValueError, KeyError, TypeError, OSError, sqlite3.DatabaseError,
+                json.JSONDecodeError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(result, sort_keys=True, indent=2))
+        return
+
     if args.command in {"knowledge-exact-n6-import", "knowledge-exact-n6-audit",
                         "knowledge-exact-n6-query"}:
         from .knowledge_exact_n6 import import_exact_n6, exact_n6_summary, query_exact_n6

@@ -1,3 +1,33 @@
+# AXIOM v0.14 — Reconciled Evidence-First Graph Research Agenda (development)
+
+This milestone extends AXIOM's research planner by joining **three
+independently audited evidence layers** for the *identical typed graph
+statement*: original exact n<=5 proofs, sampled n6/n7 experiments, and
+nonvacuous exhaustive 32,768-graph n6 certificates.
+
+AXIOM now proposes a genuinely different next step based on evidence:
+
+- A verified counterexample excludes the exact claim from repeat investigation.
+- A bounded survivor merits *more independent falsification*, not a theorem.
+- A complete exact n6 Python certificate merits *actual Lean formalization*,
+  not more redundant samples.
+- A known n<=5 finite proof remains scoped to its own graph order.
+
+Original source reports, original bounded observations, v0.10 multi-domain
+agenda, n6 finite proof records and all historical Lean source evidence
+remain unchanged. Neither a new universal theorem nor new Lean verification
+is asserted.
+
+    axiom knowledge-graph-plan --db research/knowledge/axiom.sqlite3 \
+      --limit 100 --output research/knowledge/graph_plan_v014.json
+
+    axiom knowledge-graph-plan-audit --db research/knowledge/axiom.sqlite3 \
+      research/knowledge/graph_plan_v014.json
+
+See [v0.14 graph agenda documentation](docs/reconciled_graph_agenda.md).
+
+---
+
 # AXIOM v0.13 — Source-Bound Exact Graph Proof Knowledge (development)
 
 AXIOM now preserves independently checked **exact n=6 finite certificates**
