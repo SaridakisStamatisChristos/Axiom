@@ -1,0 +1,586 @@
+{
+  "attempted": 96,
+  "campaign_id": "5b29ff4fd4dbcd7b73bfc7b5",
+  "candidates_tested": 205,
+  "formally_verified": 96,
+  "locally_proved": 96,
+  "results": [
+    {
+      "accepted": true,
+      "candidate_id": "74754e364917862f8bc63869eecfa23b08a04cb086f51d8a4c09f73ec081ac29",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_4236c396c63a7c808a32176e"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "d8276fd0a95d9d0ff92a4808c596be1388e2817972ea9ae954dc2f00b73357ef",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_6724053b655239f094f644bf"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "b733b1a6715e9bb5149e00720a570ecb4ef3b1bb81568a67b065cc30acf7c441",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_f72ff62c3ce70059107e6439"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "a25f63320262bfb85e20e16d314e1737410ffcfffd1cb44b5f1f40287becdcad",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_dbdfb97fbfd4a1e1b50f188f"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "47f5393307ed788f1fc9a63597c3fd39a994b0d3ba5bf9106282a7de8a4d875d",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_4b3dbd57c403cc22f73d0e01"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "7726411bb42a51e7033a26953bf2172a0c0271fc78914479fe9b34453fbdf0d1",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_1234391d9e0e97bb93789101"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "28965158a0031f8f06cb1cded4416d580ccc1b25bc5116a0a2a84d1e5b4c9235",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_06df896c12af24445a2e2fbe"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "83f3f5474e360d1af510ee2b8156625f2ba793ebd53dd2b8a2782e997429d119",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_16b086168095c21696b71edf"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "1b869514f6a4db3fd48069f5884adb7d5f7d31c099b6f4210f9a3648cafd4439",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_20235754d631e9ddb2da83d2"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "9e97da9bf21285802ed454cd642c556eca5abe1e10def4e6cacb84deb1d90e0c",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_e8c6b218705d9a4cf1e6b82a"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "6259d39396a2b254492daf81b730d8449f363d75045a27df22e859d09f076053",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_0c15e320893bcdc9e6fbd80c"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "12e6ac0b6f19ad024a2ccdd30d7af27f28c2f3d71f08a4d686d61b6c17766673",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_6368800c74688aa94bc11ad3"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "a1e61b03fe6cee04b941a22cf6084729bb63b6e09a84b7bc0958d0328e33e622",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_d7cd2b3cfe3993b27819cd9c"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "d7c0e3170d7e8ebf773d84b76c63fb4022b32ea3c0497899b217b61c45e0964e",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_59c02e274fce462c34e7e81e"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "b071c051a1d457ac0cc848aaf03299150e4a2439bd9eb670d0fe168dc9c2052f",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_42577e51bd4b7957e8c9da5d"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "10676d639a827fd6ae917a510114927e9e5b1b3d8771d6a83f26bcb57455a03b",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_d81c877670f524437ed10d14"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "60f46b0c02e7a681864fbdfdc9cb993716f4cd4909d750086486424f66106b0d",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_97604ed5dc276b28f01b90d1"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "0fdaca426739ede1647f9c93ac1cf23e17b3b836b29c8e43123332aa288881aa",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_356f6d731a458f5c177fccc6"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "f757c54891c4dc799abd9d72838992b72eef83dfe463061d4bc6fbdd0c69b473",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_49ab49744b1abc3f5779fe7f"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "3a8952c232efa91d70e02c1e0406e3280f8264176f7f80b6fe6830039e45b270",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_b904a669c1a7258c268763dd"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "7cd3c2166924f5ba355c3d9e27c6a48faaca9d906186d8a8686f08b2e6f0a41a",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_997743c19328bae924ce21b1"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "8668f6f0d5834c2dfd90f7028421a0d30f8482af3780139e28dae8c3e72e5b80",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_ec5efc0968d7ab2b5d992a47"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "66f9824ece8d34a8baea03f0633a228c8216fc1324547bf8e9119c270b58b324",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_59215309ad5fe7505ca82fc1"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "fe113e1e6064cb168e3ab622c3184803b22be975c5fc3224bc9ebef38a753847",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_7128fe3cd90df826323f562d"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "c593af75b911446bec20bf5c0a8a34b4a2bae55a92fc905bae6062a345b2242a",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_1af86c718718120d19d9ffb7"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "ccc2eead4c3f74bc10acbc5180cdefd10dc880b192c62c5e2a77007f6922b132",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_fa8cc0401bf75e15bb256429"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "babe15e34fad693a0703b568de8bc921811fd0d92a875412edb2ecd0db302123",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_a9e20f55b5a69aee0f173237"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "e05a8b59adf549efa97fa04baa7b6aabac45e7e44968e387ba80fe4521a66ed3",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_8c225a7c28d252f63d6b61af"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "ed9bd90a4c11eafd7649a5535139243e970918183f8a639b14f75432f682e7cc",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_40f0bfed7db9be05ef099e48"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "5b8b43ba52fceb0053c8d53bf614416adf6aba260e2a9d2b153846a8a7922c93",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_39a6339a19a66ac13744de09"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "57061a924ff57c99c3865479eb9f95fbfe3d3ad8d21d0c9c19fd711e0359dc51",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_44e70ecc1476b7925954eb01"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "feb349534bd6fd973b1889bdb1a1336dd25db7d072f9511e5036bc08eb53a1f5",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_94c82c6cf2a1112bc0a5cc9c"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "37291e6b345768d6e582fd5ee677c186e098bc41cad688e79879e56cc4a84714",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_f1db5c349dba56b296d7080e"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "2990da0aec0071435e12de3ad969c1a8c4525811ca55a3a0fb1f2ddc8162da1f",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_fb603894cdc71d6e76b6f1b4"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "6acefd5e46cb1aa0ef150698e4ba0974b5d3d25981b0734d48525041c26de2cf",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_0c2a735313c4f6bffc903a7d"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "88bc75c514afd92dcd9836ff4756ea1d0cb1a701140d0d1128631ec8261ad14c",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_36ae9ad89e701ef4e97d6b16"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "b3d483f708d144b3bc144efb2a77949c4e57cd08312474223400684a3c4569a0",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_42a7621593cae5bcf7c265a5"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "2b41ed1fb31b71b810b0950bac1864afb116c2f8f2e0b7bc5087973ae0753582",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_65701ce351b95c9237a7dfe5"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "43319837c56748d9acc09739da2c11a34dbba072557b5887c1d1cac455bc2afa",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_4d3ff76e44b376d1897aff5e"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "a6592f7a54f299f03d4a4347b911d6d5ed562fedc64a6c898de082040224c67d",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_f312425f3ea7761cbaffbdfa"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "abd964ae2bd625f8c659964d6aae2dec8d97be3bd3f9d1eee0ea38819384e2bd",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_409a92afc7192e46b8211604"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "9c4276df02022b93a71fe479810c95069c0566acace87eab051df586fc1cc744",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_d732d6297440fefe51ec7441"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "ddffdda0ef6c9854024f4a0d0cc242100cc08218573a71166c0ce5915b90b351",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_f5aa8231e04e0104f59934ad"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "b7d7184c5a72f50672bf860260a99554f97348c61fabf8c593f63583440ce5e3",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_28490aa5ab3de27bfb0c837d"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "ec44b1371990be853566f8060a76f9d5f8579c0d9914390499ea5cccc8616918",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_0f33caca36c50b40d0fd1713"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "6783e2d27d52f64dc61fa88596c03d29c203f23bdf6d83e040e47a5bf4bfbf8c",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_d50ac3d86accdd1f7f75ca65"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "4e8a7c883dafa5c07c3122b52fdf003e3dc828bcbf187a390378dc89cbf75ea5",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_0ab392444efb64e22a145341"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "e72fff6a386ebe64974f04f43e2dd613f79c44d8d231e66465c57c5c3a16bd17",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_cf47c8c5b486391f6e9b0bf9"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "c47b94f782c0d11e3274d1c3389eacaed63c8193f1dd4f6b17f78e1f651bfa21",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_75bf1b5ea82a5956b3319c31"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "962c93835dfef9371ab0c8ce2a41ef6a97623b5414724d90a0b03941c6589933",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_5f8aa89f24fcdbf05c9b6ad5"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "ef7127fc5c250b5a262d4fc2e4981a32eeac27eeadb62a87906db285157c3a44",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_383daa92e0b842e99671468a"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "65b994a901bed60b9b97a8ba6c29bf5e9b947f5f82c44071a54ec893df1b30b9",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_f1131cbdc0e02b4de7984bcb"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "4a4b7f9090e02951e5f28a73dd4d6d01f30b6154fe25fcba56355d5fe767fa5c",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_3da633f130dc0dda7daaeb38"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "185ee3ca602f5c815711a656c33c56733fd9de23742b2b54e31be4fb10a97cbc",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_b17c40dda0de379877f44c8a"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "e6203f545600484eb11f1f4ba27404801164dbaa2b2cecf12fe5be7aef343b11",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_d9dfe25dc1d5fc0c730848a5"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "620288be02990e5388790b53931173fd4ef198d7e48e980ca0a628a422c77245",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_439ceea11e46e51bb3aa18c2"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "367b10d26b9d46c182e40f9603db96f235b49e6186073a7187b84a3090811aa1",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_729a09949f21a2460c98b3b6"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "658bd1b27fb07d563631be70f778ec77b90184397b78b380774a5aa35a557468",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_ff11ad7ab80a3036d4e4be88"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "020d9c0597961af24067c8a53f06670f934cead7354f0777a14e7f95eafd7740",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_8b3b70bd0248871f1658d78e"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "94c2e909ef09ef99ea60d0d9e2ee000a1137764398e26269380f28a17e3b062c",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_842e3d74e3b1e6c599e6c854"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "6762fd81e693ae104828518d06690c7eea4ffb84c29e1481fc3bdc666c16792d",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_75e505b5678679066b43ceeb"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "6d33d156fe89f9984bcd423f089ca8d803a36dbd54f95e8ffcb791e68680077c",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_b5546ff5c2d1ff5dbd60221a"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "ef82cdf377a1f67a33f21a49b7819a896819458d149d46186cece3f50df76697",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_7a47577ca9c760ae6bbafb93"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "fa663edad2cd91c4df3b21b4e8876ce795b0d93dc1250f28488fde914e95ae69",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_f9ebf36e02d84b246b9fe1c8"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "36e90933b6958e9057bf1558e05510f5cb077d62823a4d01d1bdd010c4ffb909",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_2a4f57c95fa8f7d3627313d0"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "a8bcf8b3e9674cd4c3e639dc7f1126913db9a9b9d182015921ab49d5f2a48765",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_ebc3a1db7112bf926bfa5ea5"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "29e3ed54fb49de05d1471e14b41da7b85f46b3d7930c0c77a946516068ac7ef9",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_057d981770759fa686b352be"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "8bd26c7948752827728a78e8ef58bf404d38bdb756784b46c76b781bb79ebf3d",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_85630e821ab32a79fc2dbe0e"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "4cebf9d78524bd81f597da42f9eec89608ebdaa7b68ceb59d88d9c3b2a112159",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_a1c2e8bba1d251455c6c9a0c"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "f6903a5305cb379bf39620c092f60e2fab8b92b26fe6c9ce6913f97e4c3a8a3d",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_f3e131a8669a07911e9154a0"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "435ee7e9a03c56b96ca519e6e50e887dcb2ecad572aeb3fb1252804636f16290",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_5c047d663a326e44f9c12cc5"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "f35525708707b314e38f18901665e00c83fcb281cda00a6132b1275ffa764900",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_b093cdbe63eb13f1ded6cdc0"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "03dd197b998f1ed709fb33064d111b4b2636a89220438a70b2cf300a00228a7c",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_43836bad765336ca2a9fd7f6"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "a41f25e46acf6e6dbd0c78ea487c5139cdb41a5d1eaf5f5fdd769080146df40b",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_3d66d134d3c8cb314359bb4a"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "ec2c1ffff687da35ce9b2e041425944470bc8f3537ad72d9b80874179e32916e",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_3931baaa622e1210422bcd51"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "c2886eacfe6af763300921cadb56b8f740f5cc8ea540993e432a7007178a8140",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_4e3f1905b9f0b66aa554733c"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "99b6b68f41e05b8e296a6b133447d149b8d0317f3f380f3b96b2df1313e623c9",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_7fdaff63d6196727067e8b60"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "25296da97e7b34321e798dbcdb42ebca4bf3c4b1252b03214f8cb68c3121fe04",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_bb9832d15d0cb1a2d82263df"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "d04b68d545feaaad3d6360dd0ae3afc707309a7c9a52eeb1e31aa91a3c760e9a",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_f3e24cd072da8007a79c2a4e"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "d1ffd93010b1866b0d85abc82bb4498c3ea9723cc1465ad55c16ca2f54a64fce",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_445d5aeb8690fe3605423c84"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "2a4de65710008deb979f8bd1c5090f001cc5012604530cad4869d5ed10487966",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_6da0fb66e59be7e14937319c"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "a4ff8fa350d688963f451259d088fe94060d83a94b16ee9065472d2a47b2d64b",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_a284a7f5527a9ee221154688"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "19b48423e7505cdb8c1fcb6abfc70db00622b4cf8f9735a4d107d5a7d62ee5e8",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_37466ea6e5cbbbec5a057b5f"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "ae9cdd22a1ad5809be029b2709aa24e7ea788bcb6b575133887141fe9e31581f",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_a4a61f9caf3e1dc94bbb10de"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "f19386ba7da15e0bf7c7173259e1a42d593f2ebc36a11aec235ef75cde2b6ac1",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_80d293c790f4e1faf64c37d0"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "b21bcaf8c92443cb581aff0499cd672c60f9bc1d79d33b3a560ea79b9d59b61e",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_0c56cf14a86829c82ec0fd3b"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "97ea4560f13bd9642e4af7eb1eaf1f6a6fe0a874e0311ba5292b3f600d04580f",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_a8a88333c95e49778d885b7b"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "d3669310475733303b8961117a963ba77173799a89b0790b55a98b5f3bb33e59",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_b72c7d0d90eec5d0a1fcb600"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "713d7eed2cc42e15984948f1f3d16ea582ccc32999687e2e32632f03f40040ae",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_9898e298d92d1dde43c4cbd1"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "a6c668e028f1af0979a0306d1a09425ed6944bb085762c67c9e390b236a5ff2d",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_6e34da2aa197fd72e2d5e8cc"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "2a6daf0d3b7638ba84c0af4b55846d359de578567f428143f91c56898b340cfd",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_8fa10fdc3713cbf381404b6e"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "aabcbae5483c9ed91a71a4c33cf5f1b2e2bfff4e25c064aaa1515db8226f0190",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_6c1646fe4e21b666b4d1b03e"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "3096c9a4c17624dc2921de9e7c1bd1e05bf0a16ea589a4c31d8d2e0516c5f929",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_d8c866e38ad6adafb00b5df5"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "2c1640b5c1d76912a0439c86420581c0bc40e28fe35043383caafbad4b49e23b",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_e2ab60b7f6fdb404607bce90"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "bedfc65b55bc690257043849d8762d6b59e4604b1cd0c37866eb6861637a6748",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_bfecdab862a5e2f8a29af6b2"
+    },
+    {
+      "accepted": true,
+      "candidate_id": "9b95cc2f84e8e4913d4d8c93a9798441a09271a1f44653a24a8fafcc03179b0c",
+      "status": "FORMALLY_VERIFIED",
+      "theorem": "axiom_nt_1c78751355d9958fac803454"
+    }
+  ],
+  "schema": "axiom.number_theory.lean_batch.v1"
+}

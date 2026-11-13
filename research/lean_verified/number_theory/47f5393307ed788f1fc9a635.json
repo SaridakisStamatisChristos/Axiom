@@ -1,0 +1,60 @@
+{
+  "accepted": true,
+  "assumptions": [],
+  "axioms": [
+    "propext"
+  ],
+  "certificate": {
+    "method": "integer_polynomial_multiple",
+    "quotient": [],
+    "schema": "axiom.number_theory.polynomial_factor.v1",
+    "statement_sha256": "4b3dbd57c403cc22f73d0e0168a28ede60c4c86da242fbf0c806d3ddb2b34b7c",
+    "variables": [
+      "x"
+    ]
+  },
+  "checker_exit_code": 0,
+  "command": [
+    "lake",
+    "env",
+    "lean"
+  ],
+  "dependency_manifest_sha256": "a19b8a2e5b1293ae2beadbc3ae84812adcdae07162ab07d2232d023da83841cd",
+  "duration_seconds": 3.118043,
+  "expected_toolchain": "leanprover/lean4:v4.35.0",
+  "formalization": "Int divisibility",
+  "imports": [
+    "Mathlib.Tactic.Ring"
+  ],
+  "lean_version": "4.35.0",
+  "mathlib_rev": "v4.35.0",
+  "mathlib_revision": "56a005855ea17e0b0958f73ec801ae140b0a1679",
+  "schema": "axiom.lean4.number_theory.verification.v1",
+  "source": "-- Generated from separately checked AXIOM integer-polynomial factor certificate.\n-- Statement SHA-256: 4b3dbd57c403cc22f73d0e0168a28ede60c4c86da242fbf0c806d3ddb2b34b7c\nimport Mathlib.Tactic.Ring\n\ntheorem axiom_nt_4b3dbd57c403cc22f73d0e01 (x : Int) : (0 : Int) \u2223 (0 : Int) := by\n  refine \u27e8(0 : Int), ?_\u27e9\n  ring\n\n#print axioms axiom_nt_4b3dbd57c403cc22f73d0e01\n",
+  "source_sha256": "341ede496cb210eda455a27ba4642f296924b49d8274ae797aed2d8a17fb5273",
+  "statement": {
+    "bounds": [],
+    "lhs": {
+      "args": [],
+      "op": "const",
+      "value": 0
+    },
+    "modulus": null,
+    "relation": "divides",
+    "rhs": {
+      "args": [],
+      "op": "const",
+      "value": 0
+    },
+    "variables": [
+      "x"
+    ]
+  },
+  "statement_sha256": "4b3dbd57c403cc22f73d0e0168a28ede60c4c86da242fbf0c806d3ddb2b34b7c",
+  "status": "FORMALLY_VERIFIED",
+  "stderr_excerpt": "",
+  "stdout_sha256": "d1705b5bf98f2c0acad4a3b992cd9fba7fa846a5f280404258b918eb55ee61af",
+  "theorem": "axiom_nt_4b3dbd57c403cc22f73d0e01",
+  "timestamp_utc": "2026-11-13T04:29:59Z",
+  "toolchain_file_matches": true
+}

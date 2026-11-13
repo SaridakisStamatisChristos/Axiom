@@ -1,0 +1,106 @@
+{
+  "accepted": true,
+  "assumptions": [],
+  "axioms": [
+    "propext"
+  ],
+  "certificate": {
+    "method": "integer_polynomial_multiple",
+    "quotient": [
+      [
+        [
+          0
+        ],
+        2
+      ],
+      [
+        [
+          1
+        ],
+        1
+      ]
+    ],
+    "schema": "axiom.number_theory.polynomial_factor.v1",
+    "statement_sha256": "e2ab60b7f6fdb404607bce90c44327801665ebfa3e18d4c520ff149e2747c9b8",
+    "variables": [
+      "x"
+    ]
+  },
+  "checker_exit_code": 0,
+  "command": [
+    "lake",
+    "env",
+    "lean"
+  ],
+  "dependency_manifest_sha256": "a19b8a2e5b1293ae2beadbc3ae84812adcdae07162ab07d2232d023da83841cd",
+  "duration_seconds": 2.984931,
+  "expected_toolchain": "leanprover/lean4:v4.35.0",
+  "formalization": "Int divisibility",
+  "imports": [
+    "Mathlib.Tactic.Ring"
+  ],
+  "lean_version": "4.35.0",
+  "mathlib_rev": "v4.35.0",
+  "mathlib_revision": "56a005855ea17e0b0958f73ec801ae140b0a1679",
+  "schema": "axiom.lean4.number_theory.verification.v1",
+  "source": "-- Generated from separately checked AXIOM integer-polynomial factor certificate.\n-- Statement SHA-256: e2ab60b7f6fdb404607bce90c44327801665ebfa3e18d4c520ff149e2747c9b8\nimport Mathlib.Tactic.Ring\n\ntheorem axiom_nt_e2ab60b7f6fdb404607bce90 (x : Int) : (4 : Int) \u2223 (((4 : Int) * (x + (1 : Int))) + (4 : Int)) := by\n  refine \u27e8(((2 : Int)) + ((1 : Int) * (x ^ 1))), ?_\u27e9\n  ring\n\n#print axioms axiom_nt_e2ab60b7f6fdb404607bce90\n",
+  "source_sha256": "783dd763303f4deaf0adaf3a2ce63bc6bdfaf087a70bb801e90dd00b998a09e5",
+  "statement": {
+    "bounds": [],
+    "lhs": {
+      "args": [],
+      "op": "const",
+      "value": 4
+    },
+    "modulus": null,
+    "relation": "divides",
+    "rhs": {
+      "args": [
+        {
+          "args": [
+            {
+              "args": [],
+              "op": "const",
+              "value": 4
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "var",
+                  "value": "x"
+                },
+                {
+                  "args": [],
+                  "op": "const",
+                  "value": 1
+                }
+              ],
+              "op": "add",
+              "value": null
+            }
+          ],
+          "op": "mul",
+          "value": null
+        },
+        {
+          "args": [],
+          "op": "const",
+          "value": 4
+        }
+      ],
+      "op": "add",
+      "value": null
+    },
+    "variables": [
+      "x"
+    ]
+  },
+  "statement_sha256": "e2ab60b7f6fdb404607bce90c44327801665ebfa3e18d4c520ff149e2747c9b8",
+  "status": "FORMALLY_VERIFIED",
+  "stderr_excerpt": "",
+  "stdout_sha256": "a160c17112df59055dca6e592088e75afe63c9dbc2fd4afd7f27d41707d80945",
+  "theorem": "axiom_nt_e2ab60b7f6fdb404607bce90",
+  "timestamp_utc": "2026-11-13T04:34:32Z",
+  "toolchain_file_matches": true
+}

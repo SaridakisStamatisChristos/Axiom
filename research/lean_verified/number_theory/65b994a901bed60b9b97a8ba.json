@@ -1,0 +1,78 @@
+{
+  "accepted": true,
+  "assumptions": [],
+  "axioms": [
+    "propext"
+  ],
+  "certificate": {
+    "method": "integer_polynomial_multiple",
+    "quotient": [
+      [
+        [
+          0
+        ],
+        8
+      ]
+    ],
+    "schema": "axiom.number_theory.polynomial_factor.v1",
+    "statement_sha256": "f1131cbdc0e02b4de7984bcb21202b37316c4a0769142878d7b46eac2d1558cd",
+    "variables": [
+      "x"
+    ]
+  },
+  "checker_exit_code": 0,
+  "command": [
+    "lake",
+    "env",
+    "lean"
+  ],
+  "dependency_manifest_sha256": "a19b8a2e5b1293ae2beadbc3ae84812adcdae07162ab07d2232d023da83841cd",
+  "duration_seconds": 3.148968,
+  "expected_toolchain": "leanprover/lean4:v4.35.0",
+  "formalization": "Int congruence via (m \u2223 a-b), m>0",
+  "imports": [
+    "Mathlib.Tactic.Ring"
+  ],
+  "lean_version": "4.35.0",
+  "mathlib_rev": "v4.35.0",
+  "mathlib_revision": "56a005855ea17e0b0958f73ec801ae140b0a1679",
+  "schema": "axiom.lean4.number_theory.verification.v1",
+  "source": "-- Generated from separately checked AXIOM integer-polynomial factor certificate.\n-- Statement SHA-256: f1131cbdc0e02b4de7984bcb21202b37316c4a0769142878d7b46eac2d1558cd\nimport Mathlib.Tactic.Ring\n\ntheorem axiom_nt_f1131cbdc0e02b4de7984bcb (x : Int) : (16 : Int) \u2223 (x - (x + (-128 : Int))) := by\n  refine \u27e8(((8 : Int))), ?_\u27e9\n  ring\n\n#print axioms axiom_nt_f1131cbdc0e02b4de7984bcb\n",
+  "source_sha256": "c3fb4c74114c629822f0a9ed26f9086f7f8e1e41402791434170c7ba5cedb0c3",
+  "statement": {
+    "bounds": [],
+    "lhs": {
+      "args": [],
+      "op": "var",
+      "value": "x"
+    },
+    "modulus": 16,
+    "relation": "congruent",
+    "rhs": {
+      "args": [
+        {
+          "args": [],
+          "op": "var",
+          "value": "x"
+        },
+        {
+          "args": [],
+          "op": "const",
+          "value": -128
+        }
+      ],
+      "op": "add",
+      "value": null
+    },
+    "variables": [
+      "x"
+    ]
+  },
+  "statement_sha256": "f1131cbdc0e02b4de7984bcb21202b37316c4a0769142878d7b46eac2d1558cd",
+  "status": "FORMALLY_VERIFIED",
+  "stderr_excerpt": "",
+  "stdout_sha256": "20d5ce6e73d789eda73df0af10bcb657d2e22d5a67652da54d9ce711acb58f74",
+  "theorem": "axiom_nt_f1131cbdc0e02b4de7984bcb",
+  "timestamp_utc": "2026-11-13T04:32:23Z",
+  "toolchain_file_matches": true
+}

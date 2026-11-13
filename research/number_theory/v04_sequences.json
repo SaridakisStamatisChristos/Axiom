@@ -1,0 +1,4878 @@
+{
+  "algorithm": "first_repeated_modular_pair",
+  "budget": 40,
+  "claim_scope": "for all n>=preperiod, pair state at n+period equals pair state at n (mod modulus)",
+  "findings": [
+    {
+      "certificate": {
+        "period": 3,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "af285b6ef19a278aff4a795d086283201308db0411a494590908180770cbc912",
+        "states": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 0,
+      "origin": "KNOWN_BENCHMARK_FIBONACCI_MOD_2",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 0,
+        "a1": 1,
+        "modulus": 2,
+        "p": 1,
+        "q": 1
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 20,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "c9b29c662b0a2a7cc3259995887d4842c380cca48760d5c8141f3bd69fdc9b5b",
+        "states": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 1,
+      "origin": "KNOWN_BENCHMARK_FIBONACCI_MOD_5",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 0,
+        "a1": 1,
+        "modulus": 5,
+        "p": 1,
+        "q": 1
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 24,
+        "preperiod": 1,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "8ef2bf83cb3ddf369395d7449274e2930dcb6c924af8c111cfa54235b645c040",
+        "states": [
+          [
+            5,
+            6
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            8,
+            6
+          ],
+          [
+            6,
+            8
+          ],
+          [
+            8,
+            8
+          ],
+          [
+            8,
+            2
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            8,
+            4
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            4,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            8
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            6,
+            2
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 2,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 5,
+        "a1": -4,
+        "modulus": 10,
+        "p": -3,
+        "q": 2
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 24,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "088fa5a1982fba00ce47048bc5252014272771043c03de28d3a8b2d2a94fcaff",
+        "states": [
+          [
+            3,
+            3
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            4,
+            2
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            3
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 3,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -2,
+        "a1": -2,
+        "modulus": 5,
+        "p": -2,
+        "q": 2
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 12,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "01d733a603266e70feefa6a87dbdb63d9d2c6db349e4c706e2be567c2cc12610",
+        "states": [
+          [
+            5,
+            3
+          ],
+          [
+            3,
+            11
+          ],
+          [
+            11,
+            0
+          ],
+          [
+            0,
+            11
+          ],
+          [
+            11,
+            12
+          ],
+          [
+            12,
+            5
+          ],
+          [
+            5,
+            12
+          ],
+          [
+            12,
+            14
+          ],
+          [
+            14,
+            0
+          ],
+          [
+            0,
+            14
+          ],
+          [
+            14,
+            3
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            5,
+            3
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 4,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 5,
+        "a1": 3,
+        "modulus": 15,
+        "p": -3,
+        "q": 1
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 6,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "b429d1f7f33c9ea6a2dea5c1cfd5f661b5cd09137f0a9d08873690e855eb84c4",
+        "states": [
+          [
+            4,
+            4
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            7,
+            7
+          ],
+          [
+            7,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            4,
+            4
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 5,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -5,
+        "a1": -5,
+        "modulus": 9,
+        "p": -3,
+        "q": -2
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 12,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "abe9cfa2d05f6adfdcb960db8d179128f710bec5a5586e6d5f4eaa1f13494056",
+        "states": [
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            7,
+            7
+          ],
+          [
+            7,
+            2
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            1,
+            7
+          ],
+          [
+            7,
+            4
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            5,
+            3
+          ],
+          [
+            3,
+            4
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 6,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 3,
+        "a1": 4,
+        "modulus": 8,
+        "p": -3,
+        "q": 1
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 1,
+        "preperiod": 8,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "61b2de393086ebac76e210d06c22cb7349e8843cfc71f041537c93f5cd800643",
+        "states": [
+          [
+            5,
+            3
+          ],
+          [
+            3,
+            6
+          ],
+          [
+            6,
+            10
+          ],
+          [
+            10,
+            4
+          ],
+          [
+            4,
+            12
+          ],
+          [
+            12,
+            8
+          ],
+          [
+            8,
+            8
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 7,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 5,
+        "a1": 3,
+        "modulus": 16,
+        "p": 0,
+        "q": -2
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 3,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "4463ce9feb332932fa6e18dc999041347c6e56668decb32f73308fe144f08167",
+        "states": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 8,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 4,
+        "a1": -1,
+        "modulus": 2,
+        "p": 3,
+        "q": 3
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 3,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "b033ab28c1fee0830f3f97f4aea69b23f77c591071118d93e44ba777cc943327",
+        "states": [
+          [
+            3,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            1
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 9,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -3,
+        "a1": 1,
+        "modulus": 6,
+        "p": -1,
+        "q": -1
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 6,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "c2edb136d37f8595223c2b430da849510c3d1083c3a5484fdc7deaee92fdaa45",
+        "states": [
+          [
+            12,
+            0
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            6,
+            10
+          ],
+          [
+            10,
+            8
+          ],
+          [
+            8,
+            2
+          ],
+          [
+            2,
+            12
+          ],
+          [
+            12,
+            0
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 10,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -2,
+        "a1": 0,
+        "modulus": 14,
+        "p": -3,
+        "q": -3
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 8,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "283aeb5e0d6b32f61682a88812f794184cf145cf98c5f9df6ca0ebb62a514a26",
+        "states": [
+          [
+            17,
+            0
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            4,
+            12
+          ],
+          [
+            12,
+            11
+          ],
+          [
+            11,
+            0
+          ],
+          [
+            0,
+            10
+          ],
+          [
+            10,
+            9
+          ],
+          [
+            9,
+            17
+          ],
+          [
+            17,
+            0
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 11,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -4,
+        "a1": 0,
+        "modulus": 21,
+        "p": 3,
+        "q": -1
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 18,
+        "preperiod": 1,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "95b63e42832fce939c55f07cf767fdd0c8eb771a10d3f12b0338337b0a30f468",
+        "states": [
+          [
+            18,
+            14
+          ],
+          [
+            14,
+            9
+          ],
+          [
+            9,
+            18
+          ],
+          [
+            18,
+            17
+          ],
+          [
+            17,
+            15
+          ],
+          [
+            15,
+            11
+          ],
+          [
+            11,
+            3
+          ],
+          [
+            3,
+            6
+          ],
+          [
+            6,
+            12
+          ],
+          [
+            12,
+            5
+          ],
+          [
+            5,
+            10
+          ],
+          [
+            10,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            8,
+            16
+          ],
+          [
+            16,
+            13
+          ],
+          [
+            13,
+            7
+          ],
+          [
+            7,
+            14
+          ],
+          [
+            14,
+            9
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 12,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -1,
+        "a1": -5,
+        "modulus": 19,
+        "p": 2,
+        "q": 0
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 8,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "21b65659d2d55cc711506ecb724676bee43ea751f4ac53a77e591b843efd1689",
+        "states": [
+          [
+            7,
+            1
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            4,
+            10
+          ],
+          [
+            10,
+            7
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            7,
+            1
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 13,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -4,
+        "a1": 1,
+        "modulus": 11,
+        "p": -3,
+        "q": 1
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 30,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "c26d454e97b9c360290b585b6eb828d97deb57d93c67137397275b24b6a33028",
+        "states": [
+          [
+            5,
+            4
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            7,
+            17
+          ],
+          [
+            17,
+            4
+          ],
+          [
+            4,
+            15
+          ],
+          [
+            15,
+            1
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            8,
+            3
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            19
+          ],
+          [
+            19,
+            17
+          ],
+          [
+            17,
+            12
+          ],
+          [
+            12,
+            19
+          ],
+          [
+            19,
+            5
+          ],
+          [
+            5,
+            16
+          ],
+          [
+            16,
+            3
+          ],
+          [
+            3,
+            13
+          ],
+          [
+            13,
+            16
+          ],
+          [
+            16,
+            15
+          ],
+          [
+            15,
+            9
+          ],
+          [
+            9,
+            12
+          ],
+          [
+            12,
+            7
+          ],
+          [
+            7,
+            9
+          ],
+          [
+            9,
+            0
+          ],
+          [
+            0,
+            11
+          ],
+          [
+            11,
+            13
+          ],
+          [
+            13,
+            8
+          ],
+          [
+            8,
+            11
+          ],
+          [
+            11,
+            5
+          ],
+          [
+            5,
+            4
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 14,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 5,
+        "a1": 4,
+        "modulus": 20,
+        "p": 3,
+        "q": -1
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 12,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "58ea89590d803b4148e09fcb21aebabc81bb64c4435c189e56ba474d338cf2bd",
+        "states": [
+          [
+            7,
+            5
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            8,
+            4
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            2
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            5,
+            4
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            7,
+            5
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 15,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -2,
+        "a1": -4,
+        "modulus": 9,
+        "p": -3,
+        "q": 2
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 28,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "ca65f0b0334f3724bdcf03dfa5d2ed39238feaf64128049b14d142bc510bdef5",
+        "states": [
+          [
+            28,
+            25
+          ],
+          [
+            25,
+            19
+          ],
+          [
+            19,
+            7
+          ],
+          [
+            7,
+            12
+          ],
+          [
+            12,
+            22
+          ],
+          [
+            22,
+            13
+          ],
+          [
+            13,
+            24
+          ],
+          [
+            24,
+            17
+          ],
+          [
+            17,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            6,
+            10
+          ],
+          [
+            10,
+            18
+          ],
+          [
+            18,
+            5
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            8,
+            14
+          ],
+          [
+            14,
+            26
+          ],
+          [
+            26,
+            21
+          ],
+          [
+            21,
+            11
+          ],
+          [
+            11,
+            20
+          ],
+          [
+            20,
+            9
+          ],
+          [
+            9,
+            16
+          ],
+          [
+            16,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            27
+          ],
+          [
+            27,
+            23
+          ],
+          [
+            23,
+            15
+          ],
+          [
+            15,
+            28
+          ],
+          [
+            28,
+            25
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 16,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -1,
+        "a1": -4,
+        "modulus": 29,
+        "p": 3,
+        "q": -2
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 2,
+        "preperiod": 1,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "ec44dc56b66bff5390588f3bcc50418426e6177018f388f5c6663ad116ffe910",
+        "states": [
+          [
+            18,
+            1
+          ],
+          [
+            1,
+            21
+          ],
+          [
+            21,
+            1
+          ],
+          [
+            1,
+            21
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 17,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -4,
+        "a1": 1,
+        "modulus": 22,
+        "p": -1,
+        "q": 0
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 3,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "74b4068f737db2b65109e09bc6f280dbcc32cc89eff7df002f76ee6d99f76e5c",
+        "states": [
+          [
+            0,
+            5
+          ],
+          [
+            5,
+            3
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            0,
+            5
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 18,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 0,
+        "a1": -3,
+        "modulus": 8,
+        "p": -1,
+        "q": -1
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 10,
+        "preperiod": 2,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "798d8114098b408f13e7782145e721db10689f474558b503ead8838b65f2eee7",
+        "states": [
+          [
+            5,
+            21
+          ],
+          [
+            21,
+            8
+          ],
+          [
+            8,
+            14
+          ],
+          [
+            14,
+            0
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            6,
+            12
+          ],
+          [
+            12,
+            14
+          ],
+          [
+            14,
+            8
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            0,
+            16
+          ],
+          [
+            16,
+            10
+          ],
+          [
+            10,
+            8
+          ],
+          [
+            8,
+            14
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 19,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 5,
+        "a1": -1,
+        "modulus": 22,
+        "p": 2,
+        "q": 2
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 72,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "ee473b0104cd1e1680227e8508524596247bf26fef71872ee75ee79e35991c72",
+        "states": [
+          [
+            15,
+            4
+          ],
+          [
+            4,
+            16
+          ],
+          [
+            16,
+            5
+          ],
+          [
+            5,
+            16
+          ],
+          [
+            16,
+            3
+          ],
+          [
+            3,
+            12
+          ],
+          [
+            12,
+            18
+          ],
+          [
+            18,
+            12
+          ],
+          [
+            12,
+            7
+          ],
+          [
+            7,
+            9
+          ],
+          [
+            9,
+            4
+          ],
+          [
+            4,
+            9
+          ],
+          [
+            9,
+            10
+          ],
+          [
+            10,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            2,
+            17
+          ],
+          [
+            17,
+            11
+          ],
+          [
+            11,
+            7
+          ],
+          [
+            7,
+            11
+          ],
+          [
+            11,
+            8
+          ],
+          [
+            8,
+            13
+          ],
+          [
+            13,
+            10
+          ],
+          [
+            10,
+            13
+          ],
+          [
+            13,
+            6
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            5,
+            17
+          ],
+          [
+            17,
+            5
+          ],
+          [
+            5,
+            14
+          ],
+          [
+            14,
+            18
+          ],
+          [
+            18,
+            8
+          ],
+          [
+            8,
+            18
+          ],
+          [
+            18,
+            1
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            4,
+            15
+          ],
+          [
+            15,
+            3
+          ],
+          [
+            3,
+            14
+          ],
+          [
+            14,
+            3
+          ],
+          [
+            3,
+            16
+          ],
+          [
+            16,
+            7
+          ],
+          [
+            7,
+            1
+          ],
+          [
+            1,
+            7
+          ],
+          [
+            7,
+            12
+          ],
+          [
+            12,
+            10
+          ],
+          [
+            10,
+            15
+          ],
+          [
+            15,
+            10
+          ],
+          [
+            10,
+            9
+          ],
+          [
+            9,
+            17
+          ],
+          [
+            17,
+            16
+          ],
+          [
+            16,
+            17
+          ],
+          [
+            17,
+            2
+          ],
+          [
+            2,
+            8
+          ],
+          [
+            8,
+            12
+          ],
+          [
+            12,
+            8
+          ],
+          [
+            8,
+            11
+          ],
+          [
+            11,
+            6
+          ],
+          [
+            6,
+            9
+          ],
+          [
+            9,
+            6
+          ],
+          [
+            6,
+            13
+          ],
+          [
+            13,
+            14
+          ],
+          [
+            14,
+            2
+          ],
+          [
+            2,
+            14
+          ],
+          [
+            14,
+            5
+          ],
+          [
+            5,
+            1
+          ],
+          [
+            1,
+            11
+          ],
+          [
+            11,
+            1
+          ],
+          [
+            1,
+            18
+          ],
+          [
+            18,
+            15
+          ],
+          [
+            15,
+            13
+          ],
+          [
+            13,
+            15
+          ],
+          [
+            15,
+            4
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 20,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -4,
+        "a1": 4,
+        "modulus": 19,
+        "p": 2,
+        "q": -2
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 1,
+        "preperiod": 2,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "4b8d93b07460491c2faec44ee528b7a085ded87e678701e39811d6bfdae8350e",
+        "states": [
+          [
+            8,
+            7
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 21,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -2,
+        "a1": -3,
+        "modulus": 10,
+        "p": 0,
+        "q": 0
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 6,
+        "preperiod": 4,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "7311bce91af5d58390552ffa1045d66653198f330a608bc2fbe832f828b6185d",
+        "states": [
+          [
+            5,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            10
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            8,
+            8
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            0,
+            8
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 22,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 5,
+        "a1": 3,
+        "modulus": 12,
+        "p": -2,
+        "q": 2
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 1,
+        "preperiod": 6,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "63e4642ed51a8faadfb155dd0399d3cb57745d630fff2becaf021da9104f514e",
+        "states": [
+          [
+            22,
+            25
+          ],
+          [
+            25,
+            9
+          ],
+          [
+            9,
+            6
+          ],
+          [
+            6,
+            18
+          ],
+          [
+            18,
+            9
+          ],
+          [
+            9,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 23,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -5,
+        "a1": -2,
+        "modulus": 27,
+        "p": 3,
+        "q": -3
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 12,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "e8925ad06d7a2dba4c30bbeeb974d30522f07c31a3a2dea9ba877bfe201c1744",
+        "states": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            7
+          ],
+          [
+            7,
+            6
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            5,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            5
+          ],
+          [
+            5,
+            3
+          ],
+          [
+            3,
+            6
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 24,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 0,
+        "a1": 1,
+        "modulus": 8,
+        "p": -1,
+        "q": -3
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 144,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "980d63f5b6d48c86c62fff63ec2cff96e5c6934c926268b4586fd7f04e3ffb45",
+        "states": [
+          [
+            4,
+            0
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            8,
+            1
+          ],
+          [
+            1,
+            14
+          ],
+          [
+            14,
+            8
+          ],
+          [
+            8,
+            12
+          ],
+          [
+            12,
+            9
+          ],
+          [
+            9,
+            6
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            0,
+            12
+          ],
+          [
+            12,
+            10
+          ],
+          [
+            10,
+            4
+          ],
+          [
+            4,
+            12
+          ],
+          [
+            12,
+            1
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            5,
+            9
+          ],
+          [
+            9,
+            9
+          ],
+          [
+            9,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            15
+          ],
+          [
+            15,
+            6
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            1,
+            10
+          ],
+          [
+            10,
+            16
+          ],
+          [
+            16,
+            5
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            0,
+            10
+          ],
+          [
+            10,
+            14
+          ],
+          [
+            14,
+            9
+          ],
+          [
+            9,
+            10
+          ],
+          [
+            10,
+            15
+          ],
+          [
+            15,
+            7
+          ],
+          [
+            7,
+            16
+          ],
+          [
+            16,
+            16
+          ],
+          [
+            16,
+            0
+          ],
+          [
+            0,
+            15
+          ],
+          [
+            15,
+            4
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            15
+          ],
+          [
+            15,
+            14
+          ],
+          [
+            14,
+            2
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            7,
+            7
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            0,
+            14
+          ],
+          [
+            14,
+            6
+          ],
+          [
+            6,
+            16
+          ],
+          [
+            16,
+            14
+          ],
+          [
+            14,
+            4
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            4,
+            9
+          ],
+          [
+            9,
+            7
+          ],
+          [
+            7,
+            4
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            6,
+            13
+          ],
+          [
+            13,
+            3
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            5,
+            2
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            6,
+            9
+          ],
+          [
+            9,
+            11
+          ],
+          [
+            11,
+            13
+          ],
+          [
+            13,
+            13
+          ],
+          [
+            13,
+            0
+          ],
+          [
+            0,
+            9
+          ],
+          [
+            9,
+            16
+          ],
+          [
+            16,
+            3
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            9,
+            5
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            8,
+            11
+          ],
+          [
+            11,
+            11
+          ],
+          [
+            11,
+            0
+          ],
+          [
+            0,
+            5
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            7,
+            13
+          ],
+          [
+            13,
+            5
+          ],
+          [
+            5,
+            16
+          ],
+          [
+            16,
+            12
+          ],
+          [
+            12,
+            8
+          ],
+          [
+            8,
+            8
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            0,
+            16
+          ],
+          [
+            16,
+            2
+          ],
+          [
+            2,
+            11
+          ],
+          [
+            11,
+            16
+          ],
+          [
+            16,
+            7
+          ],
+          [
+            7,
+            1
+          ],
+          [
+            1,
+            12
+          ],
+          [
+            12,
+            12
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            7,
+            3
+          ],
+          [
+            3,
+            8
+          ],
+          [
+            8,
+            7
+          ],
+          [
+            7,
+            2
+          ],
+          [
+            2,
+            10
+          ],
+          [
+            10,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            13
+          ],
+          [
+            13,
+            12
+          ],
+          [
+            12,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            15
+          ],
+          [
+            15,
+            10
+          ],
+          [
+            10,
+            10
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            3,
+            11
+          ],
+          [
+            11,
+            1
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            3,
+            13
+          ],
+          [
+            13,
+            14
+          ],
+          [
+            14,
+            15
+          ],
+          [
+            15,
+            15
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            0,
+            13
+          ],
+          [
+            13,
+            8
+          ],
+          [
+            8,
+            10
+          ],
+          [
+            10,
+            13
+          ],
+          [
+            13,
+            11
+          ],
+          [
+            11,
+            4
+          ],
+          [
+            4,
+            14
+          ],
+          [
+            14,
+            14
+          ],
+          [
+            14,
+            0
+          ],
+          [
+            0,
+            11
+          ],
+          [
+            11,
+            12
+          ],
+          [
+            12,
+            15
+          ],
+          [
+            15,
+            11
+          ],
+          [
+            11,
+            8
+          ],
+          [
+            8,
+            6
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            4,
+            0
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 25,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 4,
+        "a1": 0,
+        "modulus": 17,
+        "p": -2,
+        "q": 2
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 8,
+        "preperiod": 2,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "2b41246da476e07efe71e8b2fc67fa78d4db91bfc4deab2905629d833f586ed1",
+        "states": [
+          [
+            1,
+            5
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            8,
+            0
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 26,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 1,
+        "a1": 5,
+        "modulus": 10,
+        "p": 0,
+        "q": -2
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 40,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "a3f1ca707848500b6cd628b456fbccb3fdcade32fe3a0a600f77298d4b0e8e2a",
+        "states": [
+          [
+            16,
+            17
+          ],
+          [
+            17,
+            12
+          ],
+          [
+            12,
+            3
+          ],
+          [
+            3,
+            18
+          ],
+          [
+            18,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            7,
+            17
+          ],
+          [
+            17,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            11
+          ],
+          [
+            11,
+            7
+          ],
+          [
+            7,
+            6
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            6,
+            12
+          ],
+          [
+            12,
+            11
+          ],
+          [
+            11,
+            15
+          ],
+          [
+            15,
+            3
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            7,
+            16
+          ],
+          [
+            16,
+            1
+          ],
+          [
+            1,
+            18
+          ],
+          [
+            18,
+            18
+          ],
+          [
+            18,
+            16
+          ],
+          [
+            16,
+            12
+          ],
+          [
+            12,
+            2
+          ],
+          [
+            2,
+            16
+          ],
+          [
+            16,
+            15
+          ],
+          [
+            15,
+            8
+          ],
+          [
+            8,
+            12
+          ],
+          [
+            12,
+            13
+          ],
+          [
+            13,
+            0
+          ],
+          [
+            0,
+            13
+          ],
+          [
+            13,
+            7
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            8,
+            4
+          ],
+          [
+            4,
+            16
+          ],
+          [
+            16,
+            17
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 27,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -3,
+        "a1": -2,
+        "modulus": 19,
+        "p": 2,
+        "q": 1
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 2,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "eed8a23607ffc34745fe7be8e54dbd559f0764d3b9f58c2ff7faabed2ec15d40",
+        "states": [
+          [
+            13,
+            4
+          ],
+          [
+            4,
+            13
+          ],
+          [
+            13,
+            4
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 28,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -1,
+        "a1": 4,
+        "modulus": 14,
+        "p": 0,
+        "q": 1
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 16,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "7d57b84a2aa77c1ac147af1437331c7e07fed4f58ea19032f2917e67c8a92486",
+        "states": [
+          [
+            0,
+            15
+          ],
+          [
+            15,
+            4
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            7,
+            7
+          ],
+          [
+            7,
+            10
+          ],
+          [
+            10,
+            4
+          ],
+          [
+            4,
+            2
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            13
+          ],
+          [
+            13,
+            10
+          ],
+          [
+            10,
+            10
+          ],
+          [
+            10,
+            7
+          ],
+          [
+            7,
+            13
+          ],
+          [
+            13,
+            15
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            0,
+            15
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 29,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 0,
+        "a1": -2,
+        "modulus": 17,
+        "p": -2,
+        "q": 1
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 3,
+        "preperiod": 2,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "36d39e15a812831e2ceb048becfbdb23d48b5ca14544eb48bc1fffabdef48d27",
+        "states": [
+          [
+            2,
+            1
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            3,
+            0
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 30,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -4,
+        "a1": -5,
+        "modulus": 6,
+        "p": 3,
+        "q": -3
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 24,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "fdc2c453a8423351f3ad20509d77d177cce2dae8a658217f9158d3a4fad95e64",
+        "states": [
+          [
+            5,
+            12
+          ],
+          [
+            12,
+            1
+          ],
+          [
+            1,
+            12
+          ],
+          [
+            12,
+            8
+          ],
+          [
+            8,
+            3
+          ],
+          [
+            3,
+            10
+          ],
+          [
+            10,
+            6
+          ],
+          [
+            6,
+            8
+          ],
+          [
+            8,
+            6
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            4,
+            9
+          ],
+          [
+            9,
+            5
+          ],
+          [
+            5,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            2,
+            12
+          ],
+          [
+            12,
+            10
+          ],
+          [
+            10,
+            9
+          ],
+          [
+            9,
+            2
+          ],
+          [
+            2,
+            9
+          ],
+          [
+            9,
+            1
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            5,
+            12
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 31,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 5,
+        "a1": -3,
+        "modulus": 15,
+        "p": 3,
+        "q": 2
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 1,
+        "preperiod": 2,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "e822fa3c02200af8b6f8ee87c2bd5f50ee9c2b4d423dc206340f2e9b3e18dbde",
+        "states": [
+          [
+            4,
+            17
+          ],
+          [
+            17,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 32,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 4,
+        "a1": -4,
+        "modulus": 21,
+        "p": 0,
+        "q": 0
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 14,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "e34b2b2a470da842e4a83eddb59d70d1d3cccd326ad8e2f054f7cfa3c596efaa",
+        "states": [
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            28
+          ],
+          [
+            28,
+            4
+          ],
+          [
+            4,
+            24
+          ],
+          [
+            24,
+            9
+          ],
+          [
+            9,
+            15
+          ],
+          [
+            15,
+            23
+          ],
+          [
+            23,
+            21
+          ],
+          [
+            21,
+            2
+          ],
+          [
+            2,
+            19
+          ],
+          [
+            19,
+            12
+          ],
+          [
+            12,
+            7
+          ],
+          [
+            7,
+            5
+          ],
+          [
+            5,
+            2
+          ],
+          [
+            2,
+            3
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 33,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 2,
+        "a1": 3,
+        "modulus": 29,
+        "p": -1,
+        "q": 1
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 264,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "deb847475ab83cc3145f00cd8b3ba0a46bf38159728ed18f2795a35ac4dd065d",
+        "states": [
+          [
+            18,
+            5
+          ],
+          [
+            5,
+            2
+          ],
+          [
+            2,
+            12
+          ],
+          [
+            12,
+            18
+          ],
+          [
+            18,
+            0
+          ],
+          [
+            0,
+            15
+          ],
+          [
+            15,
+            7
+          ],
+          [
+            7,
+            15
+          ],
+          [
+            15,
+            9
+          ],
+          [
+            9,
+            19
+          ],
+          [
+            19,
+            11
+          ],
+          [
+            11,
+            11
+          ],
+          [
+            11,
+            12
+          ],
+          [
+            12,
+            14
+          ],
+          [
+            14,
+            15
+          ],
+          [
+            15,
+            11
+          ],
+          [
+            11,
+            0
+          ],
+          [
+            0,
+            13
+          ],
+          [
+            13,
+            3
+          ],
+          [
+            3,
+            13
+          ],
+          [
+            13,
+            17
+          ],
+          [
+            17,
+            18
+          ],
+          [
+            18,
+            8
+          ],
+          [
+            8,
+            8
+          ],
+          [
+            8,
+            15
+          ],
+          [
+            15,
+            6
+          ],
+          [
+            6,
+            13
+          ],
+          [
+            13,
+            8
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            0,
+            22
+          ],
+          [
+            22,
+            21
+          ],
+          [
+            21,
+            22
+          ],
+          [
+            22,
+            4
+          ],
+          [
+            4,
+            11
+          ],
+          [
+            11,
+            10
+          ],
+          [
+            10,
+            10
+          ],
+          [
+            10,
+            13
+          ],
+          [
+            13,
+            19
+          ],
+          [
+            19,
+            22
+          ],
+          [
+            22,
+            10
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            0,
+            16
+          ],
+          [
+            16,
+            9
+          ],
+          [
+            9,
+            16
+          ],
+          [
+            16,
+            5
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            8,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            22
+          ],
+          [
+            22,
+            18
+          ],
+          [
+            18,
+            16
+          ],
+          [
+            16,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            20
+          ],
+          [
+            20,
+            17
+          ],
+          [
+            17,
+            20
+          ],
+          [
+            20,
+            12
+          ],
+          [
+            12,
+            10
+          ],
+          [
+            10,
+            7
+          ],
+          [
+            7,
+            7
+          ],
+          [
+            7,
+            16
+          ],
+          [
+            16,
+            11
+          ],
+          [
+            11,
+            20
+          ],
+          [
+            20,
+            7
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            4,
+            2
+          ],
+          [
+            2,
+            15
+          ],
+          [
+            15,
+            1
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            3,
+            20
+          ],
+          [
+            20,
+            8
+          ],
+          [
+            8,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            0,
+            14
+          ],
+          [
+            14,
+            5
+          ],
+          [
+            5,
+            14
+          ],
+          [
+            14,
+            13
+          ],
+          [
+            13,
+            7
+          ],
+          [
+            7,
+            21
+          ],
+          [
+            21,
+            21
+          ],
+          [
+            21,
+            2
+          ],
+          [
+            2,
+            10
+          ],
+          [
+            10,
+            14
+          ],
+          [
+            14,
+            21
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            6,
+            12
+          ],
+          [
+            12,
+            6
+          ],
+          [
+            6,
+            22
+          ],
+          [
+            22,
+            3
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            9,
+            9
+          ],
+          [
+            9,
+            14
+          ],
+          [
+            14,
+            1
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            6,
+            9
+          ],
+          [
+            9,
+            0
+          ],
+          [
+            0,
+            19
+          ],
+          [
+            19,
+            15
+          ],
+          [
+            15,
+            19
+          ],
+          [
+            19,
+            16
+          ],
+          [
+            16,
+            21
+          ],
+          [
+            21,
+            17
+          ],
+          [
+            17,
+            17
+          ],
+          [
+            17,
+            6
+          ],
+          [
+            6,
+            7
+          ],
+          [
+            7,
+            19
+          ],
+          [
+            19,
+            17
+          ],
+          [
+            17,
+            0
+          ],
+          [
+            0,
+            18
+          ],
+          [
+            18,
+            13
+          ],
+          [
+            13,
+            18
+          ],
+          [
+            18,
+            20
+          ],
+          [
+            20,
+            9
+          ],
+          [
+            9,
+            4
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            4,
+            19
+          ],
+          [
+            19,
+            3
+          ],
+          [
+            3,
+            18
+          ],
+          [
+            18,
+            4
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            0,
+            11
+          ],
+          [
+            11,
+            22
+          ],
+          [
+            22,
+            11
+          ],
+          [
+            11,
+            2
+          ],
+          [
+            2,
+            17
+          ],
+          [
+            17,
+            5
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            5,
+            18
+          ],
+          [
+            18,
+            21
+          ],
+          [
+            21,
+            11
+          ],
+          [
+            11,
+            5
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            8,
+            16
+          ],
+          [
+            16,
+            8
+          ],
+          [
+            8,
+            14
+          ],
+          [
+            14,
+            4
+          ],
+          [
+            4,
+            12
+          ],
+          [
+            12,
+            12
+          ],
+          [
+            12,
+            11
+          ],
+          [
+            11,
+            9
+          ],
+          [
+            9,
+            8
+          ],
+          [
+            8,
+            12
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            0,
+            10
+          ],
+          [
+            10,
+            20
+          ],
+          [
+            20,
+            10
+          ],
+          [
+            10,
+            6
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            5,
+            15
+          ],
+          [
+            15,
+            15
+          ],
+          [
+            15,
+            8
+          ],
+          [
+            8,
+            17
+          ],
+          [
+            17,
+            10
+          ],
+          [
+            10,
+            15
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            1,
+            19
+          ],
+          [
+            19,
+            12
+          ],
+          [
+            12,
+            13
+          ],
+          [
+            13,
+            13
+          ],
+          [
+            13,
+            10
+          ],
+          [
+            10,
+            4
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            1,
+            13
+          ],
+          [
+            13,
+            0
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            7,
+            14
+          ],
+          [
+            14,
+            7
+          ],
+          [
+            7,
+            18
+          ],
+          [
+            18,
+            15
+          ],
+          [
+            15,
+            22
+          ],
+          [
+            22,
+            22
+          ],
+          [
+            22,
+            1
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            7,
+            22
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            3,
+            6
+          ],
+          [
+            6,
+            3
+          ],
+          [
+            3,
+            11
+          ],
+          [
+            11,
+            13
+          ],
+          [
+            13,
+            16
+          ],
+          [
+            16,
+            16
+          ],
+          [
+            16,
+            7
+          ],
+          [
+            7,
+            12
+          ],
+          [
+            12,
+            3
+          ],
+          [
+            3,
+            16
+          ],
+          [
+            16,
+            0
+          ],
+          [
+            0,
+            21
+          ],
+          [
+            21,
+            19
+          ],
+          [
+            19,
+            21
+          ],
+          [
+            21,
+            8
+          ],
+          [
+            8,
+            22
+          ],
+          [
+            22,
+            20
+          ],
+          [
+            20,
+            20
+          ],
+          [
+            20,
+            3
+          ],
+          [
+            3,
+            15
+          ],
+          [
+            15,
+            21
+          ],
+          [
+            21,
+            20
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            0,
+            9
+          ],
+          [
+            9,
+            18
+          ],
+          [
+            18,
+            9
+          ],
+          [
+            9,
+            10
+          ],
+          [
+            10,
+            16
+          ],
+          [
+            16,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            21
+          ],
+          [
+            21,
+            13
+          ],
+          [
+            13,
+            9
+          ],
+          [
+            9,
+            2
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            17
+          ],
+          [
+            17,
+            11
+          ],
+          [
+            11,
+            17
+          ],
+          [
+            17,
+            1
+          ],
+          [
+            1,
+            20
+          ],
+          [
+            20,
+            14
+          ],
+          [
+            14,
+            14
+          ],
+          [
+            14,
+            9
+          ],
+          [
+            9,
+            22
+          ],
+          [
+            22,
+            17
+          ],
+          [
+            17,
+            14
+          ],
+          [
+            14,
+            0
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            8,
+            4
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            7,
+            2
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            6,
+            17
+          ],
+          [
+            17,
+            16
+          ],
+          [
+            16,
+            4
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            0,
+            5
+          ],
+          [
+            5,
+            10
+          ],
+          [
+            10,
+            5
+          ],
+          [
+            5,
+            3
+          ],
+          [
+            3,
+            14
+          ],
+          [
+            14,
+            19
+          ],
+          [
+            19,
+            19
+          ],
+          [
+            19,
+            4
+          ],
+          [
+            4,
+            20
+          ],
+          [
+            20,
+            5
+          ],
+          [
+            5,
+            19
+          ],
+          [
+            19,
+            0
+          ],
+          [
+            0,
+            12
+          ],
+          [
+            12,
+            1
+          ],
+          [
+            1,
+            12
+          ],
+          [
+            12,
+            21
+          ],
+          [
+            21,
+            6
+          ],
+          [
+            6,
+            18
+          ],
+          [
+            18,
+            18
+          ],
+          [
+            18,
+            5
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 34,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -5,
+        "a1": 5,
+        "modulus": 23,
+        "p": 2,
+        "q": -3
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 4,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "9a13f92ad2fe69a2929def7fec9973c0b8a1624548198b78f9936d57d6e918a1",
+        "states": [
+          [
+            3,
+            11
+          ],
+          [
+            11,
+            3
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            7,
+            3
+          ],
+          [
+            3,
+            11
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 35,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 3,
+        "a1": -1,
+        "modulus": 12,
+        "p": 3,
+        "q": 2
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 1,
+        "preperiod": 8,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "2f444314f66460e4b98b3ceee8ac8168d8dbe647c81dc06a5c2bee7f33c7af13",
+        "states": [
+          [
+            12,
+            15
+          ],
+          [
+            15,
+            8
+          ],
+          [
+            8,
+            2
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            12
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 36,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -4,
+        "a1": -1,
+        "modulus": 16,
+        "p": 0,
+        "q": -2
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 24,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "24f06a1e8c7433098f2a241a1d0cf24cb9067fea652e786399e963aec296cb07",
+        "states": [
+          [
+            2,
+            6
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            5,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            3,
+            6
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            5,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            5,
+            4
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            2,
+            6
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 37,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": -5,
+        "a1": -1,
+        "modulus": 7,
+        "p": 1,
+        "q": 3
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 30,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "38fa08f83a525c509d9ff037c1484b0a027095d3a68602e234dcc6e5b12a55c4",
+        "states": [
+          [
+            3,
+            7
+          ],
+          [
+            7,
+            5
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            7,
+            9
+          ],
+          [
+            9,
+            8
+          ],
+          [
+            8,
+            9
+          ],
+          [
+            9,
+            10
+          ],
+          [
+            10,
+            4
+          ],
+          [
+            4,
+            10
+          ],
+          [
+            10,
+            5
+          ],
+          [
+            5,
+            2
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            8,
+            1
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            8,
+            4
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            4,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            1,
+            7
+          ],
+          [
+            7,
+            1
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            6,
+            9
+          ],
+          [
+            9,
+            6
+          ],
+          [
+            6,
+            3
+          ],
+          [
+            3,
+            10
+          ],
+          [
+            10,
+            3
+          ],
+          [
+            3,
+            7
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 38,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 3,
+        "a1": -4,
+        "modulus": 11,
+        "p": 3,
+        "q": 2
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    },
+    {
+      "certificate": {
+        "period": 8,
+        "preperiod": 0,
+        "schema": "axiom.recurrence.finite_state_certificate.v1",
+        "spec_sha256": "32fd1955ef49cad7dd9d047b2d38fd9a6d30cdc8cfd90f70fb0562d9499cf8bd",
+        "states": [
+          [
+            5,
+            3
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            5,
+            1
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            5,
+            3
+          ]
+        ]
+      },
+      "checker": "stdlib_finite_state_recurrence_checker",
+      "claim": "eventual period of the ordered consecutive-residue state, not integer sequence",
+      "ordinal": 39,
+      "origin": "GENERATED_FROM_BOUNDED_GRAMMAR",
+      "originality": "NOT_ASSESSED",
+      "specification": {
+        "a0": 5,
+        "a1": 3,
+        "modulus": 6,
+        "p": 1,
+        "q": -2
+      },
+      "status": "PROVED_IN_SUPPORTED_FRAGMENT"
+    }
+  ],
+  "formal_verification": "NOT_EXECUTED",
+  "schema": "axiom.recurrence.campaign.v1",
+  "seed": 42
+}

@@ -186,7 +186,7 @@ The **actual** completed GitHub run [43342422453](https://github.com/SaridakisSt
 
 The 85 proofs comprise 48 polynomial identities and 37 supported sum-of-squares inequalities. They are **not 85 novel mathematical theorems**. `audit-lean-results` checks data integrity and exact source/statement binding but cannot by itself establish a signed attestation that historical CI ran; the independently accessible GitHub Actions logs establish that execution.
 
-**Next:** v0.4 number theory laboratory: typed divisibility, congruence and recurrence exploration with separately justified soundness rules and Lean checking for supported statements.
+**Now implemented:** v0.4 integer number theory and recurrence laboratory; see below. **Next:** v0.5 combinatorics and graph mathematics.
 
 ## v0.4 Number Theory Laboratory
 
@@ -223,3 +223,18 @@ For direct research artifacts: [`research/number_theory/`](research/number_theor
 A locally accepted number-theory certificate is not automatically a Lean-verified theorem.
 Fibonacci periods 3 mod 2 and 20 mod 5 are known benchmarks, not discoveries.
 The generated candidate grammar is deliberately small; originality remains unassessed.
+
+
+### AXIOM v0.4 measured formal verification results
+
+The actual successful [GitHub Actions run 43365165754](https://github.com/SaridakisStamatisChristos/Axiom/actions/runs/43365165754) accepted **96/96 new supported-fragment integer number-theory proofs** and independently rechecked **85/85 v0.3 algebraic proofs**. The v0.4 number-theory result archive contains individual Lean input sources, statement binding, resolved Mathlib revision and checker axiom lists. Three genuine Lean number-theory integration tests and the independent provenance audit also passed.
+
+The 40 separate recurrence periodicity certificates are checked by the standalone Python finite-state checker **only**, not by the Lean kernel. None of the statements have been assessed for novelty. Full measured campaign and resource data are in [`research/number_theory/RESULTS.md`](research/number_theory/RESULTS.md). See `CHECKPOINT.md` for actual CI run, artifact ID, exact toolchain and current limitations.
+
+To package all checked source and research data reproducibly:
+
+```bash
+python scripts/build_release.py --output ../AXIOM_v0.4_Number_Theory_Laboratory.zip
+```
+
+The build includes a per-file SHA-256 manifest; generating the ZIP does **not** substitute for running tests or Lean checks.
