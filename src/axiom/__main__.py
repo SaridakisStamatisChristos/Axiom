@@ -5,7 +5,7 @@ from .research import run_campaign
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.9 mathematical research")
+    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.10 mathematical research")
     sub = p.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="create or resume a deterministic research campaign")
     run.add_argument("--db", default="research/axiom.sqlite3")
