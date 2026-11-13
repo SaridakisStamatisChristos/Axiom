@@ -176,7 +176,39 @@ def main() -> None:
         "graph-n6-check-certificate",
         help="independently check a saved exact-six-vertex finite proof certificate")
     n6cert.add_argument("artifact")
+    exact_import = sub.add_parser(
+        "knowledge-exact-n6-import",
+        help="index fully independently checked n=6 certificates without touching historical evidence")
+    exact_import.add_argument("reports", nargs="+", help="complete exact-n6 source reports")
+    exact_import.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    exact_audit = sub.add_parser(
+        "knowledge-exact-n6-audit", help="replay all source mathematics, frontier experiments and finite n=6 certificates")
+    exact_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    exact_query = sub.add_parser(
+        "knowledge-exact-n6-query", help="inspect independently audited exact n=6 proofs and refutations")
+    exact_query.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    exact_query.add_argument("--status", choices=("REFUTED", "PROVED_IN_SUPPORTED_FRAGMENT"))
+    exact_query.add_argument("--offset", type=int, default=0)
+    exact_query.add_argument("--limit", type=int, default=20)
     args = p.parse_args()
+    if args.command in {"knowledge-exact-n6-import", "knowledge-exact-n6-audit",
+                        "knowledge-exact-n6-query"}:
+        from .knowledge_exact_n6 import import_exact_n6, exact_n6_summary, query_exact_n6
+        import sqlite3
+        try:
+            if args.command == "knowledge-exact-n6-import":
+                result = import_exact_n6(args.db, args.reports)
+            elif args.command == "knowledge-exact-n6-audit":
+                result = exact_n6_summary(args.db)
+            else:
+                result = {"statements": query_exact_n6(
+                    args.db, status=args.status, offset=args.offset, limit=args.limit)}
+        except (ValueError, KeyError, TypeError, OSError,
+                sqlite3.DatabaseError, json.JSONDecodeError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(result, sort_keys=True, indent=2))
+        return
+
     if args.command in {"graph-n6-run", "graph-n6-audit",
                         "graph-n6-check-certificate"}:
         from .graph_n6_exact import (
