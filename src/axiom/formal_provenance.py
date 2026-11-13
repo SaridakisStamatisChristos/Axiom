@@ -15,7 +15,7 @@ import sqlite3
 from .graph_claims import stable, digest
 from .knowledge_graph import _open
 from .knowledge_federation import _audit as audit_federation
-from .knowledge_federation import _sources, _source_id, _node_id
+from .knowledge_federation import _sources, _source_id, _node_id, _validate
 
 SCHEMA = "axiom.lean_provenance.v1"
 MAX_RECORDS = 256
@@ -25,12 +25,14 @@ OFFLINE_STATUS = "SOURCE_BOUND_OFFLINE_ONLY"
 
 
 def _tables(db: sqlite3.Connection) -> None:
-    db.executescript("""
-        CREATE TABLE IF NOT EXISTS formal_batches (
+    # Individual DDL statements are safe inside an existing transaction;
+    # sqlite3.executescript() would force an implicit COMMIT.
+    for ddl in (
+        """CREATE TABLE IF NOT EXISTS formal_batches (
             source_id TEXT PRIMARY KEY REFERENCES federation_nodes(node_id),
             kind TEXT NOT NULL, batch_digest TEXT NOT NULL,
-            items_json TEXT NOT NULL);
-        CREATE TABLE IF NOT EXISTS formal_links (
+            items_json TEXT NOT NULL)""",
+        """CREATE TABLE IF NOT EXISTS formal_links (
             record_id TEXT PRIMARY KEY,
             source_id TEXT NOT NULL REFERENCES federation_nodes(node_id),
             finding_id TEXT NOT NULL REFERENCES federation_nodes(node_id),
@@ -38,11 +40,11 @@ def _tables(db: sqlite3.Connection) -> None:
             local_proof_id TEXT NOT NULL REFERENCES federation_nodes(node_id),
             source_sha256 TEXT NOT NULL,
             record_digest TEXT NOT NULL,
-            evidence_json TEXT NOT NULL);
-        CREATE INDEX IF NOT EXISTS formal_links_source
-            ON formal_links(source_id);
-    """)
-
+            evidence_json TEXT NOT NULL)""",
+        """CREATE INDEX IF NOT EXISTS formal_links_source
+             ON formal_links(source_id)""",
+    ):
+        db.execute(ddl)
 
 def _read_ndjson(path: str) -> list[dict]:
     file = Path(path)
@@ -58,11 +60,19 @@ def _read_ndjson(path: str) -> list[dict]:
 
 
 def _source_report(db: sqlite3.Connection, sid: str) -> dict:
-    reports = {("source:" + _source_id(report)): report for report in _sources(db)}
-    if sid not in reports:
-        raise ValueError("formal records require the exact originating federated campaign")
-    return reports[sid]
-
+    if not sid.startswith("source:"):
+        raise ValueError("invalid formal source reference")
+    row = db.execute(
+        "SELECT report_digest,report_json FROM federation_sources "
+        "WHERE source_id=?", (sid.removeprefix("source:"),)).fetchone()
+    if row is None:
+        raise ValueError("formal records require exact originating campaign")
+    report = json.loads(row[1])
+    if (stable(report) != row[1] or digest(report) != row[0]
+            or "source:" + _source_id(report) != sid):
+        raise ValueError("corrupted federated source")
+    _validate(report)
+    return report
 
 def _batch(kind: str, source_id: str, entries: list[dict]) -> dict:
     if kind not in DOMAINS or not 1 <= len(entries) <= MAX_RECORDS:
@@ -277,7 +287,8 @@ def import_formal(db_path: str, *, algebra_ndjson: str | None = None,
                 db.execute("INSERT OR IGNORE INTO formal_batches VALUES (?,?,?,?)",
                            (batch["source_id"], batch["kind"],
                             digest(batch), stable(batch)))
-            nodes, _ = audit_federation(db)
+            # All original federation material was fully audited before this
+            # transaction. Its nodes do not change during a formal import.
             expected = _expected(db, nodes)
             db.execute("DELETE FROM formal_links")
             db.executemany(
