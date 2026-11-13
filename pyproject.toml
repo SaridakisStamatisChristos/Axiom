@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "axiom-research"
-version = "0.5.0"
-description = "Reproducible automated conjecture investigation over integer polynomials and typed elementary number theory, and finite simple graph mathematics"
+version = "0.6.0"
+description = "Reproducible automated conjecture investigation over integer polynomials and typed elementary number theory, finite simple graphs, and an auditable mathematical knowledge graph"
 requires-python = ">=3.11"
 dependencies = ["sympy>=1.12,<2"]
 
