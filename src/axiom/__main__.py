@@ -5,7 +5,7 @@ from .research import run_campaign
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.7 mathematical research")
+    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.8 mathematical research")
     sub = p.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="create or resume a deterministic research campaign")
     run.add_argument("--db", default="research/axiom.sqlite3")
@@ -115,7 +115,37 @@ def main() -> None:
     fed_q.add_argument("--domain", choices=("graph", "algebra", "number_theory", "recurrence"))
     fed_q.add_argument("--status")
     fed_q.add_argument("--limit", type=int, default=20)
+    form_imp = sub.add_parser("knowledge-formal-import", help="source-bind preserved complete Lean records; no offline formal promotion")
+    form_imp.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    form_imp.add_argument("--algebra-ndjson")
+    form_imp.add_argument("--number-index")
+    form_imp.add_argument("--number-records-dir")
+    form_audit = sub.add_parser("knowledge-formal-audit", help="replay complete research and Lean source-record lineage")
+    form_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    form_q = sub.add_parser("knowledge-formal-query", help="query exact source-bound Lean evidence (execution not independently attested)")
+    form_q.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    form_q.add_argument("--domain", choices=("algebra", "number_theory"))
+    form_q.add_argument("--limit", type=int, default=20)
     args = p.parse_args()
+    if args.command in {"knowledge-formal-import", "knowledge-formal-audit", "knowledge-formal-query"}:
+        from .formal_provenance import import_formal, formal_summary, formal_query
+        import sqlite3
+        try:
+            if args.command == "knowledge-formal-import":
+                result = import_formal(args.db, algebra_ndjson=args.algebra_ndjson,
+                                       number_index=args.number_index,
+                                       number_records_dir=args.number_records_dir)
+            elif args.command == "knowledge-formal-audit":
+                result = formal_summary(args.db)
+            else:
+                result = {"records": formal_query(
+                    args.db, domain=args.domain, limit=args.limit)}
+        except (ValueError, TypeError, KeyError, OSError, sqlite3.DatabaseError,
+                json.JSONDecodeError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(result, sort_keys=True, indent=2))
+        return
+
     if args.command in {"knowledge-federate", "knowledge-federation-audit", "knowledge-cross-query"}:
         from .knowledge_federation import federate, federation_summary, query_federation
         import sqlite3

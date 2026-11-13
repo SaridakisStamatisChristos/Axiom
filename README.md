@@ -1,3 +1,34 @@
+# AXIOM v0.8 — Source-bound Lean proof provenance (development)
+
+AXIOM v0.8 connects the complete historical algebra and number-theory Lean
+records to their exact statements and local certificates in the v0.7
+cumulative knowledge federation. Original proof status is **never upgraded
+on the basis of an offline JSON record**; existing externally verified Lean
+runs remain separately attestable through GitHub CI.
+
+Reproduce after installation:
+
+    axiom knowledge-build --db research/knowledge/axiom.sqlite3 \
+      research/graphs/v05_baseline_report.json research/graphs/v05_scale_report.json
+
+    axiom knowledge-federate --db research/knowledge/axiom.sqlite3 \
+      research/v03_campaign_report.json research/number_theory/v04_report.json \
+      research/number_theory/v04_sequences.json
+
+    axiom knowledge-formal-import --db research/knowledge/axiom.sqlite3 \
+      --algebra-ndjson research/v03_formal_results.ndjson \
+      --number-index research/number_theory/v04_formal_results.ndjson \
+      --number-records-dir research/lean_verified/number_theory
+
+    axiom knowledge-formal-audit --db research/knowledge/axiom.sqlite3
+    axiom knowledge-formal-query --db research/knowledge/axiom.sqlite3 --domain algebra
+
+See the [v0.8 formal provenance specification](docs/formal_provenance.md)
+for semantics, limitations, trust boundaries and CI reproduction. The previous
+v0.7/v0.6/v0.5 documentation follows unchanged.
+
+---
+
 # AXIOM v0.7 — Cross-domain mathematical evidence federation (development)
 
 AXIOM v0.7 adds a fail-closed typed evidence federation to the existing v0.6 SQLite knowledge graph. It connects **finite graphs, integer-polynomial algebra, elementary number theory, and modular recurrences** without changing original mathematical claims, verification statuses, or historical research files. Each imported report is replayed with its original mathematical auditor.
