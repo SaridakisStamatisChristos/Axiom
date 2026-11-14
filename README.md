@@ -1,3 +1,25 @@
+# AXIOM v0.17 — Information-aware graph research (development)
+
+The existing v0.15 formal Lean verification and v0.16 nonduplicate
+sampling are preserved. The v0.17 scheduler source-replays the
+historical n=7 graph bank, pre-tests the **entire supported typed
+statement grammar**, defers elementary bounds to potential Lean
+formalization, and executes new independent bounded experiments on
+selected hypotheses not refuted by the historical graph pool.
+
+    axiom graph-research-discover --db research/knowledge/axiom.sqlite3 \
+      --output research/knowledge/discovery_v017.json \
+      --source-probe 96 --experiment-budget 48 --task-limit 4
+
+    axiom graph-research-discover-audit --db research/knowledge/axiom.sqlite3 \
+      research/knowledge/discovery_v017.json
+
+See [v0.17 scientific selection and audit specification](docs/graph_adaptive_v017.md).
+All new observations are provisional. No claims of mathematical originality
+or universal proof are made by this scheduler.
+
+---
+
 # AXIOM v0.16 — Nonduplicative incremental graph research (development)
 
 The v0.15 Lean-kernel proof bridge is preserved. v0.16 reconstructs exact
