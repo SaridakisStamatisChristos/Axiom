@@ -1,0 +1,185 @@
+name: AXIOM v0.15 real graph Lean formalization
+on:
+  push:
+    branches: [main, "axiom-v0.15-*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: axiom-v015-graph-lean-\${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  real-graph-kernel:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install project and run graph Lean safety regressions
+        run: |
+          python -m pip install -e '.[dev]'
+          pytest -q tests/test_graph_lean.py
+          pytest -q tests/test_graph_research_cycle.py
+      - name: Install pinned elan and Lean
+        run: |
+          curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Resolve exact Lean / Mathlib lockfile and cache
+        run: |
+          lake update
+          lake exe cache get
+          lake env lean --version
+          git -C .lake/packages/mathlib rev-parse HEAD
+      - name: Create genuine independently checked n6 certificates
+        run: |
+          mkdir -p research/lean_verified/graph_n6
+          axiom graph-n6-run --templates handshake degree_bound triangle_upper_bound \
+            --output research/lean_verified/graph_n6/ci_exact_n6.json
+          axiom graph-n6-audit research/lean_verified/graph_n6/ci_exact_n6.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('research/lean_verified/graph_n6')
+          report = json.loads((p / 'ci_exact_n6.json').read_text())
+          assert report['counts']['PROVED_IN_SUPPORTED_FRAGMENT'] == 3, report['counts']
+          for finding in report['findings']:
+              assert finding['status'] == 'PROVED_IN_SUPPORTED_FRAGMENT'
+              name = finding['statement']['template']
+              (p / f'{name}.json').write_text(json.dumps({
+                  'statement': finding['statement'], 'certificate': finding['certificate']},
+                  indent=2) + '\n')
+          PY
+      - name: Prove handshake lemma in actual Lean kernel
+        run: |
+          axiom graph-n6-lean-verify research/lean_verified/graph_n6/handshake.json \
+            --project-root . --timeout 240 \
+            --source research/lean_verified/graph_n6/handshake.lean \
+            --output research/lean_verified/graph_n6/handshake_verified.json
+      - name: Prove bounded vertex degree in actual Lean kernel
+        run: |
+          axiom graph-n6-lean-verify research/lean_verified/graph_n6/degree_bound.json \
+            --project-root . --timeout 240 \
+            --source research/lean_verified/graph_n6/degree_bound.lean \
+            --output research/lean_verified/graph_n6/degree_bound_verified.json
+      - name: Prove n6 triangle upper bound in actual Lean kernel
+        run: |
+          axiom graph-n6-lean-verify research/lean_verified/graph_n6/triangle_upper_bound.json \
+            --project-root . --timeout 240 \
+            --source research/lean_verified/graph_n6/triangle_upper_bound.lean \
+            --output research/lean_verified/graph_n6/triangle_upper_bound_verified.json
+      - name: Audit formal source records without expanding graph scope
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from axiom.graph_lean import audit_graph_lean_record
+          root = Path('research/lean_verified/graph_n6')
+          for template in ('handshake', 'degree_bound', 'triangle_upper_bound'):
+              record=json.loads((root / f'{template}_verified.json').read_text())
+              assert audit_graph_lean_record(record)
+              assert record['status'] == 'FORMALLY_VERIFIED'
+              assert record['accepted'] is True
+              assert record['all_order_generalization'] == 'NOT_PROVED'
+              assert record['scope'].endswith('exactly n=6 vertices')
+          PY
+      - name: Rebuild source-bound graph knowledge and run actual automated research dispatch
+        run: |
+          mkdir -p research/lean_verified/graph_n6/agenda
+          DB=research/lean_verified/graph_n6/agenda/knowledge.sqlite3
+          axiom knowledge-build --db "$DB" \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+          axiom knowledge-federate --db "$DB" \
+            research/v03_campaign_report.json \
+            research/number_theory/v04_report.json \
+            research/number_theory/v04_sequences.json
+          axiom knowledge-formal-import --db "$DB" \
+            --algebra-ndjson research/v03_formal_results.ndjson \
+            --number-index research/number_theory/v04_formal_results.ndjson \
+            --number-records-dir research/lean_verified/number_theory
+          axiom graph-frontier-run --target-order 6 --seed 42 \
+            --search-budget 64 --max-candidates 10 \
+            --output research/lean_verified/graph_n6/agenda/frontier_n6.json \
+            research/graphs/v05_baseline_report.json research/graphs/v05_scale_report.json
+          axiom graph-frontier-run --target-order 7 --seed 42 \
+            --search-budget 64 --max-candidates 10 \
+            --output research/lean_verified/graph_n6/agenda/frontier_n7.json \
+            research/graphs/v05_baseline_report.json research/graphs/v05_scale_report.json
+          axiom knowledge-frontier-import --db "$DB" \
+            research/lean_verified/graph_n6/agenda/frontier_n6.json \
+            research/lean_verified/graph_n6/agenda/frontier_n7.json
+          axiom graph-n6-run --templates \
+            handshake degree_bound triangle_upper_bound \
+            forest_edge_count tree_edge_count connected_edge_lower_bound \
+            bipartite_no_triangles edges_le_vertices connected_edges_ge_n \
+            --output research/lean_verified/graph_n6/agenda/exact_n6.json
+          axiom knowledge-exact-n6-import --db "$DB" \
+            research/lean_verified/graph_n6/agenda/exact_n6.json
+          axiom graph-lean-autopilot --db "$DB" --project-root . \
+            --output-dir research/lean_verified/graph_n6/agenda/executed \
+            --max-proofs 3 --timeout 240
+          axiom graph-lean-autopilot-audit --db "$DB" \
+            research/lean_verified/graph_n6/agenda/executed
+      - name: Check autonomous dispatch has no false promotion
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('research/lean_verified/graph_n6/agenda/executed')
+          data=json.loads((root/'summary.json').read_text())
+          assert data['attempted']==3, data
+          assert data['formally_verified']==3, data
+          assert data['candidate_count']>=7, data
+          assert len(data['pending'])>=4, data
+          assert data['source_evidence_modified'] is False
+          assert data['all_order_generalization']=='NOT_PROVED'
+          assert all(x['accepted'] and x['status']=='FORMALLY_VERIFIED'
+                     for x in data['results'])
+          assert {x['template'] for x in data['results']} == {
+              'handshake','degree_bound','triangle_upper_bound'}
+          assert all(x['reason']=='LEAN_FORMALIZATION_NOT_IMPLEMENTED'
+                     for x in data['pending'])
+          PY
+      - name: Run independent bounded falsification and formal research cycle
+        run: |
+          DB=research/lean_verified/graph_n6/agenda/knowledge.sqlite3
+          axiom graph-research-cycle --db "$DB" --project-root . \
+            --output-dir research/lean_verified/graph_n6/research_cycle \
+            --proof-quota 3 --experiment-quota 2 --search-budget 48 \
+            --seed 42 --timeout 240
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("research/lean_verified/graph_n6/research_cycle/runs")
+          runs = list(root.iterdir())
+          assert len(runs) == 1, runs
+          data = json.loads((runs[0] / "summary.json").read_text())
+          assert data["formal"]["attempted"] == 3, data
+          assert data["formal"]["formally_verified_recorded"] == 3, data
+          assert len(data["bounded"]) == 2, data
+          assert all(x["status"] in ("REFUTED", "SURVIVED_BOUNDED_SEARCH")
+                     for x in data["bounded"])
+          assert len(data["ledger"]) == 5
+          assert data["original_evidence_modified"] is False
+          assert data["offline_replay_is_kernel_attestation"] is False
+          PY
+      - name: Independently replay complete research cycle and evidence chain
+        run: |
+          DB=research/lean_verified/graph_n6/agenda/knowledge.sqlite3
+          for RUN in research/lean_verified/graph_n6/research_cycle/runs/*; do
+            axiom graph-research-cycle-audit --db "$DB" "$RUN"
+          done
+      - name: Preserve actual checker evidence, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axiom-v015-actual-lean-graph-evidence
+          path: research/lean_verified/graph_n6/
+          if-no-files-found: warn
