@@ -47,7 +47,7 @@ def _source_for_template(template: str, theorem: str) -> str:
         "-- AXIOM closed, exact-six-vertex graph formalization.",
         "-- Vertex set is {0,1,2,3,4,5}; each of the 15 edges is one mask bit.",
         "-- The theorem is about this graph order only, not arbitrary graph orders.",
-        "import Mathlib.Tactic.Omega", "",
+        "import Mathlib", "",
         "namespace AxiomGraphN6", "",
         "private def bit (mask i : Nat) : Nat :=",
         "  if Nat.testBit mask i = true then 1 else 0", "",
