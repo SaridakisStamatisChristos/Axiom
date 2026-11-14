@@ -26,6 +26,7 @@ jobs:
         run: |
           python -m pip install -e '.[dev]'
           pytest -q tests/test_graph_lean.py
+          pytest -q tests/test_graph_research_cycle.py
       - name: Install pinned elan and Lean
         run: |
           curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
@@ -146,6 +147,35 @@ jobs:
           assert all(x['reason']=='LEAN_FORMALIZATION_NOT_IMPLEMENTED'
                      for x in data['pending'])
           PY
+      - name: Run independent bounded falsification and formal research cycle
+        run: |
+          DB=research/lean_verified/graph_n6/agenda/knowledge.sqlite3
+          axiom graph-research-cycle --db "$DB" --project-root . \
+            --output-dir research/lean_verified/graph_n6/research_cycle \
+            --proof-quota 3 --experiment-quota 2 --search-budget 48 \
+            --seed 42 --timeout 240
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("research/lean_verified/graph_n6/research_cycle/runs")
+          runs = list(root.iterdir())
+          assert len(runs) == 1, runs
+          data = json.loads((runs[0] / "summary.json").read_text())
+          assert data["formal"]["attempted"] == 3, data
+          assert data["formal"]["formally_verified_recorded"] == 3, data
+          assert len(data["bounded"]) == 2, data
+          assert all(x["status"] in ("REFUTED", "SURVIVED_BOUNDED_SEARCH")
+                     for x in data["bounded"])
+          assert len(data["ledger"]) == 5
+          assert data["original_evidence_modified"] is False
+          assert data["offline_replay_is_kernel_attestation"] is False
+          PY
+      - name: Independently replay complete research cycle and evidence chain
+        run: |
+          DB=research/lean_verified/graph_n6/agenda/knowledge.sqlite3
+          for RUN in research/lean_verified/graph_n6/research_cycle/runs/*; do
+            axiom graph-research-cycle-audit --db "$DB" "$RUN"
+          done
       - name: Preserve actual checker evidence, including failures
         if: always()
         uses: actions/upload-artifact@v4

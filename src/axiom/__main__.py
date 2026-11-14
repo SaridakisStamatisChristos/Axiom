@@ -222,7 +222,50 @@ def main() -> None:
         help="replay source-bound graph Lean records, without attesting offline execution")
     graph_exec_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
     graph_exec_audit.add_argument("output_dir")
+    cycle = sub.add_parser(
+        "graph-research-cycle",
+        help="execute source-replayed Lean proofs and independent n7 falsification in separate evidence lanes")
+    cycle.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    cycle.add_argument("--output-dir", default="research/research_cycles")
+    cycle.add_argument("--project-root", default=".")
+    cycle.add_argument("--proof-quota", type=int, default=3)
+    cycle.add_argument("--experiment-quota", type=int, default=2)
+    cycle.add_argument("--search-budget", type=int, default=64)
+    cycle.add_argument("--seed", type=int, default=42)
+    cycle.add_argument("--timeout", type=int, default=240)
+    cycle_audit = sub.add_parser(
+        "graph-research-cycle-audit",
+        help="replay proof source bindings, independent graph samples, and evidence hash chain")
+    cycle_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    cycle_audit.add_argument("run_dir")
     args = p.parse_args()
+    if args.command in {"graph-research-cycle", "graph-research-cycle-audit"}:
+        from .graph_research_cycle import execute_cycle, audit_cycle
+        import sqlite3
+        try:
+            if args.command == "graph-research-cycle":
+                result = execute_cycle(
+                    args.db, args.output_dir, project_root=args.project_root,
+                    proof_quota=args.proof_quota,
+                    experiment_quota=args.experiment_quota,
+                    search_budget=args.search_budget, seed=args.seed,
+                    timeout_seconds=args.timeout)
+                shown = {
+                    "run_id": result["run_id"],
+                    "source_fingerprint": result["source_fingerprint"],
+                    "formal": result["formal"],
+                    "bounded": result["bounded"],
+                    "offline_replay_is_kernel_attestation": False,
+                }
+            else:
+                result = audit_cycle(args.db, args.run_dir)
+                shown = {k: v for k, v in result.items() if k != "report"}
+        except (ValueError, TypeError, KeyError, OSError, sqlite3.DatabaseError,
+                json.JSONDecodeError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(shown, sort_keys=True, indent=2))
+        return
+
     if args.command in {"graph-n6-lean-verify", "graph-lean-autopilot",
                         "graph-lean-autopilot-audit"}:
         from pathlib import Path

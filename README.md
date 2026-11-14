@@ -1,3 +1,23 @@
+# AXIOM v0.15 — Verified graph-to-Lean and mixed research cycle (development)
+
+The v0.15 branch adds actual Lean-kernel formalization of three exact n=6
+graph identities and a source-replayed research orchestrator that also runs
+independent bounded searches for n=7 counterexamples. Generated Lean scripts,
+verified proof records, experimental observations, and a hash-chain evidence
+ledger remain strictly separate. Unsupported formal templates are kept pending;
+a sampled survivor is never called a theorem.
+
+Run after building the v0.14 source-bound database:
+
+    axiom graph-research-cycle --db research/knowledge/axiom.sqlite3 \
+      --project-root . --output-dir research/research_cycles \
+      --proof-quota 3 --experiment-quota 2 --search-budget 64 --seed 42
+
+Documentation: [graph-to-Lean](docs/graph_lean_v015.md) and
+[full research cycle](docs/research_cycle_v015.md).
+
+---
+
 # AXIOM v0.14 — Reconciled Evidence-First Graph Research Agenda (development)
 
 This milestone extends AXIOM's research planner by joining **three
