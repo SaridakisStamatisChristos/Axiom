@@ -16,7 +16,7 @@ import json
 import os
 from pathlib import Path
 
-from .graph_campaign import _sample_masks
+from .graph_campaign import _sample_masks, _discovery_properties
 from .graph_checker import check_graph_witness, reference_properties
 from .graph_claims import GraphStatement, digest, holds, stable
 from .graph_model import SimpleGraph, edge_positions
@@ -169,6 +169,12 @@ def _trial(task: dict, fp: str, cfg: dict, exclusions: set[int],
             if not conclusion:
                 witness = SimpleGraph.from_mask(7, mask).to_dict()
                 check_graph_witness(stmt.to_dict(), witness)
+                # Independent discovery implementation must agree with the
+                # reference oracle on the original typed counterexample.
+                discovery_applies, discovery_valid = holds(
+                    stmt, _discovery_properties(7, mask))
+                if not discovery_applies or discovery_valid:
+                    raise ValueError("independent graph oracles disagree on counterexample")
                 break
     return {
         "task_id": task["task_id"],
@@ -185,6 +191,7 @@ def _trial(task: dict, fp: str, cfg: dict, exclusions: set[int],
         "assumption_satisfying": applicable,
         "status": "REFUTED" if witness is not None else "SURVIVED_BOUNDED_SEARCH",
         "counterexample": witness,
+        "independent_discovery_crosscheck": witness is not None,
         "exhaustive": False,
         "lean_formal_verification": "NOT_PERFORMED",
         "formal_lean_verification": "NOT_PERFORMED",
