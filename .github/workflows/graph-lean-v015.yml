@@ -88,6 +88,64 @@ jobs:
               assert record['all_order_generalization'] == 'NOT_PROVED'
               assert record['scope'].endswith('exactly n=6 vertices')
           PY
+      - name: Rebuild source-bound graph knowledge and run actual automated research dispatch
+        run: |
+          mkdir -p research/lean_verified/graph_n6/agenda
+          DB=research/lean_verified/graph_n6/agenda/knowledge.sqlite3
+          axiom knowledge-build --db "$DB" \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+          axiom knowledge-federate --db "$DB" \
+            research/v03_campaign_report.json \
+            research/number_theory/v04_report.json \
+            research/number_theory/v04_sequences.json
+          axiom knowledge-formal-import --db "$DB" \
+            --algebra-ndjson research/v03_formal_results.ndjson \
+            --number-index research/number_theory/v04_formal_results.ndjson \
+            --number-records-dir research/lean_verified/number_theory
+          axiom graph-frontier-run --target-order 6 --seed 42 \
+            --search-budget 64 --max-candidates 10 \
+            --output research/lean_verified/graph_n6/agenda/frontier_n6.json \
+            research/graphs/v05_baseline_report.json research/graphs/v05_scale_report.json
+          axiom graph-frontier-run --target-order 7 --seed 42 \
+            --search-budget 64 --max-candidates 10 \
+            --output research/lean_verified/graph_n6/agenda/frontier_n7.json \
+            research/graphs/v05_baseline_report.json research/graphs/v05_scale_report.json
+          axiom knowledge-frontier-import --db "$DB" \
+            research/lean_verified/graph_n6/agenda/frontier_n6.json \
+            research/lean_verified/graph_n6/agenda/frontier_n7.json
+          axiom graph-n6-run --templates \
+            handshake degree_bound triangle_upper_bound \
+            forest_edge_count tree_edge_count connected_edge_lower_bound \
+            bipartite_no_triangles edges_le_vertices connected_edges_ge_n \
+            --output research/lean_verified/graph_n6/agenda/exact_n6.json
+          axiom knowledge-exact-n6-import --db "$DB" \
+            research/lean_verified/graph_n6/agenda/exact_n6.json
+          axiom graph-lean-autopilot --db "$DB" --project-root . \
+            --output-dir research/lean_verified/graph_n6/agenda/executed \
+            --max-proofs 3 --timeout 240
+          axiom graph-lean-autopilot-audit --db "$DB" \
+            research/lean_verified/graph_n6/agenda/executed
+      - name: Check autonomous dispatch has no false promotion
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('research/lean_verified/graph_n6/agenda/executed')
+          data=json.loads((root/'summary.json').read_text())
+          assert data['attempted']==3, data
+          assert data['formally_verified']==3, data
+          assert data['candidate_count']>=7, data
+          assert len(data['pending'])>=4, data
+          assert data['source_evidence_modified'] is False
+          assert data['all_order_generalization']=='NOT_PROVED'
+          assert all(x['accepted'] and x['status']=='FORMALLY_VERIFIED'
+                     for x in data['results'])
+          assert {x['template'] for x in data['results']} == {
+              'handshake','degree_bound','triangle_upper_bound'}
+          assert all(x['reason']=='LEAN_FORMALIZATION_NOT_IMPLEMENTED'
+                     for x in data['pending'])
+          PY
       - name: Preserve actual checker evidence, including failures
         if: always()
         uses: actions/upload-artifact@v4
