@@ -80,7 +80,7 @@ jobs:
           from axiom.graph_research_cycle import _tasks, SEARCH_ACTIONS
           root=Path("research/knowledge/ci_v016")
           fp,tasks=_tasks(str(root/"science.sqlite3"),7)
-          _, history=historical_exclusions(
+          original, history=historical_exclusions(
               str(root/"science.sqlite3"), [
                   t for t in tasks if t["action"] in SEARCH_ACTIONS])
           reports=[json.loads((root/"novel"/"iterations"/f"iteration_{i:04d}.json").read_text())
@@ -96,10 +96,12 @@ jobs:
                   tid=trial["task_id"]
                   assert trial["historical_masks_sha256"]==history[tid]["historical_masks_sha256"]
                   masks=set(trial["masks_checked"])
+                  assert not masks.intersection(original[tid]), "historical graph revisited"
                   assert not masks.intersection(checked.setdefault(tid,set()))
                   checked[tid].update(masks)
                   assert trial["status"] in ("REFUTED","SURVIVED_BOUNDED_SEARCH")
                   assert trial["all_orders_proved"] is False
+                  assert trial["independent_discovery_crosscheck"] is (trial["status"]=="REFUTED")
           PY
       - name: Preserve scientific evidence even if CI fails
         if: always()
