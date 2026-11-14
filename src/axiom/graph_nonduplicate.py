@@ -187,6 +187,7 @@ def _trial(task: dict, fp: str, cfg: dict, exclusions: set[int],
         "counterexample": witness,
         "exhaustive": False,
         "lean_formal_verification": "NOT_PERFORMED",
+        "formal_lean_verification": "NOT_PERFORMED",
         "all_orders_proved": False,
         "original_source_modified": False,
     }
