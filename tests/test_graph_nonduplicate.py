@@ -58,3 +58,26 @@ def test_invalid_budgets_fail_before_source_access(tmp_path):
         params.update(overrides)
         with pytest.raises(ValueError):
             run_iteration(str(tmp_path / "absent.sqlite3"), str(tmp_path), **params)
+
+
+def test_dual_oracle_refutation_does_not_depend_on_single_evaluator(monkeypatch):
+    import axiom.graph_nonduplicate as module
+    stmt = GraphStatement(7, "edges_le_vertices").to_dict()
+    task = {"task_id": "fixture:false-edges", "statement_id": "fixture:false",
+            "action": "EXTEND_BOUNDED_FALSIFICATION", "statement": stmt}
+    cfg = _configuration(0, 42, 16, 1)
+    h = {"source_records": [], "distinct_historical_masks": 0,
+         "historical_masks_sha256": "a" * 64}
+    record = _trial(task, "b" * 64, cfg, set(), h)
+    assert record["status"] == "REFUTED"
+    assert record["independent_discovery_crosscheck"] is True
+
+    def false_discovery(n, mask):
+        from axiom.graph_checker import reference_properties
+        props = dict(reference_properties(n, mask))
+        props["edges"] = 0  # Contradict the reference finding on purpose.
+        return props
+
+    monkeypatch.setattr(module, "_discovery_properties", false_discovery)
+    with pytest.raises(ValueError, match="independent graph oracles disagree"):
+        _trial(task, "b" * 64, cfg, set(), h)
