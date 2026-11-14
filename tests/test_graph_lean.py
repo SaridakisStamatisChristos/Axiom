@@ -58,7 +58,7 @@ def test_malformed_certificate_and_changed_statement_are_rejected(source):
 def test_no_lean_is_not_formal_proof(source, tmp_path, monkeypatch):
     statement, certificate = source
     (tmp_path / "lean-toolchain").write_text("leanprover/lean4:v4.35.0\n")
-    (tmp_path / "lakefile.toml").write_text('name = "AXIOM"\n')
+    (tmp_path / "lakefile.toml").write_text((Path(__file__).resolve().parents[1] / "lakefile.toml").read_text())
     monkeypatch.setattr(shutil, "which", lambda _: None)
     record = verify_graph_with_lean(statement, certificate, project_root=tmp_path)
     assert record["status"] == "LEAN_UNAVAILABLE"
