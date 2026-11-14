@@ -5,7 +5,7 @@ from .research import run_campaign
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.12 mathematical research")
+    p = argparse.ArgumentParser(prog="axiom", description="AXIOM v0.15 mathematical research")
     sub = p.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="create or resume a deterministic research campaign")
     run.add_argument("--db", default="research/axiom.sqlite3")
@@ -202,7 +202,76 @@ def main() -> None:
         "knowledge-graph-plan-audit", help="replay all exact/bounded graph evidence and audit graph plan")
     reconciled_audit.add_argument("report_file")
     reconciled_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    graph_lean = sub.add_parser(
+        "graph-n6-lean-verify", help="kernel-verify one independently audited exact n6 graph proof")
+    graph_lean.add_argument("artifact", help="JSON {statement,certificate} exact six-vertex artifact")
+    graph_lean.add_argument("--project-root", default=".")
+    graph_lean.add_argument("--output")
+    graph_lean.add_argument("--source")
+    graph_lean.add_argument("--timeout", type=int, default=180)
+    graph_exec = sub.add_parser(
+        "graph-lean-autopilot",
+        help="execute supported formalization tasks from full source-replayed graph research agenda")
+    graph_exec.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    graph_exec.add_argument("--output-dir", default="research/lean_verified/graph_n6")
+    graph_exec.add_argument("--project-root", default=".")
+    graph_exec.add_argument("--max-proofs", type=int, default=3)
+    graph_exec.add_argument("--timeout", type=int, default=180)
+    graph_exec_audit = sub.add_parser(
+        "graph-lean-autopilot-audit",
+        help="replay source-bound graph Lean records, without attesting offline execution")
+    graph_exec_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    graph_exec_audit.add_argument("output_dir")
     args = p.parse_args()
+    if args.command in {"graph-n6-lean-verify", "graph-lean-autopilot",
+                        "graph-lean-autopilot-audit"}:
+        from pathlib import Path
+        import sqlite3
+        from .graph_lean import (
+            verify_graph_with_lean, save_record, LeanBackendError)
+        from .graph_research_executor import (
+            execute_graph_research, audit_executor_report)
+        try:
+            if args.command == "graph-n6-lean-verify":
+                data = json.loads(Path(args.artifact).read_text(encoding="utf-8"))
+                if type(data) is not dict or set(data) != {"statement", "certificate"}:
+                    raise ValueError("expected exact graph proof artifact")
+                report = verify_graph_with_lean(
+                    data["statement"], data["certificate"],
+                    project_root=args.project_root, timeout_seconds=args.timeout)
+                if args.output:
+                    save_record(report, args.output)
+                if args.source:
+                    dest = Path(args.source)
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    dest.write_text(report["source"], encoding="utf-8")
+                success = report["accepted"]
+            elif args.command == "graph-lean-autopilot":
+                report = execute_graph_research(
+                    args.db, args.output_dir,
+                    project_root=args.project_root, max_proofs=args.max_proofs,
+                    timeout_seconds=args.timeout)
+                success = report["formally_verified"] == report["attempted"]
+            else:
+                report = audit_executor_report(args.db, args.output_dir)
+                success = True
+        except (ValueError, TypeError, KeyError, OSError, sqlite3.DatabaseError,
+                json.JSONDecodeError, LeanBackendError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        if args.command == "graph-n6-lean-verify":
+            shown = {k: report[k] for k in (
+                "status", "accepted", "theorem", "lean_version", "axioms")}
+        elif args.command == "graph-lean-autopilot":
+            shown = {k: report[k] for k in (
+                "source_fingerprint", "candidate_count", "attempted",
+                "formally_verified", "pending")}
+        else:
+            shown = report
+        print(json.dumps(shown, indent=2, sort_keys=True))
+        if not success:
+            p.exit(1)
+        return
+
     if args.command in {"knowledge-graph-plan", "knowledge-graph-plan-audit"}:
         from .knowledge_graph_plan import (
             graph_research_plan, write_graph_plan, audit_graph_plan)
