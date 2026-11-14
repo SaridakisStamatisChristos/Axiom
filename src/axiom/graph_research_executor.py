@@ -112,35 +112,94 @@ def execute_graph_research(db_path: str, output_dir: str, *,
 
 
 def audit_executor_report(db_path: str, output_dir: str) -> dict:
-    """Recheck source identities and archived records; not an execution attestation."""
+    """Replay all scheduled identities and source-bound records.
+
+    This verifies *archived claims* against the original independent source
+    data. It cannot independently attest that an offline Lean process ran.
+    """
+    import re
+
     folder = Path(output_dir)
     report = json.loads((folder / "summary.json").read_text(encoding="utf-8"))
     if type(report) is not dict or report.get("schema") != SCHEMA:
         raise ValueError("unknown graph executor report")
-    plan = graph_research_plan(db_path, order=6, limit=100)
-    if (report["source_fingerprint"] != plan["source_fingerprint"] or
-            report["exact_graph_order"] != 6 or
-            report["source_evidence_modified"] is not False or
-            report["all_order_generalization"] != "NOT_PROVED"):
-        raise ValueError("graph research executor fingerprint or scope mismatch")
-    seen = set()
+    page = graph_research_plan(db_path, order=6, limit=100)
+    fingerprint = page["source_fingerprint"]
+    all_tasks = list(page["tasks"])
+    while page["next_offset"] is not None:
+        page = graph_research_plan(
+            db_path, order=6, limit=100, offset=page["next_offset"])
+        if page["source_fingerprint"] != fingerprint:
+            raise ValueError("graph research source changed during audit")
+        all_tasks.extend(page["tasks"])
+    eligible = {t["task_id"]: t for t in all_tasks
+                if t["action"] == "FORMALIZE_EXACT_N6_IN_LEAN"}
+    if (report.get("source_fingerprint") != fingerprint or
+            report.get("exact_graph_order") != 6 or
+            report.get("selected_action") != "FORMALIZE_EXACT_N6_IN_LEAN" or
+            report.get("source_evidence_modified") is not False or
+            report.get("all_order_generalization") != "NOT_PROVED" or
+            report.get("candidate_count") != len(eligible)):
+        raise ValueError("graph executor does not match source-replayed plan")
+    with _open(db_path, existing=True) as connection:
+        source = {
+            fid: json.loads(payload)
+            for fid, payload in connection.execute(
+                "SELECT finding_id,source_finding_json FROM exact_n6_findings "
+                "WHERE status='PROVED_IN_SUPPORTED_FRAGMENT'")
+        }
+    observed = set()
     for item in report["results"]:
-        if item["task_id"] in seen or item["original_proof_status_unchanged"] is not True:
-            raise ValueError("duplicate or invalid execution task")
-        seen.add(item["task_id"])
-        evidence = json.loads((folder / item["evidence_file"]).read_text(encoding="utf-8"))
+        tid = item["task_id"]
+        if tid in observed or tid not in eligible:
+            raise ValueError("duplicate or unknown graph execution task")
+        observed.add(tid)
+        task = eligible[tid]
+        fid = item["source_finding_id"]
+        if fid not in source:
+            raise ValueError("execution record has no audited source finding")
+        parent = source[fid]
+        if (task["statement"] != parent["statement"] or
+                digest(parent["certificate"]) not in task["exact_certificate_sha256"]):
+            raise ValueError("execution task is not bound to its original proof")
+        if (item["template"] not in SUPPORTED or
+                item["template"] != task["statement"]["template"] or
+                item["statement_id"] != task["statement_id"] or
+                item["original_proof_status_unchanged"] is not True or
+                type(item["evidence_file"]) is not str or
+                not re.fullmatch(r"[0-9a-f]{32}\.json", item["evidence_file"])):
+            raise ValueError("invalid executed task metadata or evidence filename")
+        evidence = json.loads(
+            (folder / item["evidence_file"]).read_text(encoding="utf-8"))
         audit_graph_lean_record(evidence)
-        if (item["template"] != evidence["statement"]["template"] or
+        if (evidence["statement"] != task["statement"] or
+                evidence["certificate"] != parent["certificate"] or
                 item["source_sha256"] != evidence["source_sha256"] or
                 item["accepted"] is not evidence["accepted"] or
                 item["status"] != evidence["status"]):
-            raise ValueError("archived execution record altered")
+            raise ValueError("archived graph formal evidence differs from source")
+    for item in report["pending"]:
+        tid = item["task_id"]
+        if tid in observed or tid not in eligible:
+            raise ValueError("pending task is duplicated or not in the agenda")
+        observed.add(tid)
+        task = eligible[tid]
+        reason = ("EXECUTION_BUDGET_EXHAUSTED"
+                  if task["statement"]["template"] in SUPPORTED
+                  else "LEAN_FORMALIZATION_NOT_IMPLEMENTED")
+        if (item["template"] != task["statement"]["template"] or
+                item["reason"] != reason or
+                item["original_proof_status_unchanged"] is not True):
+            raise ValueError("incorrect pending-task classification")
+    if observed != set(eligible):
+        raise ValueError("agenda tasks omitted from archived executor results")
     if (report["attempted"] != len(report["results"]) or
             report["formally_verified"] != sum(t["accepted"] for t in report["results"])):
         raise ValueError("executor outcome counters altered")
     return {
         "audit": "SOURCE_RECORDS_REPLAYED",
         "execution_independently_attested": False,
+        "candidate_count": len(eligible),
         "attempted": report["attempted"],
         "formally_verified_recorded": report["formally_verified"],
     }
