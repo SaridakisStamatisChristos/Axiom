@@ -30,8 +30,8 @@ def test_closed_graph_encoding_and_nonvacuous_source(source):
     assert generated["statement"]["n"] == 6
     assert generated["scope"].startswith("ALL labelled simple graphs with exactly n=6")
     assert generated["all_order_generalization"] == "NOT_PROVED"
-    assert "Nat.testBit mask 14" in generated["source"]
-    assert "Nat.testBit mask 15" not in generated["source"]
+    assert "bit mask 14" in generated["source"]
+    assert "bit mask 15" not in generated["source"]
     assert "degreeSum mask = 2 * edgeCount mask" in generated["source"]
     assert "#print axioms AxiomGraphN6." not in generated["source"]  # unqualified *inside* namespace
     assert "#print axioms axiom_graph_n6_" in generated["source"]
