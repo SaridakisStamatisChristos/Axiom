@@ -280,6 +280,8 @@ def run_iteration(db_path: str, output_dir: str, *, iteration: int = 0,
             raise ValueError("research iteration sequence has missing checkpoints")
         if iteration < indexes[-1]:
             saved = audit_iteration(db_path, str(folder / f"iteration_{iteration:04d}.json"))
+            if saved["report"]["configuration"] != cfg:
+                raise ValueError("existing research iteration has different parameters")
             return saved["report"]
         if iteration > indexes[-1] + 1:
             raise ValueError("cannot skip research iterations")

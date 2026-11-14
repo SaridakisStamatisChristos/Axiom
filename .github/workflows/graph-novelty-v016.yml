@@ -1,0 +1,110 @@
+name: AXIOM v0.16 nonduplicate graph research
+on:
+  push:
+    branches: [main, "axiom-v0.16-*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: axiom-v016-nonduplicate-\${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  historical-sample-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install source dependencies
+        run: python -m pip install -e '.[dev]'
+      - name: Adversarial sampler regression
+        run: pytest -q tests/test_graph_nonduplicate.py
+      - name: Reconstruct all independently audited source layers
+        run: |
+          mkdir -p research/knowledge/ci_v016
+          DB=research/knowledge/ci_v016/science.sqlite3
+          axiom knowledge-build --db "$DB" \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+          axiom knowledge-federate --db "$DB" \
+            research/v03_campaign_report.json \
+            research/number_theory/v04_report.json \
+            research/number_theory/v04_sequences.json
+          axiom knowledge-formal-import --db "$DB" \
+            --algebra-ndjson research/v03_formal_results.ndjson \
+            --number-index research/number_theory/v04_formal_results.ndjson \
+            --number-records-dir research/lean_verified/number_theory
+          axiom graph-frontier-run --target-order 6 --seed 42 \
+            --search-budget 64 --max-candidates 10 \
+            --output research/knowledge/ci_v016/frontier_n6.json \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+          axiom graph-frontier-run --target-order 7 --seed 42 \
+            --search-budget 64 --max-candidates 10 \
+            --output research/knowledge/ci_v016/frontier_n7.json \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+          axiom knowledge-frontier-import --db "$DB" \
+            research/knowledge/ci_v016/frontier_n6.json \
+            research/knowledge/ci_v016/frontier_n7.json
+          axiom graph-n6-run --templates \
+            handshake degree_bound triangle_upper_bound \
+            forest_edge_count tree_edge_count connected_edge_lower_bound \
+            bipartite_no_triangles edges_le_vertices connected_edges_ge_n \
+            --output research/knowledge/ci_v016/exact_n6.json
+          axiom knowledge-exact-n6-import --db "$DB" \
+            research/knowledge/ci_v016/exact_n6.json
+      - name: Execute two successive genuinely novel research iterations
+        run: |
+          DB=research/knowledge/ci_v016/science.sqlite3
+          OUT=research/knowledge/ci_v016/novel
+          axiom graph-research-advance --db "$DB" --output-dir "$OUT" \
+            --iteration 0 --seed 42 --search-budget 24 --task-limit 2
+          axiom graph-research-advance --db "$DB" --output-dir "$OUT" \
+            --iteration 1 --seed 43 --search-budget 24 --task-limit 2
+          axiom graph-research-advance-audit --db "$DB" \
+            "$OUT/iterations/iteration_0001.json"
+      - name: Assert source history and inter-iteration mask nonoverlap
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from axiom.graph_nonduplicate import historical_exclusions
+          from axiom.graph_research_cycle import _tasks, SEARCH_ACTIONS
+          root=Path("research/knowledge/ci_v016")
+          fp,tasks=_tasks(str(root/"science.sqlite3"),7)
+          _, history=historical_exclusions(
+              str(root/"science.sqlite3"), [
+                  t for t in tasks if t["action"] in SEARCH_ACTIONS])
+          reports=[json.loads((root/"novel"/"iterations"/f"iteration_{i:04d}.json").read_text())
+                   for i in range(2)]
+          assert reports[0]["new_masks_checked"] > 0
+          assert reports[1]["new_masks_checked"] > 0
+          assert reports[1]["previous_iteration_sha256"] != "0"*64
+          checked={}
+          for report in reports:
+              assert report["formal_lean_verification"]=="NOT_PERFORMED"
+              assert report["historical_source_modified"] is False
+              for trial in report["results"]:
+                  tid=trial["task_id"]
+                  assert trial["historical_masks_sha256"]==history[tid]["historical_masks_sha256"]
+                  masks=set(trial["masks_checked"])
+                  assert not masks.intersection(checked.setdefault(tid,set()))
+                  checked[tid].update(masks)
+                  assert trial["status"] in ("REFUTED","SURVIVED_BOUNDED_SEARCH")
+                  assert trial["all_orders_proved"] is False
+          PY
+      - name: Preserve scientific evidence even if CI fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axiom-v016-source-replayed-novel-graphs
+          path: research/knowledge/ci_v016/
+          if-no-files-found: warn
