@@ -117,3 +117,16 @@ def test_bad_source_or_holdout_budget_is_rejected(patch):
     args.update(patch)
     with pytest.raises(ValueError):
         _config(**args)
+
+
+def test_antecedent_free_holdout_is_inconclusive_not_a_survival():
+    stmt = AffineGraphConjecture.normalized(
+        {"edges": 1, "clique": -1}, 0, "BIPARTITE")
+    item = {"candidate_id": stmt.id, "statement": stmt.to_dict()}
+    # The complete seven-vertex graph contains triangles, so no sample
+    # satisfies the bipartite antecedent. No theorem evidence is earned.
+    trial = _holdout(item, "f" * 64, [(1 << 21) - 1])
+    assert trial["status"] == "INCONCLUSIVE_NO_ANTECEDENT_COVERAGE"
+    assert trial["assumption_satisfying_graphs"] == 0
+    assert trial["counterexample"] is None
+    assert trial["theorem_status"] == "NOT_PROVED"

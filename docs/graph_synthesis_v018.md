@@ -40,7 +40,9 @@ separate valid proof is eventually produced.
    candidate. Exclude all historical n=7 masks and masks checked for earlier
    candidates in the run. This is the sealed holdout cohort.
 7. Recheck any counterexample with two independent graph-invariant engines,
-   and preserve either REFUTED_ON_HOLDOUT or SURVIVED_BOUNDED_HOLDOUT.
+   and preserve REFUTED_ON_HOLDOUT, SURVIVED_BOUNDED_HOLDOUT, or
+INCONCLUSIVE_NO_ANTECEDENT_COVERAGE when no held-out graph satisfies the
+statement's antecedent.
 
 Training and holdout graph counts, mask digests, all selected statements,
 counterexamples and kernel-proof boundaries are preserved as an immutable JSON

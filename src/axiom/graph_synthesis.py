@@ -261,8 +261,9 @@ def _holdout(candidate: dict, source_fp: str, masks: list[int]) -> dict:
         "masks_checked": examined,
         "graphs_checked": len(examined),
         "assumption_satisfying_graphs": applicable_count,
-        "status": "REFUTED_ON_HOLDOUT" if counterexample is not None
-                  else "SURVIVED_BOUNDED_HOLDOUT",
+        "status": ("REFUTED_ON_HOLDOUT" if counterexample is not None
+                   else "INCONCLUSIVE_NO_ANTECEDENT_COVERAGE"
+                   if applicable_count == 0 else "SURVIVED_BOUNDED_HOLDOUT"),
         "counterexample": counterexample,
         "lean_kernel_ran": False,
         "theorem_status": "NOT_PROVED",
@@ -326,6 +327,9 @@ def synthesize(db_path: str, *, seed: int = 42, n6_training: int = 64,
             "refutations": sum(x["status"] == "REFUTED_ON_HOLDOUT" for x in heldout),
             "survivals": sum(
                 x["status"] == "SURVIVED_BOUNDED_HOLDOUT" for x in heldout),
+            "inconclusive": sum(
+                x["status"] == "INCONCLUSIVE_NO_ANTECEDENT_COVERAGE"
+                for x in heldout),
             "selection_used_holdout_data": False,
         },
         "lean_handoff": [{

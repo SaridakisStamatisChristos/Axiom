@@ -84,6 +84,7 @@ jobs:
           assert report["training"]["cohorts"]["5"]["scope"] == "ALL_LABELLED_GRAPHS_EXACT_N"
           assert report["training"]["n7_sample_is_from_audited_historical_sources"] is True
           assert report["holdout"]["selection_used_holdout_data"] is False
+          assert report["holdout"]["inconclusive"] >= 0
           assert report["theorem_promotions"] == 0
           assert report["formal_lean_kernel_executed"] is False
           assert report["generalization_proved"] is False
@@ -96,6 +97,8 @@ jobs:
               assert not (masks & examined), "two candidates share checked masks"
               examined.update(masks)
               assert trial["theorem_status"] == "NOT_PROVED"
+              if trial["assumption_satisfying_graphs"] == 0:
+                  assert trial["status"] == "INCONCLUSIVE_NO_ANTECEDENT_COVERAGE"
               assert trial["lean_kernel_ran"] is False
           for handoff in report["lean_handoff"]:
               assert handoff["state"] == "PENDING_AFFINE_TO_LEAN_TRANSLATION"
