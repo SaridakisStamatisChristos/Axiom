@@ -28,11 +28,11 @@ def test_fractional_coefficients_normalize_to_exact_equivalent_integers():
 
 
 def test_negative_scaling_cannot_silently_reverse_an_inequality():
-    upper = AffineGraphConjecture.normalized({"edges": 1, "n": -1}, 0)
-    lower = AffineGraphConjecture.normalized({"edges": -1, "n": 1}, 0)
+    upper = AffineGraphConjecture.normalized({"edges": 1, "triangles": -1}, 0)
+    lower = AffineGraphConjecture.normalized({"edges": -1, "triangles": 1}, 0)
     assert upper.id != lower.id
-    assert check_conjecture(upper, {"n": 5, "edges": 10})[1] is False
-    assert check_conjecture(lower, {"n": 5, "edges": 10})[1] is True
+    assert check_conjecture(upper, {"n": 5, "edges": 10, "triangles": 0})[1] is False
+    assert check_conjecture(lower, {"n": 5, "edges": 10, "triangles": 0})[1] is True
 
 
 def test_invalid_or_noncanonical_serialized_inequalities_fail_closed():
@@ -73,7 +73,7 @@ def test_mathematical_known_fact_deferral_is_not_certification():
 
 
 def test_independent_counterexample_both_oracles_agree_on_actual_graph():
-    stmt = AffineGraphConjecture.normalized({"edges": 1, "n": -1}, -7)
+    stmt = AffineGraphConjecture.normalized({"edges": 1, "triangles": -1}, -7)
     graph = _witness(stmt, 7, (1 << 21) - 1)
     assert graph["left_hand_side"] > graph["right_hand_side"]
     assert graph["independent_witness_check"] == "ACCEPTED_BOTH_GRAPH_ORACLES"
