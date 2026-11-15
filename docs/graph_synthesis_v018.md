@@ -36,10 +36,16 @@ separate valid proof is eventually produced.
 5. Rank the remaining cross-order-correlated candidates by a reproducible
    **subjective resource-allocation heuristic**. It is not an estimated
    probability of correctness or a novelty score.
-6. Only *after* ranking, allocate genuinely unseen n=7 graph masks for each
-   candidate. Exclude all historical n=7 masks and masks checked for earlier
-   candidates in the run. This is the sealed holdout cohort.
-7. Recheck any counterexample with two independent graph-invariant engines,
+6. Before any new experiment, preflight promising candidates against **all**
+   historical labelled n=7 masks, not merely the source training subset.
+   Any old counterexample receives a separately checked source witness
+   and zero newly explored masks. Defer known universal elementary bounds
+   even when a candidate is expressed under a stronger assumption.
+7. Only *after* full historical preflight, allocate genuinely unseen n=7
+   graph masks for each surviving selected candidate. Exclude all historical
+   n=7 masks and masks checked for earlier candidates in the run. This is
+   the sealed holdout cohort.
+8. Recheck any counterexample with two independent graph-invariant engines,
    and preserve REFUTED_ON_HOLDOUT, SURVIVED_BOUNDED_HOLDOUT, or
 INCONCLUSIVE_NO_ANTECEDENT_COVERAGE when no held-out graph satisfies the
 statement's antecedent.

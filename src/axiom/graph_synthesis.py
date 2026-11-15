@@ -96,8 +96,6 @@ def _data(masks: dict[int, list[int]]) -> tuple[dict[int, list[dict]], dict]:
 
 def _known_heuristic(stmt: AffineGraphConjecture) -> bool:
     """Known elementary inequalities are deferred; no local proof is claimed."""
-    if stmt.assumption != "ALL":
-        return False
     known = (
         ({"independence": 1, "clique": 1, "n": -1}, 1),
         ({"clique": 1, "chromatic": -1}, 0),
@@ -239,6 +237,105 @@ def _witness(stmt: AffineGraphConjecture, n: int, mask: int) -> dict:
     }
 
 
+
+def _historical_preflight(bank: list[dict], source_masks: set[int],
+                          quota: int) -> tuple[list[dict], dict]:
+    """Full, non-holdout source-screen before allocating any new n7 graph.
+
+    Unlike the source *training subset*, this rechecks all historical masks.
+    A source counterexample is independently validated and never described as
+    a new experiment. Diversify assumptions first and invariant pairs always.
+    An empty selected list is legitimate negative scientific evidence.
+    """
+    ordered_masks = sorted(source_masks, key=lambda m: (-m.bit_count(), m))
+    if not ordered_masks:
+        raise ValueError("historical preflight has no audited labelled graphs")
+    checked: dict[str, dict] = {}
+    selected: list[dict] = []
+    selected_ids: set[str] = set()
+    selected_pairs: set[tuple] = set()
+    selected_assumptions: set[str] = set()
+    # A bounded preflight remains deterministic even if the grammar grows.
+    pool = bank[: min(160, len(bank))]
+    for phase in ("DIVERSE_ASSUMPTIONS", "FILL_REMAINING_PAIRS"):
+        for item in pool:
+            if len(selected) >= quota:
+                break
+            stmt = AffineGraphConjecture.from_dict(item["statement"])
+            pair = tuple(key for key, _ in stmt.terms if key != "n")
+            if item["candidate_id"] in selected_ids or pair in selected_pairs:
+                continue
+            if (phase == "DIVERSE_ASSUMPTIONS"
+                    and stmt.assumption in selected_assumptions):
+                continue
+            record = checked.get(item["candidate_id"])
+            if record is None:
+                visited, applicable_count, counterexample = 0, 0, None
+                for mask in ordered_masks:
+                    applies, valid, _ = check_conjecture(
+                        stmt, reference_properties(7, mask))
+                    visited += 1
+                    if applies:
+                        applicable_count += 1
+                        if not valid:
+                            counterexample = _witness(stmt, 7, mask)
+                            break
+                record = {
+                    "candidate_id": item["candidate_id"],
+                    "statement": item["statement"],
+                    "historical_graphs_checked": visited,
+                    "assumption_satisfying_graphs": applicable_count,
+                    "status": (
+                        "REFUTED_BY_AUDITED_HISTORICAL_GRAPH"
+                        if counterexample is not None else
+                        "INCONCLUSIVE_HISTORICAL_NO_ANTECEDENTS"
+                        if applicable_count == 0 else
+                        "SURVIVED_AUDITED_HISTORICAL_MASKS"),
+                    "source_counterexample": counterexample,
+                    "new_masks_examined": 0,
+                    "proof_available": False,
+                }
+                checked[item["candidate_id"]] = record
+            if record["status"] != "SURVIVED_AUDITED_HISTORICAL_MASKS":
+                continue
+            selected.append({
+                **item,
+                "historical_preflight": {
+                    "status": record["status"],
+                    "historical_graphs_checked": record["historical_graphs_checked"],
+                    "assumption_satisfying_graphs":
+                        record["assumption_satisfying_graphs"],
+                    "not_a_proof": True,
+                },
+            })
+            selected_ids.add(item["candidate_id"])
+            selected_pairs.add(pair)
+            selected_assumptions.add(stmt.assumption)
+        if len(selected) >= quota:
+            break
+    inspected = list(checked.values())
+    return selected, {
+        "scope": "all 7-vertex labelled masks in independently audited historical sources",
+        "available_historical_graphs": len(ordered_masks),
+        "historical_mask_sha256": digest(sorted(source_masks)),
+        "candidates_inspected": len(inspected),
+        "source_refutations": sum(
+            item["status"] == "REFUTED_BY_AUDITED_HISTORICAL_GRAPH"
+            for item in inspected),
+        "inconclusive_no_antecedents": sum(
+            item["status"] == "INCONCLUSIVE_HISTORICAL_NO_ANTECEDENTS"
+            for item in inspected),
+        "survived_historical": sum(
+            item["status"] == "SURVIVED_AUDITED_HISTORICAL_MASKS"
+            for item in inspected),
+        "source_refutation_examples": [
+            item for item in inspected
+            if item["status"] == "REFUTED_BY_AUDITED_HISTORICAL_GRAPH"
+        ][:12],
+        "new_graphs_used_for_selection": 0,
+        "formally_verified": 0,
+    }
+
 def _holdout(candidate: dict, source_fp: str, masks: list[int]) -> dict:
     stmt = AffineGraphConjecture.from_dict(candidate["statement"])
     examined = []
@@ -284,7 +381,8 @@ def synthesize(db_path: str, *, seed: int = 42, n6_training: int = 64,
     }
     training, training_meta = _data(masks)
     ranked, filter_counts = _derive(training)
-    selected = _shortlist(ranked, max_candidates)
+    selected, preflight = _historical_preflight(
+        ranked, historical, max_candidates)
 
     # Holdout graphs are chosen only AFTER statement generation and ranking.
     # The same labelled graph is never tested twice in this entire campaign.
@@ -313,6 +411,7 @@ def synthesize(db_path: str, *, seed: int = 42, n6_training: int = 64,
             "historical_n7_distinct_masks": len(historical),
             "historical_n7_mask_sha256": digest(sorted(historical)),
         },
+        "historical_preflight": preflight,
         "synthesis": {
             "raw_filtered_counts": filter_counts,
             "canonical_candidates_generated": len(ranked),

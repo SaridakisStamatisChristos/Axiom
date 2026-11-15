@@ -130,3 +130,32 @@ def test_antecedent_free_holdout_is_inconclusive_not_a_survival():
     assert trial["assumption_satisfying_graphs"] == 0
     assert trial["counterexample"] is None
     assert trial["theorem_status"] == "NOT_PROVED"
+
+
+def test_original_source_preflight_rejects_false_conjectures():
+    from axiom.graph_synthesis import _historical_preflight
+    false_stmt = AffineGraphConjecture.normalized(
+        {"edges": 1, "clique": -1}, 0)
+    good_stmt = AffineGraphConjecture.normalized(
+        {"independence": 1, "clique": 1, "n": -1}, 1)
+    bank = [
+        {"candidate_id": false_stmt.id,
+         "statement": false_stmt.to_dict(), "selection_score": 100},
+        {"candidate_id": good_stmt.id,
+         "statement": good_stmt.to_dict(), "selection_score": 99},
+    ]
+    chosen, report = _historical_preflight(
+        bank, {0, (1 << 21) - 1}, 2)
+    assert [r["candidate_id"] for r in chosen] == [good_stmt.id]
+    assert report["source_refutations"] == 1
+    assert report["available_historical_graphs"] == 2
+    assert report["new_graphs_used_for_selection"] == 0
+    assert report["source_refutation_examples"][0][
+        "source_counterexample"]["independent_witness_check"] == (
+        "ACCEPTED_BOTH_GRAPH_ORACLES")
+
+
+def test_known_universal_inequality_is_deferred_under_connected_assumption():
+    known = AffineGraphConjecture.normalized(
+        {"clique": 1, "chromatic": -1}, 0, "CONNECTED")
+    assert _known_heuristic(known)

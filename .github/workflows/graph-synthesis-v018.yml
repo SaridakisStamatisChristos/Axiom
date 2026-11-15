@@ -83,6 +83,12 @@ jobs:
           assert report["training"]["cohorts"]["5"]["graphs"] == 1024
           assert report["training"]["cohorts"]["5"]["scope"] == "ALL_LABELLED_GRAPHS_EXACT_N"
           assert report["training"]["n7_sample_is_from_audited_historical_sources"] is True
+          assert report["historical_preflight"]["available_historical_graphs"] == len(historical)
+          assert report["historical_preflight"]["new_graphs_used_for_selection"] == 0
+          assert report["historical_preflight"]["formally_verified"] == 0
+          for item in report["synthesis"]["selected"]:
+              assert item["historical_preflight"]["status"] == "SURVIVED_AUDITED_HISTORICAL_MASKS"
+              assert item["historical_preflight"]["not_a_proof"] is True
           assert report["holdout"]["selection_used_holdout_data"] is False
           assert report["holdout"]["inconclusive"] >= 0
           assert report["theorem_promotions"] == 0
