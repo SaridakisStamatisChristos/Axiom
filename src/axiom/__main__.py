@@ -252,7 +252,51 @@ def main() -> None:
         help="independently replay historical masks and a linked series of research iterations")
     advance_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
     advance_audit.add_argument("report_file")
+    discovery = sub.add_parser(
+        "graph-research-discover",
+        help="source-probed adaptive seven-vertex candidate discovery and bounded testing")
+    discovery.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    discovery.add_argument("--output", default="research/knowledge/discovery_v017.json")
+    discovery.add_argument("--seed", type=int, default=42)
+    discovery.add_argument("--source-probe", type=int, default=96)
+    discovery.add_argument("--experiment-budget", type=int, default=48)
+    discovery.add_argument("--task-limit", type=int, default=4)
+    discovery_audit = sub.add_parser(
+        "graph-research-discover-audit",
+        help="replay and independently audit source-probed candidate selection")
+    discovery_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    discovery_audit.add_argument("report_file")
     args = p.parse_args()
+    if args.command in {"graph-research-discover", "graph-research-discover-audit"}:
+        from .graph_adaptive import save_discovery, audit_discovery
+        import sqlite3
+        try:
+            if args.command == "graph-research-discover":
+                result = save_discovery(
+                    args.db, args.output, seed=args.seed,
+                    source_probe=args.source_probe,
+                    experiment_budget=args.experiment_budget,
+                    task_limit=args.task_limit)
+                shown = {
+                    "schema": result["schema"],
+                    "source_fingerprint": result["source_fingerprint"],
+                    "candidate_count": result["candidate_bank"]["candidate_count"],
+                    "eligible_count": result["candidate_bank"]["eligible_count"],
+                    "new_graphs": result["new_distinct_masks_checked"],
+                    "new_refutations": result["new_refutations"],
+                    "experimental_survivals": result["experimental_survivals"],
+                    "formal_kernel_executed": False,
+                    "output": args.output,
+                }
+            else:
+                result = audit_discovery(args.db, args.report_file)
+                shown = {k: v for k, v in result.items() if k != "report"}
+        except (ValueError, TypeError, KeyError, OSError, sqlite3.DatabaseError,
+                json.JSONDecodeError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(shown, sort_keys=True, indent=2))
+        return
+
     if args.command in {"graph-research-advance", "graph-research-advance-audit"}:
         from .graph_nonduplicate import run_iteration, audit_iteration
         import sqlite3
