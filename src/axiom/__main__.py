@@ -238,7 +238,50 @@ def main() -> None:
         help="replay proof source bindings, independent graph samples, and evidence hash chain")
     cycle_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
     cycle_audit.add_argument("run_dir")
+    advance = sub.add_parser(
+        "graph-research-advance",
+        help="run an incremental nonduplicative n7 falsification iteration using source-replayed evidence")
+    advance.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    advance.add_argument("--output-dir", default="research/knowledge/novel_runs")
+    advance.add_argument("--iteration", type=int, default=0)
+    advance.add_argument("--seed", type=int, default=42)
+    advance.add_argument("--search-budget", type=int, default=64)
+    advance.add_argument("--task-limit", type=int, default=2)
+    advance_audit = sub.add_parser(
+        "graph-research-advance-audit",
+        help="independently replay historical masks and a linked series of research iterations")
+    advance_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    advance_audit.add_argument("report_file")
     args = p.parse_args()
+    if args.command in {"graph-research-advance", "graph-research-advance-audit"}:
+        from .graph_nonduplicate import run_iteration, audit_iteration
+        import sqlite3
+        try:
+            if args.command == "graph-research-advance":
+                report = run_iteration(
+                    args.db, args.output_dir, iteration=args.iteration,
+                    seed=args.seed, search_budget=args.search_budget,
+                    task_limit=args.task_limit)
+                shown = {
+                    "schema": report["schema"],
+                    "source_fingerprint": report["source_fingerprint"],
+                    "configuration": report["configuration"],
+                    "attempted": report["attempted"],
+                    "refutations": report["refutations"],
+                    "bounded_survivals": report["bounded_survivals"],
+                    "new_masks_checked": report["new_masks_checked"],
+                    "historical_source_modified": False,
+                    "formal_lean_verification": "NOT_PERFORMED",
+                }
+            else:
+                report = audit_iteration(args.db, args.report_file)
+                shown = {k: v for k, v in report.items() if k != "report"}
+        except (ValueError, TypeError, KeyError, OSError, sqlite3.DatabaseError,
+                json.JSONDecodeError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(shown, sort_keys=True, indent=2))
+        return
+
     if args.command in {"graph-research-cycle", "graph-research-cycle-audit"}:
         from .graph_research_cycle import execute_cycle, audit_cycle
         import sqlite3

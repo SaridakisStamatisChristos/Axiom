@@ -1,3 +1,21 @@
+# AXIOM v0.16 — Nonduplicative incremental graph research (development)
+
+The v0.15 Lean-kernel proof bridge is preserved. v0.16 reconstructs exact
+historical n=7 search masks, excludes previous graph samples, and adds
+audited, strictly sequenced bounded research iterations with tamper-detecting
+SHA-256 predecessor links. Survivors remain **experimental only**.
+
+    axiom graph-research-advance --db research/knowledge/axiom.sqlite3 \
+      --output-dir research/knowledge/novel_runs \
+      --iteration 0 --search-budget 64 --task-limit 2
+
+    axiom graph-research-advance-audit --db research/knowledge/axiom.sqlite3 \
+      research/knowledge/novel_runs/iterations/iteration_0000.json
+
+See [v0.16 research protocol](docs/graph_nonduplicate_v016.md).
+
+---
+
 # AXIOM v0.15 — Verified graph-to-Lean and mixed research cycle (development)
 
 The v0.15 branch adds actual Lean-kernel formalization of three exact n=6
