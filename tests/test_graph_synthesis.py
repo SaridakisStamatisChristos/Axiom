@@ -73,7 +73,7 @@ def test_mathematical_known_fact_deferral_is_not_certification():
 
 
 def test_independent_counterexample_both_oracles_agree_on_actual_graph():
-    stmt = AffineGraphConjecture.normalized({"edges": 1, "triangles": -1}, -7)
+    stmt = AffineGraphConjecture.normalized({"edges": 1, "clique": -1}, 0)
     graph = _witness(stmt, 7, (1 << 21) - 1)
     assert graph["left_hand_side"] > graph["right_hand_side"]
     assert graph["independent_witness_check"] == "ACCEPTED_BOTH_GRAPH_ORACLES"
