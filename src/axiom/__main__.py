@@ -266,7 +266,53 @@ def main() -> None:
         help="replay and independently audit source-probed candidate selection")
     discovery_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
     discovery_audit.add_argument("report_file")
+    synth = sub.add_parser(
+        "graph-synthesize",
+        help="synthesize affine graph conjectures with source-audited training and sealed holdout")
+    synth.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    synth.add_argument("--output", default="research/knowledge/affine_synthesis_v018.json")
+    synth.add_argument("--seed", type=int, default=42)
+    synth.add_argument("--n6-training", type=int, default=64)
+    synth.add_argument("--n7-training", type=int, default=64)
+    synth.add_argument("--holdout-budget", type=int, default=32)
+    synth.add_argument("--max-candidates", type=int, default=4)
+    synth_audit = sub.add_parser(
+        "graph-synthesize-audit",
+        help="replay mathematical source and test affine conjecture synthesis and holdout evidence")
+    synth_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    synth_audit.add_argument("report_file")
     args = p.parse_args()
+    if args.command in {"graph-synthesize", "graph-synthesize-audit"}:
+        from .graph_synthesis import save_synthesis, audit_synthesis
+        import sqlite3
+        try:
+            if args.command == "graph-synthesize":
+                record = save_synthesis(
+                    args.db, args.output, seed=args.seed,
+                    n6_training=args.n6_training, n7_training=args.n7_training,
+                    holdout_budget=args.holdout_budget,
+                    max_candidates=args.max_candidates)
+                shown = {
+                    "schema": record["schema"],
+                    "output": args.output,
+                    "source_fingerprint": record["source_fingerprint"],
+                    "candidate_count": record["synthesis"]["canonical_candidates_generated"],
+                    "selected_count": len(record["synthesis"]["selected"]),
+                    "holdout_graphs": record["holdout"]["distinct_graphs_checked"],
+                    "holdout_refutations": record["holdout"]["refutations"],
+                    "holdout_survivals": record["holdout"]["survivals"],
+                    "lean_obligations_pending": len(record["lean_handoff"]),
+                    "formally_verified": 0,
+                }
+            else:
+                result = audit_synthesis(args.db, args.report_file)
+                shown = {k: v for k, v in result.items() if k != "report"}
+        except (ValueError, TypeError, KeyError, OSError, sqlite3.DatabaseError,
+                json.JSONDecodeError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(shown, sort_keys=True, indent=2))
+        return
+
     if args.command in {"graph-research-discover", "graph-research-discover-audit"}:
         from .graph_adaptive import save_discovery, audit_discovery
         import sqlite3
