@@ -281,7 +281,112 @@ def main() -> None:
         help="replay mathematical source and test affine conjecture synthesis and holdout evidence")
     synth_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
     synth_audit.add_argument("report_file")
+    guided = sub.add_parser(
+        "graph-synthesize-guided",
+        help="run v0.19 assumption-aware n7 source-disjoint graph holdout")
+    guided.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    guided.add_argument("--output", default="research/knowledge/guided_v019.json")
+    guided.add_argument("--seed", type=int, default=42)
+    guided.add_argument("--n6-training", type=int, default=64)
+    guided.add_argument("--n7-training", type=int, default=64)
+    guided.add_argument("--holdout-budget", type=int, default=24)
+    guided.add_argument("--max-candidates", type=int, default=4)
+    ga = sub.add_parser(
+        "graph-synthesize-guided-audit",
+        help="replay and audit complete v0.19 assumption-aware experiment")
+    ga.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    ga.add_argument("report_file")
+    affine = sub.add_parser(
+        "graph-affine-lean-verify",
+        help="execute real Lean kernel on only closed-form exact-n6 affine envelope proofs")
+    affine.add_argument("artifact")
+    affine.add_argument("--project-root", default=".")
+    affine.add_argument("--timeout", type=int, default=240)
+    affine.add_argument("--output")
+    affine.add_argument("--source")
+    aa = sub.add_parser(
+        "graph-affine-lean-audit",
+        help="offline source audit of exact-n6 affine Lean result (NOT kernel reexecution)")
+    aa.add_argument("report_file")
     args = p.parse_args()
+    if args.command in {"graph-synthesize-guided", "graph-synthesize-guided-audit"}:
+        from .graph_guided import save_guided, audit_guided
+        import sqlite3
+        try:
+            if args.command == "graph-synthesize-guided":
+                report = save_guided(
+                    args.db, args.output, seed=args.seed,
+                    n6_training=args.n6_training, n7_training=args.n7_training,
+                    holdout_budget=args.holdout_budget,
+                    max_candidates=args.max_candidates)
+                shown = {
+                    "schema": report["schema"], "output": args.output,
+                    "source_fingerprint": report["source_fingerprint"],
+                    "generated": report["generated_canonical_candidates"],
+                    "selected": len(report["selected"]),
+                    "holdout_graphs": report["guided_holdout"]["distinct_new_graphs_checked"],
+                    "refutations": report["guided_holdout"]["refutations"],
+                    "nonvacuous_survivals": report["guided_holdout"]["nonvacuous_survivals"],
+                    "lean_formal_verification": "NOT_PERFORMED",
+                }
+            else:
+                result = audit_guided(args.db, args.report_file)
+                shown = {key: val for key, val in result.items() if key != "report"}
+        except (ValueError, KeyError, TypeError, OSError,
+                json.JSONDecodeError, sqlite3.DatabaseError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(shown, sort_keys=True, indent=2))
+        return
+    if args.command in {"graph-affine-lean-verify", "graph-affine-lean-audit"}:
+        from pathlib import Path
+        from .graph_affine_lean import (
+            verify_affine_lean, audit_affine_lean_record,
+            save_affine_lean_record,
+        )
+        from .lean_backend import LeanBackendError
+        try:
+            if args.command == "graph-affine-lean-verify":
+                payload = json.loads(Path(args.artifact).read_text(encoding="utf-8"))
+                if type(payload) is not dict or set(payload) != {"statement"}:
+                    raise ValueError("affine proof input requires only a typed statement")
+                record = verify_affine_lean(
+                    payload["statement"], project_root=args.project_root,
+                    timeout_seconds=args.timeout)
+                audit_affine_lean_record(record)
+                if args.output:
+                    save_affine_lean_record(record, args.output)
+                if args.source:
+                    target = Path(args.source)
+                    if target.exists():
+                        raise ValueError("Lean source output is immutable")
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    with target.open("x", encoding="utf-8") as stream:
+                        stream.write(record["source"])
+                shown = {
+                    "status": record["status"], "accepted": record["accepted"],
+                    "scope": record["claim_scope"],
+                    "all_orders_verified": False,
+                    "axioms": record["axioms"],
+                    "lean_version": record["lean_version"],
+                }
+            else:
+                record = json.loads(Path(args.report_file).read_text(encoding="utf-8"))
+                audit_affine_lean_record(record)
+                shown = {
+                    "audit": "SOURCE_REPLAY_ACCEPTED",
+                    "kernel_reexecution_performed": False,
+                    "status": record["status"], "accepted": record["accepted"],
+                    "scope": record["claim_scope"],
+                    "all_orders_verified": False,
+                }
+        except (LeanBackendError, ValueError, KeyError, TypeError,
+                OSError, json.JSONDecodeError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(shown, sort_keys=True, indent=2))
+        if args.command == "graph-affine-lean-verify" and not record["accepted"]:
+            p.exit(1)
+        return
+
     if args.command in {"graph-synthesize", "graph-synthesize-audit"}:
         from .graph_synthesis import save_synthesis, audit_synthesis
         import sqlite3

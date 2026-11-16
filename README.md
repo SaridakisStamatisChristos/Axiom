@@ -1,3 +1,21 @@
+# AXIOM v0.19 — Assumption-aware graph experiments and actual Lean proofs (development)
+
+New \`graph-synthesize-guided\` builds conditional n=7 holdout graphs that
+satisfy the conjecture antecedent *by construction*; all source masks and
+previous candidates' checked masks are excluded. This is targeted non-uniform
+sampling, not universal proof or representative graph statistics.
+
+New \`graph-affine-lean-verify\` safely compiles a strictly supported subset
+of canonical affine graph statements into **actual Lean 4 kernel** proofs.
+The first subfragment is unconditional, exact n=6 edge/triangle upper bounds.
+The theorem scope is EXACTLY n=6: no all-orders promotion.
+
+See [v0.19 scientific reproducibility and proof specification]
+(docs/graph_v019.md). All historical AXIOM proof and experimental records
+remain unchanged.
+
+---
+
 # AXIOM v0.18 — Compositional graph conjectures (development)
 
 The v0.18 research lane learns exact rational affine inequalities over graph
