@@ -1,3 +1,24 @@
+# AXIOM v0.18 — Compositional graph conjectures (development)
+
+The v0.18 research lane learns exact rational affine inequalities over graph
+invariants, trained on n=5, n=6 and historical n=7 graph evidence. It then
+allocates independent, previously unseen n=7 holdout graphs *only after
+candidate selection*. Two independent mathematical engines recheck all
+counterexamples. No experimental survivor is promoted to a theorem.
+
+    axiom graph-synthesize --db research/knowledge/axiom.sqlite3 \
+      --output research/knowledge/affine_synthesis_v018.json
+
+    axiom graph-synthesize-audit --db research/knowledge/axiom.sqlite3 \
+      research/knowledge/affine_synthesis_v018.json
+
+See [v0.18 mathematical syntax, research protocol and proof boundaries]
+(docs/graph_synthesis_v018.md). This initial release emits machine-readable
+Lean formalization obligations; affine-to-Lean semantics and proof generation
+remain **NOT IMPLEMENTED**, so all new statements remain unverified.
+
+---
+
 # AXIOM v0.17 — Information-aware graph research (development)
 
 The existing v0.15 formal Lean verification and v0.16 nonduplicate
