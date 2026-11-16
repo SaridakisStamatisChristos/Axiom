@@ -1,0 +1,89 @@
+name: AXIOM v0.19 real affine n3 Lean kernel verification
+on:
+  push:
+    branches: [main, "axiom-v0.19-*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: axiom-v019-affine-lean-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  closed-exact-n3-formal-proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies and check adversarial proof translation
+        run: |
+          python -m pip install -e '.[dev]'
+          pytest -q tests/test_graph_affine_lean_n3.py
+      - name: Install pinned elan and Lean environment
+        run: |
+          curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Resolve pinned Lean and Mathlib dependencies
+        run: |
+          lake update
+          lake exe cache get
+          lake env lean --version
+          git -C .lake/packages/mathlib rev-parse HEAD
+      - name: Create exact n3 typed affine conjecture
+        run: |
+          mkdir -p research/lean_verified/affine_n3_v019
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from axiom.graph_affine import AffineGraphConjecture
+          claim=AffineGraphConjecture.normalized(
+              {"triangles":1,"edges":-1},0).to_dict()
+          assert claim["quantifier"]=="forall_finite_simple_graphs_all_orders"
+          root=Path("research/lean_verified/affine_n3_v019")
+          (root/"statement.json").write_text(json.dumps(claim,sort_keys=True,indent=2)+"\n")
+          PY
+      - name: Verify semantic n3 theorem in actual Lean kernel
+        run: |
+          R=research/lean_verified/affine_n3_v019
+          axiom graph-affine-n3-lean "$R/statement.json" \
+            --project-root . --timeout 240 \
+            --source "$R/verified_source.lean" \
+            --output "$R/kernel_record.json"
+      - name: Audit exact theorem scope, kernel axioms and forbidden all-order claim
+        run: |
+          R=research/lean_verified/affine_n3_v019
+          axiom graph-affine-n3-lean-audit "$R/kernel_record.json"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from axiom.graph_affine_lean_n3 import audit_n3_affine
+          root=Path("research/lean_verified/affine_n3_v019")
+          r=json.loads((root/"kernel_record.json").read_text())
+          assert audit_n3_affine(r)
+          assert r["status"]=="FORMALLY_VERIFIED_EXACT_N3"
+          assert r["accepted"] is True
+          assert r["checker_exit_code"]==0
+          assert r["lean_kernel_executed"] is True
+          assert r["axioms"] is not None
+          assert r["formal_graph_order"]==3
+          assert r["labelled_graphs_semantically_prechecked"]==8
+          assert r["all_order_generalization"]=="NOT_PROVED"
+          assert r["offline_audit_is_execution_attestation"] is False
+          source=(root/"verified_source.lean").read_text()
+          assert source==r["source"]
+          assert "Nat.testBit mask i" in source
+          PY
+      - name: Preserve full Lean-generated source and execution evidence even if failing
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axiom-v019-real-affine-n3-lean-proof
+          path: research/lean_verified/affine_n3_v019/
+          if-no-files-found: warn
