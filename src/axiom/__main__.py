@@ -297,7 +297,57 @@ def main() -> None:
     strata_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
     strata_audit.add_argument("--parent", required=True)
     strata_audit.add_argument("report_file")
+    affine_lean = sub.add_parser(
+        "graph-affine-n3-lean",
+        help="execute the real pinned Lean checker on supported exact-n3 affine graph statements")
+    affine_lean.add_argument("statement_file", help="typed affine conjecture JSON")
+    affine_lean.add_argument("--project-root", default=".")
+    affine_lean.add_argument("--timeout", type=int, default=180)
+    affine_lean.add_argument("--source")
+    affine_lean.add_argument("--output")
+    affine_lean_audit = sub.add_parser(
+        "graph-affine-n3-lean-audit",
+        help="audit exact-n3 Lean source integrity without claiming offline execution attestation")
+    affine_lean_audit.add_argument("record_file")
     args = p.parse_args()
+    if args.command in {"graph-affine-n3-lean", "graph-affine-n3-lean-audit"}:
+        from pathlib import Path
+        from .graph_affine_lean_n3 import verify_n3_affine, audit_n3_affine
+        from .graph_lean import LeanBackendError
+        try:
+            if args.command == "graph-affine-n3-lean":
+                statement = json.loads(Path(args.statement_file).read_text(encoding="utf-8"))
+                record = verify_n3_affine(statement, project_root=args.project_root,
+                                          timeout_seconds=args.timeout)
+                if args.output:
+                    target = Path(args.output)
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n",
+                                      encoding="utf-8")
+                if args.source:
+                    target = Path(args.source)
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_text(record["source"], encoding="utf-8")
+                shown = {key: record[key] for key in (
+                    "status", "accepted", "theorem", "formal_scope",
+                    "all_order_generalization", "lean_kernel_executed", "axioms")}
+                print(json.dumps(shown, indent=2, sort_keys=True))
+                if not record["accepted"]:
+                    p.exit(1)
+            else:
+                record = json.loads(Path(args.record_file).read_text(encoding="utf-8"))
+                audit_n3_affine(record)
+                print(json.dumps({
+                    "audit": "SOURCE_BINDING_ACCEPTED",
+                    "offline_audit_is_execution_attestation": False,
+                    "theorem": record["theorem"],
+                    "all_order_generalization": "NOT_PROVED",
+                }, sort_keys=True, indent=2))
+        except (LeanBackendError, ValueError, KeyError, TypeError,
+                OSError, json.JSONDecodeError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        return
+
     if args.command in {"graph-stratified-followup", "graph-stratified-audit"}:
         from .graph_stratified import save_followup, audit_followup
         import sqlite3

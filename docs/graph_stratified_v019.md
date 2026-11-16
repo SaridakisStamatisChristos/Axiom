@@ -62,3 +62,49 @@ Next formalization goal: a sound, closed affine-to-Lean graph semantics
 translator with strictly scoped finite-order proofs, followed by a theorem
 schema supporting arbitrary graph orders. These are different achievements;
 a finite-order kernel proof does not imply universal validity.
+
+
+## Closed affine-to-Lean finite-order bridge
+
+The first trusted translator is deliberately restricted to **exactly three
+vertices**, unconditional inequalities using *edges* and *triangles* (with
+optional n). It computes graph semantics in Lean from the three bits of the
+labelled edge mask and a three-edge conjunction for triangle presence.
+The checker runs over the finite mask type \`Fin 8\` and accepts only a real
+successful pinned Lean/Mathlib kernel execution with audited permitted axioms.
+
+Before constructing any Lean source, two independent Python invariant
+engines verify the input inequality on all eight labelled n=3 graphs.
+A source counterexample or any unsupported invariant or graph antecedent
+is rejected, not approximated.
+
+Generate a source statement file using:
+
+    python - <<'PY'
+    import json
+    from axiom.graph_affine import AffineGraphConjecture
+    stmt=AffineGraphConjecture.normalized(
+        {"triangles": 1, "edges": -1}, 0)
+    open("affine_n3_statement.json","w").write(
+        json.dumps(stmt.to_dict(),indent=2)+"\n")
+    PY
+
+Then run with the pinned Lean environment installed:
+
+    axiom graph-affine-n3-lean affine_n3_statement.json \
+      --project-root . --timeout 240 \
+      --output affine_n3_verified.json --source AffineN3.lean
+
+    axiom graph-affine-n3-lean-audit affine_n3_verified.json
+
+The generated theorem proves only its **n=3 finite graph instance**, even
+though the input source statement has an all-orders quantifier. No all-order
+generalization is made. Offline source-integrity replay **does not attest**
+that an external Lean process ever executed; only the original instrumented
+CI/command execution and retained runner logs can support that claim.
+
+This is not yet a generic Lean translator for the v0.18 graph grammar:
+invariants such as independence number, clique number, chromatic number,
+matching number and connected components require formal semantic definitions
+and proofs. Conditional assumptions and arbitrary graph order n likewise
+remain unsupported and are rejected.
