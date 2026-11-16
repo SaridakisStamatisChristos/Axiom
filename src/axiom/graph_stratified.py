@@ -62,8 +62,9 @@ def _candidate_mask(candidate_id: str, assumption: str, seed: int,
     # Full-period labelled space traversal via an odd stride for the
     # unconstrained, connected and triangle-free strata. Premise filtering
     # below is mandatory; no conditional sample is accepted on blind trust.
-    raw = hashlib.sha256((prefix.split(":")[:-2][0] + ":" +
-                          candidate_id + ":" + str(seed)).encode("ascii")).digest()
+    raw = hashlib.sha256(
+        f"AXIOM-v019:{candidate_id}:{seed}:oddstride".encode("ascii")
+    ).digest()
     start = int.from_bytes(raw[:8], "big") % SPACE
     stride = (int.from_bytes(raw[8:16], "big") % (SPACE // 2)) * 2 + 1
     return (start + stride * attempt) % SPACE
