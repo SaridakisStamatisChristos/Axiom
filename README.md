@@ -1,3 +1,25 @@
+# AXIOM v0.19 — Premise-aware graph experiments (development)
+
+The v0.19 follow-up takes independently replayed v0.18 conjecture-synthesis
+evidence and tests selected universal graph conjectures on new graphs that
+**satisfy their typed premises**. It excludes all audited historical labelled
+masks and all previous v0.18 holdout observations. It preserves the original
+conjecture ranking and all historical research reports unchanged.
+
+    axiom graph-stratified-followup --db research/knowledge/axiom.sqlite3 \
+      --parent research/knowledge/affine_synthesis_v018.json \
+      --output research/knowledge/stratified_followup_v019.json
+
+    axiom graph-stratified-audit --db research/knowledge/axiom.sqlite3 \
+      --parent research/knowledge/affine_synthesis_v018.json \
+      research/knowledge/stratified_followup_v019.json
+
+Sampling is nonuniform and deliberately stratified for meaningful
+falsification. Surviving bounded tests are not proofs and the sampler
+does not claim Lean ran. [Scientific protocol](docs/graph_stratified_v019.md).
+
+---
+
 # AXIOM v0.18 — Compositional graph conjectures (development)
 
 The v0.18 research lane learns exact rational affine inequalities over graph

@@ -1,0 +1,183 @@
+name: AXIOM v0.19 assumption-aware follow-up experiments
+on:
+  push:
+    branches: [main, "axiom-v0.19-*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: axiom-v019-discovery-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  historical-sample-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install source dependencies
+        run: python -m pip install -e '.[dev]'
+      - name: Adversarial sampler regression
+        run: pytest -q tests/test_graph_nonduplicate.py tests/test_graph_adaptive.py tests/test_graph_synthesis.py tests/test_graph_stratified.py
+      - name: Reconstruct all independently audited source layers
+        run: |
+          mkdir -p research/knowledge/ci_v019
+          DB=research/knowledge/ci_v019/science.sqlite3
+          axiom knowledge-build --db "$DB" \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+          axiom knowledge-federate --db "$DB" \
+            research/v03_campaign_report.json \
+            research/number_theory/v04_report.json \
+            research/number_theory/v04_sequences.json
+          axiom knowledge-formal-import --db "$DB" \
+            --algebra-ndjson research/v03_formal_results.ndjson \
+            --number-index research/number_theory/v04_formal_results.ndjson \
+            --number-records-dir research/lean_verified/number_theory
+          axiom graph-frontier-run --target-order 6 --seed 42 \
+            --search-budget 64 --max-candidates 10 \
+            --output research/knowledge/ci_v019/frontier_n6.json \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+          axiom graph-frontier-run --target-order 7 --seed 42 \
+            --search-budget 64 --max-candidates 10 \
+            --output research/knowledge/ci_v019/frontier_n7.json \
+            research/graphs/v05_baseline_report.json \
+            research/graphs/v05_scale_report.json
+          axiom knowledge-frontier-import --db "$DB" \
+            research/knowledge/ci_v019/frontier_n6.json \
+            research/knowledge/ci_v019/frontier_n7.json
+          axiom graph-n6-run --templates \
+            handshake degree_bound triangle_upper_bound \
+            forest_edge_count tree_edge_count connected_edge_lower_bound \
+            bipartite_no_triangles edges_le_vertices connected_edges_ge_n \
+            --output research/knowledge/ci_v019/exact_n6.json
+          axiom knowledge-exact-n6-import --db "$DB" \
+            research/knowledge/ci_v019/exact_n6.json
+      - name: Synthesize universal graph conjectures and replay complete evidence
+        run: |
+          DB=research/knowledge/ci_v019/science.sqlite3
+          OUT=research/knowledge/ci_v019/compositional.json
+          axiom graph-synthesize --db "$DB" --output "$OUT" \
+            --seed 42 --n6-training 64 --n7-training 64 \
+            --holdout-budget 24 --max-candidates 4
+          axiom graph-synthesize-audit --db "$DB" "$OUT"
+      - name: Run independent premise-aware holdout and replay all its source evidence
+        run: |
+          DB=research/knowledge/ci_v019/science.sqlite3
+          PARENT=research/knowledge/ci_v019/compositional.json
+          OUT=research/knowledge/ci_v019/premise_followup.json
+          axiom graph-stratified-followup --db "$DB" --parent "$PARENT" \
+            --output "$OUT" --seed 43 --budget 16 --max-proposals 20000
+          axiom graph-stratified-audit --db "$DB" --parent "$PARENT" "$OUT"
+      - name: Audit premise applicability and zero source mask reuse
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from axiom.graph_adaptive import _historical
+          from axiom.graph_affine import AffineGraphConjecture, applicable, check_conjecture
+          from axiom.graph_checker import reference_properties
+          root=Path("research/knowledge/ci_v019")
+          original=json.loads((root/"compositional.json").read_text())
+          report=json.loads((root/"premise_followup.json").read_text())
+          historical,_,_,_=_historical(str(root/"science.sqlite3"))
+          excluded=set(historical)
+          excluded.update(mask for trial in original["holdout"]["experiments"]
+                          for mask in trial["masks_checked"])
+          previous=set()
+          assert report["new_theorems_proved"]==0
+          assert report["formal_lean_verification"]=="NOT_PERFORMED"
+          assert report["nonuniform_conditional_sampling"] is True
+          assert report["historical_evidence_modified"] is False
+          assert len(report["results"]) == len(original["synthesis"]["selected"])
+          count=0
+          for result in report["results"]:
+              stmt=AffineGraphConjecture.from_dict(result["statement"])
+              assert result["sampling"]["assumption"] == stmt.assumption
+              assert result["sampling"]["uniform_over_eligible_graphs"] is False
+              masks=set(result["masks_checked"])
+              assert not masks.intersection(excluded | previous)
+              assert result["premise_satisfying_graphs_checked"] == len(masks)
+              for m in masks:
+                  assert applicable(stmt.assumption,reference_properties(7,m))
+              if result["status"]=="SURVIVED_STRATIFIED_BOUNDED_HOLDOUT":
+                  assert len(masks)>0, "vacuous conditional holdout promoted"
+              if result["status"]=="INCONCLUSIVE_NO_PREMISE_GRAPHS_OBTAINED":
+                  assert len(masks)==0
+              assert result["all_graph_orders_proved"] is False
+              previous.update(masks)
+              count+=len(masks)
+          assert count == report["new_distinct_masks_checked"]
+          # A key scientific regression: the previously inconclusive
+          # bipartite conjecture must actually see qualifying graphs.
+          bip=[x for x in report["results"]
+               if x["statement"]["assumption"]=="BIPARTITE"]
+          assert bip
+          assert all(x["premise_satisfying_graphs_checked"]>0 for x in bip)
+          print({"new_graphs":count,"bipartite_checked":
+                 [x["premise_satisfying_graphs_checked"] for x in bip]})
+          PY
+      - name: Assert no source/holdout leakage and no false theorem promotion
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from axiom.graph_adaptive import _historical
+          from axiom.graph_affine import AffineGraphConjecture
+          root=Path("research/knowledge/ci_v019")
+          report=json.loads((root/"compositional.json").read_text())
+          historical,_,_,_=_historical(str(root/"science.sqlite3"))
+          assert report["synthesis"]["canonical_candidates_generated"] >= 0
+          assert report["training"]["cohorts"]["5"]["graphs"] == 1024
+          assert report["training"]["cohorts"]["5"]["scope"] == "ALL_LABELLED_GRAPHS_EXACT_N"
+          assert report["training"]["n7_sample_is_from_audited_historical_sources"] is True
+          assert report["historical_preflight"]["available_historical_graphs"] == len(historical)
+          assert report["historical_preflight"]["new_graphs_used_for_selection"] == 0
+          assert report["historical_preflight"]["formally_verified"] == 0
+          for item in report["synthesis"]["selected"]:
+              assert item["historical_preflight"]["status"] == "SURVIVED_AUDITED_HISTORICAL_MASKS"
+              assert item["historical_preflight"]["not_a_proof"] is True
+          assert report["holdout"]["selection_used_holdout_data"] is False
+          assert report["holdout"]["inconclusive"] >= 0
+          assert report["theorem_promotions"] == 0
+          assert report["formal_lean_kernel_executed"] is False
+          assert report["generalization_proved"] is False
+          assert report["source_evidence_modified"] is False
+          examined=set()
+          for trial in report["holdout"]["experiments"]:
+              AffineGraphConjecture.from_dict(trial["statement"])
+              masks=set(trial["masks_checked"])
+              assert not (masks & historical), "holdout leaked into old source evidence"
+              assert not (masks & examined), "two candidates share checked masks"
+              examined.update(masks)
+              assert trial["theorem_status"] == "NOT_PROVED"
+              if trial["assumption_satisfying_graphs"] == 0:
+                  assert trial["status"] == "INCONCLUSIVE_NO_ANTECEDENT_COVERAGE"
+              assert trial["lean_kernel_ran"] is False
+          for handoff in report["lean_handoff"]:
+              assert handoff["state"] == "PENDING_AFFINE_TO_LEAN_TRANSLATION"
+              assert handoff["proof_available"] is False
+              assert handoff["lean_formal_verification"] == "NOT_PERFORMED"
+          assert report["holdout"]["distinct_graphs_checked"] == len(examined)
+          print({"generated":report["synthesis"]["canonical_candidates_generated"],
+                 "selected":len(report["synthesis"]["selected"]),
+                 "heldout_graphs_checked":len(examined),
+                 "refuted":report["holdout"]["refutations"],
+                 "survived":report["holdout"]["survivals"],
+                 "pending_lean":len(report["lean_handoff"])})
+          PY
+      - name: Preserve scientific evidence even if CI fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axiom-v019-source-replayed-novel-graphs
+          path: research/knowledge/ci_v019/
+          if-no-files-found: warn

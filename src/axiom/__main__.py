@@ -281,7 +281,50 @@ def main() -> None:
         help="replay mathematical source and test affine conjecture synthesis and holdout evidence")
     synth_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
     synth_audit.add_argument("report_file")
+    strata = sub.add_parser(
+        "graph-stratified-followup",
+        help="source-audited premise-aware independent holdout for v0.18 affine conjectures")
+    strata.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    strata.add_argument("--parent", required=True,
+                        help="immutable v0.18 source-replayable synthesis report")
+    strata.add_argument("--output", default="research/knowledge/stratified_followup_v019.json")
+    strata.add_argument("--seed", type=int, default=43)
+    strata.add_argument("--budget", type=int, default=24)
+    strata.add_argument("--max-proposals", type=int, default=20000)
+    strata_audit = sub.add_parser(
+        "graph-stratified-audit",
+        help="independently replay source, parent synthesis and stratified holdout")
+    strata_audit.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    strata_audit.add_argument("--parent", required=True)
+    strata_audit.add_argument("report_file")
     args = p.parse_args()
+    if args.command in {"graph-stratified-followup", "graph-stratified-audit"}:
+        from .graph_stratified import save_followup, audit_followup
+        import sqlite3
+        try:
+            if args.command == "graph-stratified-followup":
+                record = save_followup(
+                    args.db, args.parent, args.output,
+                    seed=args.seed, budget=args.budget,
+                    max_proposals=args.max_proposals)
+                shown = {
+                    "schema": record["schema"],
+                    "source_fingerprint": record["historical_source_fingerprint"],
+                    "parent_sha256": record["parent_report_sha256"],
+                    "checked_new_graphs": record["new_distinct_masks_checked"],
+                    "independently_verified_counterexamples":
+                        record["independently_verified_counterexamples"],
+                    "formally_verified": 0, "output": args.output,
+                }
+            else:
+                record = audit_followup(args.db, args.parent, args.report_file)
+                shown = {k: v for k, v in record.items() if k != "report"}
+        except (ValueError, TypeError, KeyError, OSError, sqlite3.DatabaseError,
+                json.JSONDecodeError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(shown, sort_keys=True, indent=2))
+        return
+
     if args.command in {"graph-synthesize", "graph-synthesize-audit"}:
         from .graph_synthesis import save_synthesis, audit_synthesis
         import sqlite3
