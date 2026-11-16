@@ -1,0 +1,93 @@
+name: AXIOM v0.19 actual affine graph Lean kernel
+on:
+  push:
+    branches: [main, "axiom-v0.19-*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: axiom-v019-affine-lean-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  actual-lean-kernel:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install project and test trusted translator
+        run: |
+          python -m pip install -e '.[dev]'
+          pytest -q tests/test_graph_affine_lean.py tests/test_graph_guided.py
+      - name: Install Lean 4
+        run: |
+          curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Resolve pinned Mathlib and compiler
+        run: |
+          lake update
+          lake exe cache get
+          lake env lean --version
+          git -C .lake/packages/mathlib rev-parse HEAD
+      - name: Create two typed affine conjecture inputs
+        run: |
+          mkdir -p research/lean_verified/affine_n6
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from axiom.graph_affine import AffineGraphConjecture
+          root=Path("research/lean_verified/affine_n6")
+          for name,coef,bound in [
+              ("edge_plus_triangle",{"edges":1,"triangles":1},35),
+              ("twice_edges_triangle_n",{"edges":2,"triangles":1,"n":-1},44),
+          ]:
+              stmt=AffineGraphConjecture.normalized(coef,bound).to_dict()
+              (root/f"{name}.json").write_text(
+                  json.dumps({"statement":stmt},indent=2)+"\n")
+          PY
+      - name: Prove edge-plus-triangle bound in actual Lean kernel
+        run: |
+          axiom graph-affine-lean-verify \
+            research/lean_verified/affine_n6/edge_plus_triangle.json \
+            --project-root . --timeout 240 \
+            --output research/lean_verified/affine_n6/edge_plus_triangle_verified.json \
+            --source research/lean_verified/affine_n6/edge_plus_triangle.lean
+      - name: Prove n-coefficient bound in actual Lean kernel
+        run: |
+          axiom graph-affine-lean-verify \
+            research/lean_verified/affine_n6/twice_edges_triangle_n.json \
+            --project-root . --timeout 240 \
+            --output research/lean_verified/affine_n6/twice_edges_triangle_n_verified.json \
+            --source research/lean_verified/affine_n6/twice_edges_triangle_n.lean
+      - name: Independently audit checker proof records and exact scopes
+        run: |
+          axiom graph-affine-lean-audit \
+            research/lean_verified/affine_n6/edge_plus_triangle_verified.json
+          axiom graph-affine-lean-audit \
+            research/lean_verified/affine_n6/twice_edges_triangle_n_verified.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("research/lean_verified/affine_n6")
+          for name in ("edge_plus_triangle","twice_edges_triangle_n"):
+              d=json.loads((root/f"{name}_verified.json").read_text())
+              assert d["status"]=="FORMALLY_VERIFIED",d
+              assert d["accepted"] is True and d["checker_exit_code"] == 0
+              assert d["exact_graph_order"] == 6 and d["axioms"] is not None
+              assert d["all_orders_verified"] is False and d["universal_lean_proof"] is False
+              assert d["claim_scope"].startswith("exactly n=6")
+              assert "#print axioms" in d["source"]
+              assert (root/f"{name}.lean").read_text() == d["source"]
+          print("Two real Lean-kernel-verified n6 affine bounds")
+          PY
+      - name: Preserve Lean source, checker results and failed evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axiom-v019-actual-affine-lean-evidence
+          path: research/lean_verified/affine_n6/
+          if-no-files-found: warn
