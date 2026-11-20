@@ -126,9 +126,15 @@ def build_n3_affine_source(statement: dict, *, extended: bool = False) -> dict:
 
 def verify_n3_affine(statement: dict, *, project_root: str = ".",
                      timeout_seconds: int = 180, extended: bool = False) -> dict:
+    return run_affine_kernel(
+        build_n3_affine_source(statement, extended=extended),
+        project_root, timeout_seconds, "FORMALLY_VERIFIED_EXACT_N3")
+
+
+def run_affine_kernel(result, project_root, timeout_seconds, success_status, *,
+                      expected_mathlib_revision=None):
     if type(timeout_seconds) is not int or not 1 <= timeout_seconds <= 900:
-        raise LeanBackendError("invalid n3 Lean timeout")
-    result = build_n3_affine_source(statement, extended=extended)
+        raise LeanBackendError("invalid affine Lean timeout")
     root = Path(project_root).expanduser().resolve()
     record = {
         **result,
@@ -155,6 +161,9 @@ def verify_n3_affine(statement: dict, *, project_root: str = ".",
         record["mathlib_revision"] = dependency["mathlib_revision"]
         if not record["mathlib_revision"]:
             record["status"] = "DEPENDENCY_MANIFEST_MISSING"
+            return record
+        if expected_mathlib_revision and record["mathlib_revision"] != expected_mathlib_revision:
+            record["status"] = "MATHLIB_REVISION_MISMATCH"
             return record
         version = subprocess.run(
             ["lake", "env", "lean", "--version"], cwd=root,
@@ -192,7 +201,7 @@ def verify_n3_affine(statement: dict, *, project_root: str = ".",
             elif not set(axioms).issubset(ALLOWED_AXIOMS):
                 record["status"] = "UNTRUSTED_AXIOMS"
             else:
-                record["status"],record["accepted"] = "FORMALLY_VERIFIED_EXACT_N3",True
+                record["status"],record["accepted"] = success_status,True
     except (LeanBackendError, ValueError, OSError, subprocess.TimeoutExpired) as exc:
         record["status"] = (
             "CHECKER_TIMEOUT" if isinstance(exc, subprocess.TimeoutExpired)

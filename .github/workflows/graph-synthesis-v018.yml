@@ -1,7 +1,7 @@
 name: AXIOM v0.18 compositional graph conjecture synthesis
 on:
   push:
-    branches: [main, "axiom-v0.18-*", "axiom-issue-15-*"]
+    branches: [main, "axiom-v0.18-*", "axiom-issue-15-*", "axiom-issue-18-*"]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -182,6 +182,32 @@ jobs:
           assert all(result["status"] in ("FORMALLY_VERIFIED_EXACT_N3", "REFUTED_BY_EXACT_ORDER_PRECHECK")
                      for result in handoff["results"])
           assert handoff["universal_theorems_promoted"] == 0
+          PY
+      - name: Prove a discovered relation over every graph order
+        run: |
+          pytest -q tests/test_graph_universal_lean.py
+          lake exe cache get Mathlib.Combinatorics.SimpleGraph.Acyclic \
+            Mathlib.Combinatorics.SimpleGraph.Bipartite \
+            Mathlib.Combinatorics.SimpleGraph.Matching
+          ROOT=research/knowledge/ci_v018
+          V2="$ROOT/discovery_v2"
+          common=(--db "$ROOT/science.sqlite3" --legacy-v18 "$ROOT/compositional.json" --ledger "$V2/ledger.sqlite3" --campaign first)
+          axiom graph-discover-universal "${common[@]}" > "$V2/universal-lean.json"
+          axiom graph-discover-universal-audit "${common[@]}" --artifact "$V2/universal-lean.json" > "$V2/universal-audit.json"
+          python - "$V2/universal-lean.json" <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          artifact = json.loads(Path(sys.argv[1]).read_text())
+          verified = [item for item in artifact["results"] if item["handoff"] == "FORMALLY_VERIFIED"]
+          assert verified, "no discovered survivor was checked at arbitrary graph order"
+          for item in verified:
+              proof = item["proof"]
+              assert proof["lean_kernel_executed"] and proof["checker_exit_code"] == 0
+              assert "(n : Nat) (G : SimpleGraph (Fin n))" in proof["source"]
+              assert "PROVED" in item["claim_states"]
+          assert any(item["handoff"] == "PENDING_UNSUPPORTED_RELATION" for item in artifact["results"])
           PY
       - name: Preserve scientific evidence even if CI fails
         if: always()

@@ -340,6 +340,8 @@ def main() -> None:
         ("graph-discover", "synthesize and test affine graph relations in a persistent campaign"),
         ("graph-discover-audit", "replay a campaign and its predecessor history"),
         ("graph-discover-lean", "send audited discovery survivors to the real fixed-order Lean checker"),
+        ("graph-discover-universal", "send audited survivors to supported all-order Lean proofs"),
+        ("graph-discover-universal-audit", "replay all-order proof dispatch and audit its evidence"),
         ("graph-discover-benchmark", "measure deterministic candidate replay and report its workload"),
     ):
         discovery = sub.add_parser(command, help=help_text)
@@ -357,18 +359,23 @@ def main() -> None:
             discovery.add_argument("--max-candidates", type=int, default=4)
         elif command == "graph-discover-audit":
             discovery.add_argument("--artifact", help="compare an exported report with replay")
-        elif command == "graph-discover-lean":
+        elif command in ("graph-discover-lean", "graph-discover-universal"):
             discovery.add_argument("--project-root", default=".")
             discovery.add_argument("--timeout", type=int, default=180)
+        elif command == "graph-discover-universal-audit":
+            discovery.add_argument("--artifact", required=True)
     args = p.parse_args()
     if args.command in {"graph-discover", "graph-discover-audit",
-                        "graph-discover-lean", "graph-discover-benchmark"}:
+                        "graph-discover-lean", "graph-discover-benchmark",
+                        "graph-discover-universal", "graph-discover-universal-audit"}:
         import sqlite3
+        from pathlib import Path
 
         from .graph_discovery import audit_campaign, benchmark_campaign
         from .graph_discovery import run_campaign as run_graph_discovery
         from .graph_discovery_lean import dispatch_lean
         from .graph_lean import LeanBackendError
+        from .graph_universal_lean import audit_dispatch, dispatch_universal
 
         legacy = {key: path for key, path in (
             ("v18", args.legacy_v18), ("guided", args.legacy_guided),
@@ -385,6 +392,12 @@ def main() -> None:
             elif args.command == "graph-discover-lean":
                 result = dispatch_lean(*params, legacy_reports=legacy,
                                        project_root=args.project_root, timeout=args.timeout)
+            elif args.command == "graph-discover-universal":
+                result = dispatch_universal(*params, legacy_reports=legacy,
+                                            project_root=args.project_root, timeout=args.timeout)
+            elif args.command == "graph-discover-universal-audit":
+                artifact = json.loads(Path(args.artifact).read_text(encoding="utf-8"))
+                result = audit_dispatch(*params, artifact, legacy_reports=legacy)
             else:
                 result = benchmark_campaign(*params, legacy_reports=legacy)
         except (ValueError, TypeError, KeyError, OSError, sqlite3.DatabaseError, LeanBackendError) as exc:
