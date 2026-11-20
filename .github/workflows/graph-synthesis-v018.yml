@@ -1,7 +1,7 @@
 name: AXIOM v0.18 compositional graph conjecture synthesis
 on:
   push:
-    branches: [main, "axiom-v0.18-*"]
+    branches: [main, "axiom-v0.18-*", "axiom-issue-15-*"]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -117,6 +117,71 @@ jobs:
                  "refuted":report["holdout"]["refutations"],
                  "survived":report["holdout"]["survivals"],
                  "pending_lean":len(report["lean_handoff"])})
+          PY
+      - name: Synthesize equalities and inequalities and audit the cross-run holdout ledger
+        run: |
+          pytest -q tests/test_graph_discovery.py
+          ROOT=research/knowledge/ci_v018
+          V2="$ROOT/discovery_v2"
+          mkdir -p "$V2"
+          common=(--db "$ROOT/science.sqlite3" --legacy-v18 "$ROOT/compositional.json" --ledger "$V2/ledger.sqlite3")
+          axiom graph-discover "${common[@]}" --campaign first --holdout-budget 16 > "$V2/first.json"
+          axiom graph-discover "${common[@]}" --campaign second --holdout-budget 16 > "$V2/second.json"
+          axiom graph-discover-audit "${common[@]}" --campaign second --artifact "$V2/second.json" > "$V2/replayed.json"
+          axiom graph-discover-benchmark "${common[@]}" --campaign first > "$V2/benchmark.json"
+          python - "$V2" <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          root = Path(sys.argv[1])
+          first, second = [json.loads((root / name).read_text())
+                           for name in ("first.json", "second.json")]
+          def checked(report):
+              return {(trial["graph_order"], mask)
+                      for trial in report["trials"] for mask in trial["masks_checked"]}
+          assert first["discovery_counts"]["EQUALITY_PROPOSED"] > 0
+          assert checked(first) and checked(second)
+          assert checked(first).isdisjoint(checked(second))
+          assert first["legacy_report_sha256"]["v18"]
+          second["selection_used_holdout_data"] = True
+          (root / "tampered.json").write_text(json.dumps(second))
+          PY
+          if axiom graph-discover-audit "${common[@]}" --campaign second --artifact "$V2/tampered.json" 2>"$V2/tamper-rejection.txt"; then
+            echo "Replay accepted tampered evidence"
+            exit 1
+          fi
+          grep -F "exported campaign differs from deterministic replay" "$V2/tamper-rejection.txt"
+      - name: Install pinned Lean toolchain for the automatic proof handoff
+        run: |
+          curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Kernel-check claims selected by the discovery campaign
+        run: |
+          MATHLIB_NO_CACHE_ON_UPDATE=1 lake update
+          ROOT=research/knowledge/ci_v018
+          V2="$ROOT/discovery_v2"
+          axiom graph-discover-lean --db "$ROOT/science.sqlite3" \
+            --legacy-v18 "$ROOT/compositional.json" --ledger "$V2/ledger.sqlite3" \
+            --campaign first > "$V2/lean-handoff.json"
+          python - "$V2" <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+          from axiom.graph_claims import digest
+
+          root = Path(sys.argv[1])
+          discovery = json.loads((root / "first.json").read_text())
+          handoff = json.loads((root / "lean-handoff.json").read_text())
+          assert handoff["report_sha256"] == digest(discovery)
+          assert {result["candidate_id"] for result in handoff["results"]} == {
+              trial["candidate_id"] for trial in discovery["trials"]
+              if trial["status"] == "EXPERIMENTALLY_SURVIVING"}
+          assert any(record["lean_kernel_executed"] for result in handoff["results"]
+                     for record in result["proof_records"])
+          assert all(result["status"] in ("FORMALLY_VERIFIED_EXACT_N3", "REFUTED_BY_EXACT_ORDER_PRECHECK")
+                     for result in handoff["results"])
+          assert handoff["universal_theorems_promoted"] == 0
           PY
       - name: Preserve scientific evidence even if CI fails
         if: always()

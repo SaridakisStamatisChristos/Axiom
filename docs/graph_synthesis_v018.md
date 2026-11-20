@@ -117,3 +117,54 @@ continues operating on its own existing, previously supported templates.
 - Zero new candidates is an allowed, negative scientific result. Never invent
   new theorems or artificially pass validation gates.
 - Earlier source evidence is not modified and v0.15/16/17 APIs are unchanged.
+
+## Persistent affine discovery
+
+Use `graph-discover` for new experiments. This lane fits exact affine
+inequalities and equalities from orders 5, 6, and 7. When an expression is
+constant across the applicable discovery cohort, it emits an equality and
+checks both directions. Integer-lattice normalization canonicalizes scaled
+bounds and sign-reversed equalities. Symbolic bounds reject some tautologies
+and safely remove implications within the candidate bank. Training scores
+describe fit and guide experimental priority.
+
+Discovery and reference invariant implementations agree on every training
+graph. Selection then screens candidates against the audited historical n=7
+bank, and the first use of the new n=7 masks is holdout testing. The sampler
+is premise-aware and nonuniform. All refutations carry an exact graph witness
+rechecked by both implementations. The report gives explicit reason codes
+when discovery or historical preflight leaves no eligible candidate.
+
+Use a separate SQLite ledger and reuse it across campaign names. It stores
+every checked holdout under its exact `(graph order, labelled mask)` key.
+A transaction commits each report and its masks together. Auditing replays
+the ordered prefix through the requested campaign. Repeating a name with
+identical parameters replays its original result. Optionally pass audited
+historical holdouts using `--legacy-v18`, `--legacy-guided`, and
+`--legacy-stratified` to exclude their observations too. The stratified
+artifact requires its original v0.18 parent. Supply the same legacy inputs
+for each command using a given ledger.
+
+```bash
+common=(--db research/knowledge/axiom.sqlite3 --ledger discovery.sqlite3)
+axiom graph-discover "${common[@]}" --campaign first > first.json
+axiom graph-discover "${common[@]}" --campaign followup > followup.json
+axiom graph-discover-audit "${common[@]}" --campaign followup --artifact followup.json
+axiom graph-discover-benchmark "${common[@]}" --campaign first
+axiom graph-discover-lean "${common[@]}" --campaign first > first-lean.json
+```
+
+The benchmark reports the replay wall time, workload counts, and candidate
+throughput. The Lean command replays the named campaign and automatically
+dispatches the surviving claims to the pinned kernel after exhaustive
+dual-oracle precheck at exactly three vertices. The translator derives each
+invariant from the four possible edge-count cases and uses a decidable
+proposition over all eight labelled masks. An equality requires kernel
+acceptance of both directions. A precheck counterexample refutes the original
+universal conjecture. A kernel success verifies only the fixed-order result.
+All-order proof attempts remain pending the universal graph translator in
+[issue #18](https://github.com/SaridakisStamatisChristos/Axiom/issues/18).
+
+The CI workflow archives both campaigns, the SQLite ledger, benchmark
+measurements, tamper rejection, and source-bound Lean records. The original
+v0.18 report and v0.19 proof formats remain replayable.

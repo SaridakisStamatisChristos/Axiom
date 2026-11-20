@@ -28,31 +28,42 @@ from .graph_lean import (
 )
 
 SCHEMA = "axiom.affine.n3.lean_evidence.v1"
+DISCOVERY_SCHEMA = "axiom.affine.n3.discovery_lean_evidence.v1"
 SUPPORTED = ("edges", "triangles", "n")
 ORDER = 3
 TOTAL_MASKS = 8
 
 
-def _expression(stmt: AffineGraphConjecture) -> str:
-    terms = []
-    for symbol, coefficient in stmt.terms:
-        if symbol not in SUPPORTED:
-            raise LeanBackendError("closed n3 Lean bridge only supports edges, triangles and n")
-        term = {
-            "n": "(3 : Int)",
-            "edges": "(Int.ofNat (edgeCount mask.val))",
-            "triangles": "(Int.ofNat (triangleCount mask.val))",
-        }[symbol]
-        terms.append(f"({coefficient} : Int) * {term}")
+def _expression(stmt: AffineGraphConjecture, extended: bool) -> str:
+    edges = "edgeCount mask.val"
+    clique = f"(if {edges} = 3 then 3 else if {edges} = 0 then 1 else 2)"
+    values = {"edges": edges, "triangles": "triangleCount mask.val"}
+    if extended:
+        # Graphs on three vertices have four isomorphism types, determined
+        # by their edge counts: empty, one edge, a path, and a triangle.
+        values.update({
+            "independence": f"(if {edges} = 0 then 3 else if {edges} = 3 then 1 else 2)",
+            "clique": clique,
+            "chromatic": clique,
+            "maximum_degree": f"(min ({edges}) 2)",
+            "matching": f"(min ({edges}) 1)",
+            "components": f"(max (3 - ({edges})) 1)",
+        })
+    terms = [
+        f"({coefficient} : Int) * "
+        + ("(3 : Int)" if symbol == "n" else f"(Int.ofNat ({values[symbol]}))")
+        for symbol, coefficient in stmt.terms
+    ]
     return " + ".join(terms)
 
 
-def build_n3_affine_source(statement: dict) -> dict:
+def build_n3_affine_source(statement: dict, *, extended: bool = False) -> dict:
     try:
         stmt = AffineGraphConjecture.from_dict(statement)
     except (ValueError, TypeError, KeyError) as exc:
         raise LeanBackendError("affine n3 statement failed typed parsing") from exc
-    if stmt.assumption != "ALL" or any(key not in SUPPORTED for key, _ in stmt.terms):
+    if not extended and (stmt.assumption != "ALL" or
+                         any(key not in SUPPORTED for key, _ in stmt.terms)):
         raise LeanBackendError(
             "unsupported n3 affine statement; conditional graph assumptions not translated")
     applicable_count = 0
@@ -61,20 +72,30 @@ def build_n3_affine_source(statement: dict) -> dict:
         applies, valid, value = check_conjecture(stmt, oracle)
         other_applies, other_valid, other_value = check_conjecture(
             stmt, _discovery_properties(ORDER, mask))
-        if (not applies or not other_applies or
+        if (applies != other_applies or
                 valid != other_valid or value != other_value):
             raise LeanBackendError("independent n3 affine semantics disagree")
+        if not applies:
+            continue
         applicable_count += 1
         if not valid:
             raise LeanBackendError(
                 "n3 exact-order affine conjecture is refuted by a labelled graph")
+    if not applicable_count:
+        raise LeanBackendError("n3 affine statement has no applicable labelled graph")
     statement_hash = digest(statement)
-    theorem = "axiom_affine_n3_" + statement_hash[:16]
+    theorem = ("axiom_discovery_n3_" if extended else "axiom_affine_n3_") + statement_hash[:16]
+    premise = {
+        "ALL": "", "CONNECTED": "2 ≤ edgeCount mask.val → ",
+        "BIPARTITE": "edgeCount mask.val < 3 → ",
+        "TRIANGLE_FREE": "edgeCount mask.val < 3 → ",
+    }[stmt.assumption]
+    signature = f"theorem {theorem} : ∀ mask : Fin 8," if extended else f"theorem {theorem} (mask : Fin 8) :"
     source = "\n".join([
         "-- Closed AXIOM affine graph bridge: n=3 ONLY, not all orders.",
         "-- Three labelled edges: (0,1) bit 0, (0,2) bit 1, (1,2) bit 2.",
         "-- Formal predicates operate on mask.val of Fin 8, covering all labelled graphs.",
-        "import Mathlib", "",
+        "import Lean" if extended else "import Mathlib", "",
         "namespace AxiomAffineN3", "",
         "private def bit (mask i : Nat) : Nat :=",
         "  if Nat.testBit mask i then 1 else 0", "",
@@ -82,14 +103,14 @@ def build_n3_affine_source(statement: dict) -> dict:
         "  bit mask 0 + bit mask 1 + bit mask 2", "",
         "private def triangleCount (mask : Nat) : Nat :=",
         "  if bit mask 0 = 1 ∧ bit mask 1 = 1 ∧ bit mask 2 = 1 then 1 else 0", "",
-        f"theorem {theorem} (mask : Fin 8) :",
-        f"    {_expression(stmt)} ≤ ({stmt.upper} : Int) := by",
-        "  fin_cases mask <;> decide", "",
+        signature,
+        f"    {premise}{_expression(stmt, extended)} ≤ ({stmt.upper} : Int) := by",
+        "  decide" if extended else "  fin_cases mask <;> decide", "",
         f"#print axioms {theorem}", "",
         "end AxiomAffineN3", "",
     ])
     return {
-        "schema": SCHEMA, "statement": stmt.to_dict(),
+        "schema": DISCOVERY_SCHEMA if extended else SCHEMA, "statement": stmt.to_dict(),
         "statement_sha256": statement_hash,
         "source": source,
         "source_sha256": hashlib.sha256(source.encode("utf-8")).hexdigest(),
@@ -97,16 +118,17 @@ def build_n3_affine_source(statement: dict) -> dict:
         "toolchain": TOOLCHAIN, "mathlib_rev": MATHLIB_REV,
         "formal_graph_order": ORDER,
         "labelled_graphs_semantically_prechecked": applicable_count,
-        "formal_scope": "all 8 labelled simple graphs with exactly n=3 vertices",
+        "formal_scope": ("exactly n=3 labelled simple graphs satisfying " + stmt.assumption
+                         if extended else "all 8 labelled simple graphs with exactly n=3 vertices"),
         "all_order_generalization": "NOT_PROVED",
     }
 
 
 def verify_n3_affine(statement: dict, *, project_root: str = ".",
-                     timeout_seconds: int = 180) -> dict:
+                     timeout_seconds: int = 180, extended: bool = False) -> dict:
     if type(timeout_seconds) is not int or not 1 <= timeout_seconds <= 900:
         raise LeanBackendError("invalid n3 Lean timeout")
-    result = build_n3_affine_source(statement)
+    result = build_n3_affine_source(statement, extended=extended)
     root = Path(project_root).expanduser().resolve()
     record = {
         **result,
@@ -183,9 +205,9 @@ def verify_n3_affine(statement: dict, *, project_root: str = ".",
 
 def audit_n3_affine(record: dict) -> bool:
     """Source replay verifies integrity, NOT actual past external execution."""
-    if type(record) is not dict or record.get("schema") != SCHEMA:
+    if type(record) is not dict or record.get("schema") not in (SCHEMA, DISCOVERY_SCHEMA):
         raise LeanBackendError("unknown affine n3 source binding")
-    expected = build_n3_affine_source(record["statement"])
+    expected = build_n3_affine_source(record["statement"], extended=record["schema"] == DISCOVERY_SCHEMA)
     for key, value in expected.items():
         if record.get(key) != value:
             raise LeanBackendError("altered affine Lean semantics/source identity")

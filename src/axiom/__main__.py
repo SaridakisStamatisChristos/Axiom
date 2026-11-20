@@ -336,7 +336,61 @@ def main() -> None:
         "graph-affine-lean-audit",
         help="offline source audit of exact-n6 affine Lean result (NOT kernel reexecution)")
     aa.add_argument("report_file")
+    for command, help_text in (
+        ("graph-discover", "synthesize and test affine graph relations in a persistent campaign"),
+        ("graph-discover-audit", "replay a campaign and its predecessor history"),
+        ("graph-discover-lean", "send audited discovery survivors to the real fixed-order Lean checker"),
+        ("graph-discover-benchmark", "measure deterministic candidate replay and report its workload"),
+    ):
+        discovery = sub.add_parser(command, help=help_text)
+        discovery.add_argument("--db", required=True, help="existing historical evidence database")
+        discovery.add_argument("--ledger", required=True, help="separate SQLite holdout ledger")
+        discovery.add_argument("--campaign", required=True)
+        discovery.add_argument("--legacy-v18")
+        discovery.add_argument("--legacy-guided")
+        discovery.add_argument("--legacy-stratified")
+        if command == "graph-discover":
+            discovery.add_argument("--seed", type=int, default=42)
+            discovery.add_argument("--n6-training", type=int, default=64)
+            discovery.add_argument("--n7-training", type=int, default=64)
+            discovery.add_argument("--holdout-budget", type=int, default=24)
+            discovery.add_argument("--max-candidates", type=int, default=4)
+        elif command == "graph-discover-audit":
+            discovery.add_argument("--artifact", help="compare an exported report with replay")
+        elif command == "graph-discover-lean":
+            discovery.add_argument("--project-root", default=".")
+            discovery.add_argument("--timeout", type=int, default=180)
     args = p.parse_args()
+    if args.command in {"graph-discover", "graph-discover-audit",
+                        "graph-discover-lean", "graph-discover-benchmark"}:
+        import sqlite3
+
+        from .graph_discovery import audit_campaign, benchmark_campaign
+        from .graph_discovery import run_campaign as run_graph_discovery
+        from .graph_discovery_lean import dispatch_lean
+        from .graph_lean import LeanBackendError
+
+        legacy = {key: path for key, path in (
+            ("v18", args.legacy_v18), ("guided", args.legacy_guided),
+            ("stratified", args.legacy_stratified)) if path is not None}
+        params = (args.db, args.ledger, args.campaign)
+        try:
+            if args.command == "graph-discover":
+                result = run_graph_discovery(
+                    *params, seed=args.seed, n6_training=args.n6_training,
+                    n7_training=args.n7_training, holdout_budget=args.holdout_budget,
+                    max_candidates=args.max_candidates, legacy_reports=legacy)
+            elif args.command == "graph-discover-audit":
+                result = audit_campaign(*params, legacy_reports=legacy, artifact=args.artifact)
+            elif args.command == "graph-discover-lean":
+                result = dispatch_lean(*params, legacy_reports=legacy,
+                                       project_root=args.project_root, timeout=args.timeout)
+            else:
+                result = benchmark_campaign(*params, legacy_reports=legacy)
+        except (ValueError, TypeError, KeyError, OSError, sqlite3.DatabaseError, LeanBackendError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return
     if args.command in {"graph-affine-n3-lean", "graph-affine-n3-lean-audit"}:
         from pathlib import Path
         from .graph_affine_lean_n3 import verify_n3_affine, audit_n3_affine
