@@ -1,18 +1,32 @@
-# AXIOM v0.19 — Assumption-aware graph experiments and actual Lean proofs (development)
+# AXIOM v0.19 — Premise-aware graph experiments (development)
 
-New \`graph-synthesize-guided\` builds conditional n=7 holdout graphs that
-satisfy the conjecture antecedent *by construction*; all source masks and
-previous candidates' checked masks are excluded. This is targeted non-uniform
-sampling, not universal proof or representative graph statistics.
+The v0.19 follow-up takes independently replayed v0.18 conjecture-synthesis
+evidence and tests selected universal graph conjectures on new graphs that
+**satisfy their typed premises**. It excludes all audited historical labelled
+masks and all previous v0.18 holdout observations. It preserves the original
+conjecture ranking and all historical research reports unchanged.
 
-New \`graph-affine-lean-verify\` safely compiles a strictly supported subset
-of canonical affine graph statements into **actual Lean 4 kernel** proofs.
-The first subfragment is unconditional, exact n=6 edge/triangle upper bounds.
-The theorem scope is EXACTLY n=6: no all-orders promotion.
+    axiom graph-stratified-followup --db research/knowledge/axiom.sqlite3 \
+      --parent research/knowledge/affine_synthesis_v018.json \
+      --output research/knowledge/stratified_followup_v019.json
 
-See [v0.19 scientific reproducibility and proof specification]
-(docs/graph_v019.md). All historical AXIOM proof and experimental records
-remain unchanged.
+    axiom graph-stratified-audit --db research/knowledge/axiom.sqlite3 \
+      --parent research/knowledge/affine_synthesis_v018.json \
+      research/knowledge/stratified_followup_v019.json
+
+Sampling is nonuniform and deliberately stratified for meaningful
+falsification. Surviving bounded tests are not proofs and the sampler
+does not claim Lean ran. [Scientific protocol](docs/graph_stratified_v019.md).
+
+
+The `graph-synthesize-guided` command also builds targeted, nonuniform n=7
+holdouts that satisfy the statement's antecedent. See the
+[guided experiment protocol](docs/graph_v019.md).
+
+The Lean bridges verify restricted affine claims at fixed orders.
+`graph-affine-n3-lean` checks the eight labelled graphs at n=3.
+`graph-affine-lean-verify` handles supported edge and triangle upper bounds at
+n=6. These proofs apply at their stated graph orders.
 
 ---
 
