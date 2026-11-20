@@ -162,8 +162,8 @@ invariant from the four possible edge-count cases and uses a decidable
 proposition over all eight labelled masks. An equality requires kernel
 acceptance of both directions. A precheck counterexample refutes the original
 universal conjecture. A kernel success verifies only the fixed-order result.
-All-order proof attempts remain pending the universal graph translator in
-[issue #18](https://github.com/SaridakisStamatisChristos/Axiom/issues/18).
+Use [universal proof dispatch](graph_universal_v020.md) for the supported
+arbitrary-order relations.
 
 The CI workflow archives both campaigns, the SQLite ledger, benchmark
 measurements, tamper rejection, and source-bound Lean records. The original
