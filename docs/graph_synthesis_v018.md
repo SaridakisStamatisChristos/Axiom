@@ -20,6 +20,38 @@ The statements have explicit universal quantification over all finite simple
 graphs, but their evidence is finite and therefore **NOT_PROVED** unless a
 separate valid proof is eventually produced.
 
+## Composing statements in Python
+
+Use `AffineExpression` to add, subtract, or scale affine expressions on
+either side of an inequality. Invariants and assumptions use enums, and
+coefficients and constants accept `int` and `Fraction`.
+
+```python
+from fractions import Fraction
+
+from axiom.graph_affine import (
+    AffineExpression, AffineGraphConjecture, GraphAssumption, GraphInvariant,
+)
+
+alpha = AffineExpression.invariant(GraphInvariant.INDEPENDENCE)
+omega = AffineExpression.invariant(GraphInvariant.CLIQUE)
+order = AffineExpression.invariant(GraphInvariant.ORDER)
+statement = AffineGraphConjecture.from_expressions(
+    (alpha + omega).scaled(Fraction(1, 2)),
+    (order + AffineExpression(constant=1)).scaled(Fraction(1, 2)),
+    assumption=GraphAssumption.ALL,
+)
+```
+
+The constructor combines repeated terms and cancels shared terms across both
+sides before applying the existing coefficient, bound, and arity limits to
+the normalized statement. The example has the same JSON representation and ID
+as the flat form `alpha + omega - n <= 1`. Reordering terms, moving terms
+across sides, or multiplying both sides by a positive rational preserves the
+ID. Reversing an inequality or changing its assumption can change its meaning
+and is outside that normalization. IDs represent canonical syntax and do not
+establish equivalence under graph-specific facts.
+
 ## Training and holdout separation
 
 1. Independently audit all existing AXIOM research layers with the v0.14

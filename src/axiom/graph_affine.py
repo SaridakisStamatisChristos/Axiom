@@ -7,6 +7,7 @@ logical assumption. Finite-order experiments do not verify a universal claim.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import StrEnum
 from fractions import Fraction
 from functools import reduce
 from math import gcd, lcm
@@ -14,14 +15,74 @@ from math import gcd, lcm
 from .graph_claims import digest, stable
 
 SCHEMA = "axiom.graph.affine_conjecture.v1"
-VARIABLES = (
-    "n", "edges", "triangles", "independence", "clique", "chromatic",
-    "maximum_degree", "matching", "components",
-)
+
+
+class GraphInvariant(StrEnum):
+    ORDER = "n"
+    EDGES = "edges"
+    TRIANGLES = "triangles"
+    INDEPENDENCE = "independence"
+    CLIQUE = "clique"
+    CHROMATIC = "chromatic"
+    MAXIMUM_DEGREE = "maximum_degree"
+    MATCHING = "matching"
+    COMPONENTS = "components"
+
+
+class GraphAssumption(StrEnum):
+    ALL = "ALL"
+    CONNECTED = "CONNECTED"
+    BIPARTITE = "BIPARTITE"
+    TRIANGLE_FREE = "TRIANGLE_FREE"
+
+
+VARIABLES = tuple(invariant.value for invariant in GraphInvariant)
 INVARIANTS = tuple(x for x in VARIABLES if x != "n")
-ASSUMPTIONS = ("ALL", "CONNECTED", "BIPARTITE", "TRIANGLE_FREE")
+ASSUMPTIONS = tuple(assumption.value for assumption in GraphAssumption)
 MAX_COEFFICIENT = 8
 MAX_BOUND = 256
+ExactRational = int | Fraction
+
+
+@dataclass(frozen=True)
+class AffineExpression:
+    """A sum of typed invariant terms and an exact rational constant."""
+
+    terms: tuple[tuple[GraphInvariant, ExactRational], ...] = ()
+    constant: ExactRational = 0
+
+    def __post_init__(self) -> None:
+        if type(self.constant) not in (int, Fraction):
+            raise ValueError("affine constant must be an exact rational")
+        if type(self.terms) is not tuple or any(
+            type(term) is not tuple or len(term) != 2
+            or type(term[0]) is not GraphInvariant
+            or type(term[1]) not in (int, Fraction)
+            for term in self.terms
+        ):
+            raise ValueError("affine terms require typed invariants and exact coefficients")
+
+    @classmethod
+    def invariant(cls, symbol: GraphInvariant) -> AffineExpression:
+        return cls(((symbol, 1),))
+
+    def __add__(self, other: AffineExpression, /) -> AffineExpression:
+        if type(other) is not AffineExpression:
+            return NotImplemented
+        return AffineExpression(self.terms + other.terms, self.constant + other.constant)
+
+    def __sub__(self, other: AffineExpression, /) -> AffineExpression:
+        if type(other) is not AffineExpression:
+            return NotImplemented
+        return self + other.scaled(-1)
+
+    def scaled(self, factor: ExactRational) -> AffineExpression:
+        if type(factor) not in (int, Fraction):
+            raise ValueError("affine scale must be an exact rational")
+        return AffineExpression(
+            tuple((symbol, factor * coefficient) for symbol, coefficient in self.terms),
+            factor * self.constant,
+        )
 
 
 @dataclass(frozen=True)
@@ -52,6 +113,22 @@ class AffineGraphConjecture:
             raise ValueError("require at least two graph observables")
         if reduce(gcd, values + [abs(self.upper)]) != 1:
             raise ValueError("affine statement has an unnormalized common factor")
+
+    @classmethod
+    def from_expressions(
+        cls, lhs: AffineExpression, rhs: AffineExpression, *,
+        assumption: GraphAssumption = GraphAssumption.ALL,
+    ) -> AffineGraphConjecture:
+        """Build a canonical universal statement of the form lhs <= rhs."""
+        if type(lhs) is not AffineExpression or type(rhs) is not AffineExpression:
+            raise ValueError("affine statement requires two affine expressions")
+        if type(assumption) is not GraphAssumption:
+            raise ValueError("affine statement requires a typed graph assumption")
+        difference = lhs - rhs
+        weights: dict[str, ExactRational] = {}
+        for symbol, coefficient in difference.terms:
+            weights[symbol.value] = weights.get(symbol.value, 0) + coefficient
+        return cls.normalized(weights, -difference.constant, assumption.value)
 
     @classmethod
     def normalized(cls, weights: dict[str, int | Fraction],

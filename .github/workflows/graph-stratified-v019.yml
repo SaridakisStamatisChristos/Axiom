@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: axiom-v019-discovery-${{ github.ref }}
+  group: axiom-v019-stratified-discovery-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

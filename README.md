@@ -18,6 +18,16 @@ Sampling is nonuniform and deliberately stratified for meaningful
 falsification. Surviving bounded tests are not proofs and the sampler
 does not claim Lean ran. [Scientific protocol](docs/graph_stratified_v019.md).
 
+
+The `graph-synthesize-guided` command also builds targeted, nonuniform n=7
+holdouts that satisfy the statement's antecedent. See the
+[guided experiment protocol](docs/graph_v019.md).
+
+The Lean bridges verify restricted affine claims at fixed orders.
+`graph-affine-n3-lean` checks the eight labelled graphs at n=3.
+`graph-affine-lean-verify` handles supported edge and triangle upper bounds at
+n=6. These proofs apply at their stated graph orders.
+
 ---
 
 # AXIOM v0.18 — Compositional graph conjectures (development)
