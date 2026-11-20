@@ -5,12 +5,71 @@ import copy
 import pytest
 
 from axiom.graph_affine import (
-    AffineGraphConjecture, check_conjecture, applicable,
+    AffineExpression, AffineGraphConjecture, GraphAssumption, GraphInvariant,
+    check_conjecture, applicable,
 )
 from axiom.graph_synthesis import (
     _bounded_masks, _choose_historical, _config, _data, _derive,
     _known_heuristic, _shortlist, _witness, _holdout,
 )
+
+
+def test_two_sided_composition_preserves_canonical_source_identity():
+    invariant = AffineExpression.invariant
+    clique = invariant(GraphInvariant.CLIQUE)
+    independence = invariant(GraphInvariant.INDEPENDENCE)
+    order = invariant(GraphInvariant.ORDER)
+    offset = invariant(GraphInvariant.EDGES).scaled(100) + AffineExpression(
+        constant=Fraction(1, 7))
+
+    # Cancel the shared affine offset, then clear the positive denominators.
+    lhs = offset + (independence + clique).scaled(Fraction(2, 3))
+    rhs = (order + AffineExpression(constant=1)).scaled(Fraction(2, 3)) + offset
+    statement = AffineGraphConjecture.from_expressions(lhs, rhs)
+    legacy = AffineGraphConjecture.normalized(
+        {"clique": 1, "independence": 1, "n": -1}, 1)
+    assert statement.to_dict() == legacy.to_dict()
+    assert AffineGraphConjecture.from_dict(statement.to_dict()) == statement
+    assert statement.id == (
+        "affine-graph:b5d0b57210d245260f3b3651dc0dc98f4ba31f3218551e7fa9010e79c811e1f4")
+
+
+def test_side_and_assumption_are_part_of_the_composed_statement():
+    edges = AffineExpression.invariant(GraphInvariant.EDGES)
+    clique = AffineExpression.invariant(GraphInvariant.CLIQUE)
+    upper = AffineGraphConjecture.from_expressions(edges, clique)
+    lower = AffineGraphConjecture.from_expressions(clique, edges)
+    conditional = AffineGraphConjecture.from_expressions(
+        edges, clique, assumption=GraphAssumption.BIPARTITE)
+
+    assert len({upper.id, lower.id, conditional.id}) == 3
+    graph = {"n": 4, "edges": 6, "clique": 4, "bipartite": False}
+    assert check_conjecture(upper, graph) == (True, False, 2)
+    assert check_conjecture(lower, graph) == (True, True, -2)
+    assert check_conjecture(conditional, graph) == (False, False, 2)
+
+
+@pytest.mark.parametrize("invalid", [True, 0.5, "1", None])
+def test_expression_rejects_inexact_or_mistyped_numbers(invalid):
+    with pytest.raises(ValueError):
+        AffineExpression(constant=invalid)
+    with pytest.raises(ValueError):
+        AffineExpression(((GraphInvariant.EDGES, invalid),))
+    with pytest.raises(ValueError):
+        AffineExpression.invariant(GraphInvariant.EDGES).scaled(invalid)
+
+
+def test_expression_rejects_untyped_symbols_assumptions_and_cancelled_statements():
+    with pytest.raises(ValueError):
+        AffineExpression.invariant("edges")
+    edges = AffineExpression.invariant(GraphInvariant.EDGES)
+    clique = AffineExpression.invariant(GraphInvariant.CLIQUE)
+    with pytest.raises(ValueError):
+        AffineGraphConjecture.from_expressions(edges, clique, assumption="ALL")
+    with pytest.raises(ValueError):
+        AffineGraphConjecture.from_expressions(edges, 0)
+    with pytest.raises(ValueError):
+        AffineGraphConjecture.from_expressions(edges + clique, edges + clique)
 
 
 def test_fractional_coefficients_normalize_to_exact_equivalent_integers():
