@@ -336,6 +336,18 @@ def main() -> None:
         "graph-affine-lean-audit",
         help="offline source audit of exact-n6 affine Lean result (NOT kernel reexecution)")
     aa.add_argument("report_file")
+    proof = sub.add_parser("graph-prove", help="search and Lean-check a canonical graph relation")
+    proof.add_argument("statement_file")
+    proof.add_argument("--project-root", default=".")
+    proof.add_argument("--timeout", type=int, default=180)
+    proof.add_argument("--max-lemmas", type=int, default=3)
+    proof.add_argument("--max-coefficient", type=int, default=3)
+    proof.add_argument("--max-nodes", type=int, default=10_000)
+    proof.add_argument("--witness-order", type=int, default=5)
+    proof.add_argument("--output")
+    proof.add_argument("--source")
+    proof_audit = sub.add_parser("graph-prove-audit", help="replay proof evidence integrity offline")
+    proof_audit.add_argument("report_file")
     for command, help_text in (
         ("graph-discover", "synthesize and test affine graph relations in a persistent campaign"),
         ("graph-discover-audit", "replay a campaign and its predecessor history"),
@@ -357,6 +369,8 @@ def main() -> None:
             discovery.add_argument("--n7-training", type=int, default=64)
             discovery.add_argument("--holdout-budget", type=int, default=24)
             discovery.add_argument("--max-candidates", type=int, default=4)
+            discovery.add_argument("--proof-beam", type=int, default=0,
+                                   help="opt in to the four-term candidate lane at this beam width")
         elif command == "graph-discover-audit":
             discovery.add_argument("--artifact", help="compare an exported report with replay")
         elif command in ("graph-discover-lean", "graph-discover-universal"):
@@ -364,7 +378,41 @@ def main() -> None:
             discovery.add_argument("--timeout", type=int, default=180)
         elif command == "graph-discover-universal-audit":
             discovery.add_argument("--artifact", required=True)
+        if command in ("graph-discover-universal", "graph-discover-universal-audit"):
+            discovery.add_argument("--compose", action="store_true",
+                                   help="use the bounded multi-lemma proof engine")
     args = p.parse_args()
+    if args.command in {"graph-prove", "graph-prove-audit"}:
+        from pathlib import Path
+        from .graph_proof import audit, prove
+        from .graph_proof_search import SearchLimits
+
+        try:
+            if args.command == "graph-prove-audit":
+                record = json.loads(Path(args.report_file).read_text(encoding="utf-8"))
+                audit(record)
+                print(json.dumps({"audit": "PASSED", "execution_attested": False}))
+                return
+            if args.output and args.source and Path(args.output).resolve() == Path(args.source).resolve():
+                raise ValueError("JSON evidence and Lean source require distinct paths")
+            statement = json.loads(Path(args.statement_file).read_text(encoding="utf-8"))
+            record = prove(statement, project_root=args.project_root, timeout=args.timeout,
+                           witness_order=args.witness_order,
+                           limits=SearchLimits(args.max_lemmas, args.max_coefficient, args.max_nodes))
+            text = json.dumps(record, indent=2, sort_keys=True) + "\n"
+            if args.output:
+                path = Path(args.output)
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(text, encoding="utf-8")
+            else:
+                print(text, end="")
+            if args.source and record["generated"] is not None:
+                path = Path(args.source)
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(record["generated"]["source"], encoding="utf-8")
+        except (ValueError, TypeError, KeyError, OSError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        return
     if args.command in {"graph-discover", "graph-discover-audit",
                         "graph-discover-lean", "graph-discover-benchmark",
                         "graph-discover-universal", "graph-discover-universal-audit"}:
@@ -376,6 +424,7 @@ def main() -> None:
         from .graph_discovery_lean import dispatch_lean
         from .graph_lean import LeanBackendError
         from .graph_universal_lean import audit_dispatch, dispatch_universal
+        from .graph_proof_pipeline import audit_composed_dispatch, dispatch_composed
 
         legacy = {key: path for key, path in (
             ("v18", args.legacy_v18), ("guided", args.legacy_guided),
@@ -386,18 +435,20 @@ def main() -> None:
                 result = run_graph_discovery(
                     *params, seed=args.seed, n6_training=args.n6_training,
                     n7_training=args.n7_training, holdout_budget=args.holdout_budget,
-                    max_candidates=args.max_candidates, legacy_reports=legacy)
+                    max_candidates=args.max_candidates, legacy_reports=legacy, proof_beam=args.proof_beam)
             elif args.command == "graph-discover-audit":
                 result = audit_campaign(*params, legacy_reports=legacy, artifact=args.artifact)
             elif args.command == "graph-discover-lean":
                 result = dispatch_lean(*params, legacy_reports=legacy,
                                        project_root=args.project_root, timeout=args.timeout)
             elif args.command == "graph-discover-universal":
-                result = dispatch_universal(*params, legacy_reports=legacy,
-                                            project_root=args.project_root, timeout=args.timeout)
+                dispatch = dispatch_composed if args.compose else dispatch_universal
+                result = dispatch(*params, legacy_reports=legacy,
+                                  project_root=args.project_root, timeout=args.timeout)
             elif args.command == "graph-discover-universal-audit":
                 artifact = json.loads(Path(args.artifact).read_text(encoding="utf-8"))
-                result = audit_dispatch(*params, artifact, legacy_reports=legacy)
+                replay = audit_composed_dispatch if args.compose else audit_dispatch
+                result = replay(*params, artifact, legacy_reports=legacy)
             else:
                 result = benchmark_campaign(*params, legacy_reports=legacy)
         except (ValueError, TypeError, KeyError, OSError, sqlite3.DatabaseError, LeanBackendError) as exc:
