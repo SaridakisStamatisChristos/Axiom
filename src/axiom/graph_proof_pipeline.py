@@ -3,7 +3,9 @@ from dataclasses import asdict
 
 from .graph_claims import digest, stable
 from .graph_discovery import audit_campaign
-from .graph_lemma_retrieval import COMPONENT_INDEX, INDEX_VERSION, MATCHING_INDEX, STRUCTURAL_INDEX
+from .graph_lemma_retrieval import (
+    COMPONENT_INDEX, COMPONENT_INDEPENDENCE_INDEX, INDEX_VERSION, MATCHING_INDEX, STRUCTURAL_INDEX,
+)
 from .graph_proof import BANK, SCHEMA as ATTEMPT_SCHEMA, audit, prove
 from .graph_proof_hints import validate as validate_hints
 from .graph_proof_search import SearchLimits, search
@@ -18,6 +20,7 @@ EXTENDED_PROFILE = "extended"
 STRUCTURAL_PROFILE = "structural"
 MATCHING_PROFILE = "matching"
 COMPONENT_PROFILE = "components"
+COMPONENT_INDEPENDENCE_PROFILE = "component-independence"
 _ENGINES = {
     FIXED_PROFILE: {},
     EXTENDED_PROFILE: {"retrieval_limit": 5, "synthesis_limit": 3, "split_order": True,
@@ -26,6 +29,9 @@ _ENGINES = {
 _ENGINES[STRUCTURAL_PROFILE] = {**_ENGINES[EXTENDED_PROFILE], "retrieval_index": STRUCTURAL_INDEX}
 _ENGINES[MATCHING_PROFILE] = {**_ENGINES[EXTENDED_PROFILE], "retrieval_index": MATCHING_INDEX}
 _ENGINES[COMPONENT_PROFILE] = {**_ENGINES[EXTENDED_PROFILE], "retrieval_index": COMPONENT_INDEX}
+_ENGINES[COMPONENT_INDEPENDENCE_PROFILE] = {
+    **_ENGINES[EXTENDED_PROFILE], "retrieval_index": COMPONENT_INDEPENDENCE_INDEX,
+}
 
 
 def _selections(campaign, discovery):

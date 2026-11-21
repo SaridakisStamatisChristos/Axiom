@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from axiom.graph_lemma_retrieval import COMPONENT_INDEX, MATCHING_INDEX
+from axiom.graph_lemma_retrieval import COMPONENT_INDEX, COMPONENT_INDEPENDENCE_INDEX, MATCHING_INDEX
 from axiom.graph_proof import audit, prove
 from axiom.graph_relations import AffineRelation
 
@@ -41,3 +41,26 @@ def test_connected_component_count_does_not_leak_to_arbitrary_graphs(tmp_path):
     assert result["status"] == "COUNTEREXAMPLE"
     assert result["counterexample"]["graph"] == {"n": 2, "edges": []}
     assert result["generated"] is None and audit(result)
+
+
+@pytest.mark.parametrize(("weights", "lemmas"), (
+    ({"components": 1, "independence": -1}, {"retrieved_components_le_independence"}),
+    ({"components": 1, "matching": 1, "n": -1}, {
+        "retrieved_components_le_independence",
+        "retrieved_matching_add_independence_le_order",
+    }),
+))
+def test_component_independence_certifies_and_composes(weights, lemmas, tmp_path):
+    statement = AffineRelation.normalized(weights, 0).to_dict()
+    baseline = prove(statement, retrieval_limit=5, retrieval_index=COMPONENT_INDEX,
+                     project_root=tmp_path)
+    assert baseline["status"] == "SEARCH_EXHAUSTED" and audit(baseline)
+
+    real = os.environ.get("AXIOM_REAL_LEAN") == "1"
+    result = prove(statement, retrieval_limit=5, retrieval_index=COMPONENT_INDEPENDENCE_INDEX,
+                   project_root=ROOT if real else tmp_path)
+    assert result["status"] == ("FORMALLY_VERIFIED" if real else "LEAN_UNAVAILABLE"), result["kernel"]
+    assert result["scope"] == "ALL_GRAPH_ORDERS"
+    assert {lemma["theorem"] for side in result["derivation"]["directions"]
+            for lemma in side["lemmas"]} == lemmas
+    assert audit(result)

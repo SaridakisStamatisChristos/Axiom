@@ -250,6 +250,9 @@ jobs:
           axiom graph-discover-universal "${common[@]}" --proof-profile components > "$OUT/discovery_components.json"
           axiom graph-discover-universal-audit "${common[@]}" --artifact "$OUT/discovery_components.json" > "$OUT/discovery_components_audited.json"
           cmp "$OUT/discovery_components.json" "$OUT/discovery_components_audited.json"
+          axiom graph-discover-universal "${common[@]}" --proof-profile component-independence > "$OUT/discovery_component_independence.json"
+          axiom graph-discover-universal-audit "${common[@]}" --artifact "$OUT/discovery_component_independence.json" > "$OUT/discovery_component_independence_audited.json"
+          cmp "$OUT/discovery_component_independence.json" "$OUT/discovery_component_independence_audited.json"
           python - "$OUT" <<'PY'
           import json
           from pathlib import Path
@@ -283,6 +286,11 @@ jobs:
           assert [a["provenance"] for a in components["results"]] == [a["provenance"] for a in matching["results"]]
           assert len(components["results"]) == 6
           assert all(a["status"] == "FORMALLY_VERIFIED" for a in components["results"])
+          independence = json.loads((root / "discovery_component_independence.json").read_text())
+          assert independence["proof_configuration"]["profile"] == "component-independence"
+          assert independence["discovery_sha256"] == components["discovery_sha256"]
+          assert [a["provenance"] for a in independence["results"]] == [a["provenance"] for a in components["results"]]
+          assert all(a["status"] == "FORMALLY_VERIFIED" for a in independence["results"])
           outcomes = []
           for index, attempt in enumerate(report["results"]):
               provenance = attempt["provenance"]
@@ -325,6 +333,7 @@ jobs:
       github.head_ref == 'axiom-v029-graph-adapters' ||
       github.head_ref == 'axiom-v030-bipartite-matching' ||
       github.head_ref == 'axiom-component-proofs' ||
+      github.head_ref == 'axiom-component-independence' ||
       github.ref_name == 'main'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
