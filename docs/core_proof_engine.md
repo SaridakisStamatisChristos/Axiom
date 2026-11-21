@@ -94,6 +94,35 @@ after installing pinned Lean. The benchmark compares the fixed bank and
 retrieval on five frozen composite goals, retains both modes' proof records,
 and cross-checks the statements with two small-graph oracles.
 
+## Optional intermediate-lemma synthesis
+
+Add `--synthesize-lemmas K` to `graph-prove` to try up to `K` synthesized
+lemmas after the enabled search stages exhaust their candidates. It uses
+applicable fixed-bank lemmas and any adapters selected by the optional
+Mathlib retrieval stage. For each parent pair with opposite signs on a
+shared invariant, it computes positive integer multipliers that eliminate
+that invariant. The remaining coefficients are divided by their GCD and the
+right-hand side is rounded down because the invariants are integers.
+
+The engine ranks the projected bounds, retains the strongest for each
+coefficient vector, and retries composition within the remaining node
+budget. This is one projection layer. Certificates name the two original
+parents, their multipliers, the eliminated invariant and the normalization
+divisor. Generated Lean source proves each used projection from its parents
+before proving the original goal. Offline replay checks the ancestry.
+Existing v1 and v2 attempts retain their source and record formats.
+
+```bash
+axiom graph-prove statement.json --retrieve-lemmas 5 --synthesize-lemmas 3
+python scripts/benchmark_graph_retrieval.py --synthesis --output synthesis-benchmark
+```
+
+The synthesis benchmark compares retrieval alone with retrieval followed by
+projection on four frozen composite bounds. The final proof search uses the
+same default three-lemma limit in both modes. Its output retains the
+original statement, both attempt records, Lean source and the two-oracle
+bounded check.
+
 ## Discovery and benchmark
 
 Use a source database built by the reconstruction step in
