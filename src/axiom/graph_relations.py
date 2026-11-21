@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from fractions import Fraction
 from math import gcd, lcm
 
-from .graph_affine import AffineGraphConjecture, VARIABLES
+from .graph_affine import AffineGraphConjecture, ProofAffineBound, VARIABLES
 from .graph_claims import digest
 
 
@@ -13,7 +13,7 @@ class AffineRelation:
     relation: str = "<="
 
     def __post_init__(self):
-        if (type(self.bound) is not AffineGraphConjecture or type(self.relation) is not str
+        if (type(self.bound) not in (AffineGraphConjecture, ProofAffineBound) or type(self.relation) is not str
                 or self.relation not in ("<=", "=")):
             raise ValueError("expected a typed affine inequality or equality")
         divisor = gcd(*(coefficient for _, coefficient in self.bound.terms))
@@ -37,7 +37,10 @@ class AffineRelation:
             raise ValueError("integer affine equality has a nonintegral primitive bound")
         # The left side is integer-valued: dividing <= by a positive integer floors the RHS.
         sign = -1 if relation == "=" and integers[0][1] < 0 else 1
-        return cls(AffineGraphConjecture(
+        legacy_shape = (2 <= len(integers) <= 3
+                        and sum(name != "n" for name, _ in integers) >= 2)
+        bound_type = AffineGraphConjecture if legacy_shape else ProofAffineBound
+        return cls(bound_type(
             tuple((name, sign * coefficient // divisor) for name, coefficient in integers),
             sign * (threshold.numerator // threshold.denominator), assumption), relation)
 
@@ -48,7 +51,10 @@ class AffineRelation:
     def from_dict(cls, data):
         if type(data) is not dict or set(data) != {"relation", "bound"}:
             raise ValueError("invalid affine relation")
-        return cls(AffineGraphConjecture.from_dict(data["bound"]), data["relation"])
+        bound = data["bound"]
+        bound_type = (ProofAffineBound if type(bound) is dict
+                      and bound.get("schema") == ProofAffineBound.schema else AffineGraphConjecture)
+        return cls(bound_type.from_dict(bound), data["relation"])
 
     @property
     def id(self):
@@ -57,7 +63,7 @@ class AffineRelation:
     def inequalities(self):
         if self.relation == "<=":
             return (self.bound,)
-        opposite = AffineGraphConjecture.normalized(
+        opposite = type(self.bound).normalized(
             {name: -value for name, value in self.bound.terms},
             -self.bound.upper, self.bound.assumption)
         return self.bound, opposite

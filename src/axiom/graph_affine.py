@@ -11,6 +11,7 @@ from enum import StrEnum
 from fractions import Fraction
 from functools import reduce
 from math import gcd, lcm
+from typing import ClassVar
 
 from .graph_claims import digest, stable
 
@@ -88,12 +89,17 @@ class AffineExpression:
 @dataclass(frozen=True)
 class AffineGraphConjecture:
     """sum(coeff_i * integer_graph_invariant_i) <= upper, for all finite graphs."""
+    schema: ClassVar[str] = SCHEMA
+    min_terms: ClassVar[int] = 2
+    max_terms: ClassVar[int] = 3
+    min_observables: ClassVar[int] = 2
+
     terms: tuple[tuple[str, int], ...]
     upper: int
     assumption: str = "ALL"
 
     def __post_init__(self) -> None:
-        if (type(self.terms) is not tuple or not 2 <= len(self.terms) <= 3
+        if (type(self.terms) is not tuple or not self.min_terms <= len(self.terms) <= self.max_terms
                 or self.assumption not in ASSUMPTIONS
                 or type(self.upper) is not int or abs(self.upper) > MAX_BOUND):
             raise ValueError("invalid affine statement arity/assumption/bound")
@@ -109,7 +115,7 @@ class AffineGraphConjecture:
             values.append(abs(item[1]))
         if names != sorted(names) or len(names) != len(set(names)):
             raise ValueError("affine terms must be sorted and unique")
-        if sum(name != "n" for name in names) < 2:
+        if sum(name != "n" for name in names) < self.min_observables:
             raise ValueError("require at least two graph observables")
         if reduce(gcd, values + [abs(self.upper)]) != 1:
             raise ValueError("affine statement has an unnormalized common factor")
@@ -156,7 +162,7 @@ class AffineGraphConjecture:
 
     def to_dict(self) -> dict:
         return {
-            "schema": SCHEMA,
+            "schema": self.schema,
             "quantifier": "forall_finite_simple_graphs_all_orders",
             "assumption": self.assumption,
             "lhs": [{"symbol": symbol, "numerator": coefficient, "denominator": 1}
@@ -197,6 +203,21 @@ class AffineGraphConjecture:
     @property
     def id(self) -> str:
         return "affine-graph:" + digest(self.to_dict())
+
+
+@dataclass(frozen=True)
+class ProofAffineBound(AffineGraphConjecture):
+    """Wider graph proof input. The legacy discovery grammar keeps v1."""
+
+    schema: ClassVar[str] = "axiom.graph.proof_affine_bound.v1"
+    min_terms: ClassVar[int] = 1
+    max_terms: ClassVar[int] = 6
+    min_observables: ClassVar[int] = 0
+
+    def __post_init__(self):
+        super().__post_init__()
+        if 2 <= len(self.terms) <= 3 and sum(name != "n" for name, _ in self.terms) >= 2:
+            raise ValueError("use the legacy bound schema for a legacy-shaped relation")
 
 
 def applicable(assumption: str, graph: dict) -> bool:
