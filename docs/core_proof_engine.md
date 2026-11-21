@@ -71,6 +71,135 @@ combination search did not derive the claim. `UNSUPPORTED` indicates an input
 outside the typed proof grammar. `LEAN_UNAVAILABLE` and `LEAN_REJECTED` carry
 separate environment or checker diagnostics. Novelty is recorded independently.
 
+## Optional pinned Mathlib lemma retrieval
+
+Add `--retrieve-lemmas K` to `graph-prove` to opt in, with `K` from 1
+through 32. The first pass uses the existing bank. If it finds no derivation
+and leaves nodes in the budget, the second pass retrieves up to `K` adapters
+and reuses only those remaining nodes. Applicable adapters are ranked by
+exact direction, signed term overlap, sparsity, and stable theorem name.
+The index contains curated affine adapters to declarations at the pinned
+Mathlib revision. Coverage currently includes bounds on clique number,
+independence number, chromatic number, maximum degree and bipartite colorings.
+
+The versioned proof record includes the index digest, ranked selections,
+Mathlib declaration names, and the initial derivation when fallback runs.
+Only selected adapters used in the certificate appear in the generated
+source. Lean checks each emitted adapter and the final all-orders statement.
+Offline audit replays the selection and verifies the artifact's integrity.
+Existing attempts without the option retain their original schema and source.
+
+Run `python scripts/benchmark_graph_retrieval.py --output retrieval-benchmark`
+after installing pinned Lean. The benchmark compares the fixed bank and
+retrieval on five frozen composite goals, retains both modes' proof records,
+and cross-checks the statements with two small-graph oracles.
+
+## Optional intermediate-lemma synthesis
+
+Add `--synthesize-lemmas K` to `graph-prove` to try up to `K` synthesized
+lemmas after the enabled search stages exhaust their candidates. It uses
+applicable fixed-bank lemmas and any adapters selected by the optional
+Mathlib retrieval stage. For each parent pair with opposite signs on a
+shared invariant, it computes positive integer multipliers that eliminate
+that invariant. The remaining coefficients are divided by their GCD and the
+right-hand side is rounded down because the invariants are integers.
+
+The engine ranks the projected bounds, retains the strongest for each
+coefficient vector, and retries composition within the remaining node
+budget. This is one projection layer. Certificates name the two original
+parents, their multipliers, the eliminated invariant and the normalization
+divisor. Generated Lean source proves each used projection from its parents
+before proving the original goal. Offline replay checks the ancestry.
+Existing v1 and v2 attempts retain their source and record formats.
+
+```bash
+axiom graph-prove statement.json --retrieve-lemmas 5 --synthesize-lemmas 3
+python scripts/benchmark_graph_retrieval.py --synthesis --output synthesis-benchmark
+```
+
+The synthesis benchmark compares retrieval alone with retrieval followed by
+projection on four frozen composite bounds. The final proof search uses the
+same default three-lemma limit in both modes. Its output retains the
+original statement, both attempt records, Lean source and the two-oracle
+bounded check.
+
+## Optional graph-order case splitting
+
+Add `--split-order` to try one partition into `n = 0` and `n > 0` after
+the enabled proof searches exhaust their candidates. The positive-order
+search uses the remaining node budget and can apply bounds that need a
+nonempty vertex type. Lean proves the empty branch from zero-valued
+invariants or from the fact that a connected graph has a vertex. Lean then
+checks both branches of the original universally quantified statement.
+
+The v4 attempt records whether the partition ran, the prior derivation,
+the positive-order facts used, and the empty-branch strategy. Offline
+audit replays the search and checks the generated source. Counterexample
+search still runs before any proof search.
+
+```bash
+axiom graph-prove statement.json --retrieve-lemmas 5 --synthesize-lemmas 3 --split-order
+python scripts/benchmark_graph_retrieval.py --order-split --output order-split-benchmark
+```
+
+The benchmark compares the same retrieval and synthesis settings with
+case splitting disabled and enabled on six frozen graph bounds, archives
+the attempts and checked source, and checks each goal against two
+small-graph oracles.
+
+## Optional edge-count induction
+
+Add `--induct-edges` to retry within the remaining node budget after the
+enabled fallbacks. It adds one general-purpose bound, `n ≤ edges + independence`,
+to the affine search. Lean proves it by strong induction on the number of
+edges. With no edges all vertices form an independent set. Otherwise, delete
+one edge, apply the induction hypothesis to the smaller graph, and discard
+one endpoint from its maximum independent set to obtain an independent set
+of the original graph.
+
+The engine can combine this bound with fixed or retrieved lemmas, synthesized
+bounds, and local case facts when order splitting is enabled. It emits the
+induction proof only if the final derivation uses the bound. The v5 record
+includes the preceding search and the selected induction fact. The offline
+auditor regenerates the same source and checks its digest. The induction
+rule is specific to this bound on finite simple graphs.
+
+```bash
+axiom graph-prove statement.json --retrieve-lemmas 5 --synthesize-lemmas 3 --split-order --induct-edges
+python scripts/benchmark_graph_retrieval.py --edge-induction --output edge-induction-benchmark
+```
+
+The benchmark keeps the earlier fallbacks enabled in both modes. It archives
+the exact statements, proof records and checked Lean source, and cross-checks
+the targets with two independent small-graph oracles.
+
+## Optional Lean proof-plan search
+
+Add `--proof-plans K` (1–16) after the existing fallbacks. AXIOM tries
+`omega` on the goal alone, then ranked bundles of facts from the enabled
+proof stages. Bundles draw from at most seven eligible facts and respect
+`--max-lemmas`. The remaining search-node budget also caps how many plans
+are emitted. The earlier coefficient cap applies to exact composition.
+Lean's arithmetic tactic can combine facts with other coefficients and
+use the nonnegativity of natural-number invariants. A plan that uses a
+positive-order fact proves both graph-order branches.
+
+Lean tries the plans in one invocation under the existing timeout. A
+plan must close every goal to reach its trace marker. The v6 record keeps
+the ordered plans, the accepted index from the checked Lean log, and the
+exact generated source. Offline audit regenerates that source and checks
+the index against the recorded log. Exhausting all plans yields a Lean
+rejection. The ordinary counterexample search still runs first.
+
+```bash
+axiom graph-prove statement.json --retrieve-lemmas 5 --synthesize-lemmas 3 \
+  --split-order --induct-edges --proof-plans 16
+python scripts/benchmark_graph_retrieval.py --proof-plans --output proof-plan-benchmark
+```
+
+The benchmark compares the same earlier fallbacks with and without tactic
+plans and retains both attempts, checked source, and two-oracle graph checks.
+
 ## Discovery and benchmark
 
 Use a source database built by the reconstruction step in
