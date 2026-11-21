@@ -354,7 +354,7 @@ def main() -> None:
     proof.add_argument("--max-nodes", type=int, default=10_000)
     proof.add_argument("--retrieve-lemmas", type=int, default=0, metavar="K",
                        help="retry exhausted composition with up to K pinned Mathlib adapters")
-    proof.add_argument("--retrieval-index", choices=("v1", "v2", "v3", "v4", "v5", "v6"), default="v1",
+    proof.add_argument("--retrieval-index", choices=("v1", "v2", "v3", "v4", "v5", "v6", "v7"), default="v1",
                        help="select the Mathlib retrieval index version")
     proof.add_argument("--synthesize-lemmas", type=int, default=0, metavar="K",
                        help="retry exhausted search with up to K projected intermediate lemmas")
@@ -407,7 +407,7 @@ def main() -> None:
         if command == "graph-discover-universal":
             discovery.add_argument("--proof-profile",
                                    choices=("extended", "structural", "matching", "components",
-                                            "component-independence", "matching-cardinality"),
+                                            "component-independence", "matching-cardinality", "clique-independence"),
                                    help="use the extended proof engine on the audited selections")
             discovery.add_argument("--proof-hints", metavar="FILE",
                                    help="statement-bound campaign hint manifest for the chosen profile")
@@ -418,7 +418,8 @@ def main() -> None:
     if args.command in {"graph-prove", "graph-prove-audit"}:
         from pathlib import Path
         from .graph_lemma_retrieval import (
-            COMPONENT_INDEX, COMPONENT_INDEPENDENCE_INDEX, INDEX_VERSION, MATCHING_CARDINALITY_INDEX,
+            CLIQUE_INDEPENDENCE_INDEX, COMPONENT_INDEX, COMPONENT_INDEPENDENCE_INDEX, INDEX_VERSION,
+            MATCHING_CARDINALITY_INDEX,
             MATCHING_INDEX, STRUCTURAL_INDEX,
         )
         from .graph_proof import audit, hint_context, prove
@@ -436,7 +437,7 @@ def main() -> None:
             statement = json.loads(Path(args.statement_file).read_text(encoding="utf-8"))
             indexes = {"v1": INDEX_VERSION, "v2": STRUCTURAL_INDEX, "v3": MATCHING_INDEX,
                        "v4": COMPONENT_INDEX, "v5": COMPONENT_INDEPENDENCE_INDEX,
-                       "v6": MATCHING_CARDINALITY_INDEX}
+                       "v6": MATCHING_CARDINALITY_INDEX, "v7": CLIQUE_INDEPENDENCE_INDEX}
             options = dict(witness_order=args.witness_order, retrieval_limit=args.retrieve_lemmas,
                            retrieval_index=indexes[args.retrieval_index],
                            synthesis_limit=args.synthesize_lemmas, split_order=args.split_order,

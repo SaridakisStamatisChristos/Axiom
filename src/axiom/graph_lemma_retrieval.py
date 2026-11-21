@@ -246,23 +246,55 @@ _INDEX_V6 = _INDEX_V5 + (
     ),
 )
 
+_INDEX_V7 = _INDEX_V6 + (
+    _adapter(
+        "clique_add_independence_le_order_add_one", "ALL",
+        {"clique": 1, "independence": 1, "n": -1}, 1,
+        ("SimpleGraph.exists_isNClique_cliqueNum", "SimpleGraph.exists_isNIndepSet_indepNum",
+         "Finset.card_union_add_card_inter", "Finset.card_le_one_iff"),
+        """\
+classical
+  obtain ⟨C, hC⟩ := G.exists_isNClique_cliqueNum
+  obtain ⟨S, hS⟩ := G.exists_isNIndepSet_indepNum
+  have intersection : (C ∩ S).card ≤ 1 := by
+    apply Finset.card_le_one_iff.mpr
+    intro a b ha hb
+    by_contra hab
+    have ha' := Finset.mem_inter.mp ha
+    have hb' := Finset.mem_inter.mp hb
+    exact hS.isIndepSet ha'.2 hb'.2 hab (hC.isClique ha'.1 hb'.1 hab)
+  have union : (C ∪ S).card ≤ n := by
+    simpa only [Fintype.card_fin] using Finset.card_le_univ (C ∪ S)
+  have total := Finset.card_union_add_card_inter C S
+  have clique_card := hC.card_eq
+  have independent_card := hS.card_eq
+  unfold clique independence
+  omega""",
+    ),
+)
+
 INDEX_VERSION = "axiom.mathlib_affine_graph_index.v1"
 STRUCTURAL_INDEX = "axiom.mathlib_affine_graph_index.v2"
 MATCHING_INDEX = "axiom.mathlib_affine_graph_index.v3"
 COMPONENT_INDEX = "axiom.mathlib_affine_graph_index.v4"
 COMPONENT_INDEPENDENCE_INDEX = "axiom.mathlib_affine_graph_index.v5"
 MATCHING_CARDINALITY_INDEX = "axiom.mathlib_affine_graph_index.v6"
+CLIQUE_INDEPENDENCE_INDEX = "axiom.mathlib_affine_graph_index.v7"
 _INDEXES = {INDEX_VERSION: _INDEX_V1, STRUCTURAL_INDEX: _INDEX_V2, MATCHING_INDEX: _INDEX_V3,
             COMPONENT_INDEX: _INDEX_V4, COMPONENT_INDEPENDENCE_INDEX: _INDEX_V5,
-            MATCHING_CARDINALITY_INDEX: _INDEX_V6}
+            MATCHING_CARDINALITY_INDEX: _INDEX_V6, CLIQUE_INDEPENDENCE_INDEX: _INDEX_V7}
 _MATCHING_CARDINALITY_ADAPTER = "retrieved_twice_matching_le_order"
 _MATCHING_CARDINALITY_POLICY = "offer_cardinality_adapter_for_matching_coefficient_at_least_two"
+_CLIQUE_INDEPENDENCE_ADAPTER = "retrieved_clique_add_independence_le_order_add_one"
+_CLIQUE_INDEPENDENCE_POLICY = "offer_joint_bound_for_positive_clique_and_independence"
 INDEX_DIGESTS = {version: digest({
     "schema": version,
     "mathlib_revision": PINNED_MATHLIB_SHA,
     "entries": [{"lemma": asdict(a.lemma), "declarations": a.declarations, "proof": a.proof,
                  **({"imports": a.imports} if a.imports else {})} for a in entries],
     **({"selection": _MATCHING_CARDINALITY_POLICY} if version == MATCHING_CARDINALITY_INDEX else {}),
+    **({"selection": [_MATCHING_CARDINALITY_POLICY, _CLIQUE_INDEPENDENCE_POLICY]}
+       if version == CLIQUE_INDEPENDENCE_INDEX else {}),
 }) for version, entries in _INDEXES.items()}
 INDEX_SHA256 = INDEX_DIGESTS[INDEX_VERSION]
 MAX_RETRIEVED_LEMMAS = 32
@@ -274,6 +306,9 @@ def retrieve(claim: AffineRelation, limit: int, *, index=INDEX_VERSION) -> tuple
     targets = [_vector(side.terms) for side in directions]
     needs_cardinality = any(dict(side.terms).get("matching", 0) >= 2 for side in directions)
 
+    needs_joint_bound = any(dict(side.terms).get("clique", 0) > 0
+                            and dict(side.terms).get("independence", 0) > 0 for side in directions)
+
     def rank(entry):
         vector = entry.lemma.vector
         shared = max(sum(x * y > 0 for x, y in zip(vector, target)) for target in targets)
@@ -281,7 +316,8 @@ def retrieve(claim: AffineRelation, limit: int, *, index=INDEX_VERSION) -> tuple
 
     applicable = (entry for entry in _INDEXES[index]
                   if entry.lemma.premise in ("ALL", claim.bound.assumption)
-                  and (entry.lemma.theorem != _MATCHING_CARDINALITY_ADAPTER or needs_cardinality))
+                  and (entry.lemma.theorem != _MATCHING_CARDINALITY_ADAPTER or needs_cardinality)
+                  and (entry.lemma.theorem != _CLIQUE_INDEPENDENCE_ADAPTER or needs_joint_bound))
     return tuple(sorted(applicable, key=rank)[:limit])
 
 

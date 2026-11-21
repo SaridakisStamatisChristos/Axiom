@@ -379,3 +379,19 @@ The same full-strength v5 profile exhausted its proof plans on each.
 - `2 * matching + triangles <= n` for triangle-free graphs.
 
 The 32-case regression suite retains 22 proofs and 10 counterexamples.
+
+### Bound the sum of clique and independence numbers
+
+`--retrieve-lemmas 5 --retrieval-index v7` adds the universal bound
+`clique + independence <= n + 1`. A maximum clique and a maximum independent
+set share at most one vertex, and their union fits in the graph. The proof
+uses the cardinality identity for their union and intersection.
+
+The index offers this joint bound when a goal direction has positive
+coefficients for both invariants. Use `--proof-profile clique-independence`
+to select v7 in a discovery campaign. The profile uses the same search
+limits as v6.
+
+The same adapter composes with the matching and coloring bounds to prove
+`clique + independence + matching <= n + edges + 1` and
+`clique + independence + chromatic <= n + maximum_degree + 2`.
