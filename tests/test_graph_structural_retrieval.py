@@ -47,6 +47,12 @@ def test_index_is_bound_to_replay_and_respects_assumptions(tmp_path):
     forged = deepcopy(result)
     forged["retrieval"]["index"] = INDEX_VERSION
     forged["record_sha256"] = digest({k: v for k, v in forged.items() if k != "record_sha256"})
+    with pytest.raises(ValueError, match="unexpected kernel evidence"):
+        audit(forged)
+
+    forged = deepcopy(result)
+    forged["retrieval"]["index_sha256"] = "0" * 64
+    forged["record_sha256"] = digest({k: v for k, v in forged.items() if k != "record_sha256"})
     with pytest.raises(ValueError, match="deterministic replay"):
         audit(forged)
     with pytest.raises(ValueError, match="positive retrieval limit"):
