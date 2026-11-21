@@ -1,7 +1,7 @@
 name: AXIOM v0.18 compositional graph conjecture synthesis
 on:
   push:
-    branches: [main, "axiom-v0.18-*", "axiom-issue-15-*", "axiom-issue-18-*", "axiom-v0.21-*"]
+    branches: [main, "axiom-v0.18-*", "axiom-issue-15-*", "axiom-issue-18-*"]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -269,7 +269,7 @@ jobs:
           if-no-files-found: warn
 
   proof-engine-regressions:
-    if: github.head_ref == 'axiom-v0.21-proof-engine' || github.ref_name == 'axiom-v0.21-proof-engine' || github.ref_name == 'main'
+    if: github.head_ref == 'axiom-v0.21-proof-engine' || github.ref_name == 'main'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
@@ -277,8 +277,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: python -m pip install -e '.[dev]'
-      - run: pytest -q | tee pytest-full.log
+      - run: python -m pip install -e '.[dev]' pytest-xdist==3.8.0
+      - run: pytest -q -n 4 --dist=loadfile | tee pytest-full.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:

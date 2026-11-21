@@ -1,4 +1,4 @@
-## Core graph proof engine (v0.21 candidate)
+## Core graph proof engine (v0.21.0rc1)
 
 AXIOM provides bounded proof synthesis from an existing Mathlib lemma bank.
 It searches integer combinations of certified graph inequalities, generates

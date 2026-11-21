@@ -2,7 +2,7 @@
 
 The [frozen baseline](../research/proof_engine/baseline.json) dispatches one
 lemma per inequality direction. Its documented [all-orders lemma bank](graph_universal_v020.md)
-is separate from the historical n=3 and n=6 Lean checks. The candidate release
+is separate from the historical n=3 and n=6 Lean checks. The v0.21.0rc1 candidate
 extends proof construction while retaining all three paths and their scopes.
 
 ## From canonical JSON to an all-orders proof

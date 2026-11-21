@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.21.0rc1 — Core graph proof engine
+
+- Search bounded, exact integer combinations of the existing graph lemma bank.
+- Generate and check all-orders Lean statements and retain replayable proofs and witnesses.
+- Route source-audited graph candidates through the optional four-term proof lane.
+- Benchmark against v0.20's single-lemma dispatch and preserve historical fixed-order scopes.
+
 ## v0.9.0 — Graph Conjecture Frontier (development, 13 November 2026)
 
 - Added deterministic counterexample discovery campaigns for target graph
