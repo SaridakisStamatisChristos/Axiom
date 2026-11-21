@@ -17,9 +17,14 @@ ROOT = Path(__file__).resolve().parents[1] / "research" / "autographforge"
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--frozen-100", action="store_true")
     args = parser.parse_args()
     history = json.loads((ROOT / "discovery-v7.json").read_bytes())
     controls = json.loads((ROOT / "discovery-v7-expected.json").read_bytes())["refuted"]
+    if args.frozen_100:
+        cases = json.loads((ROOT / "active-refutation-100-v1.json").read_bytes())["cases"]
+        history = {row["id"]: row for row in cases}
+        controls = list(history)
     panels = [nx.empty_graph(n) for n in (0, 1, 2, 3)]
     panels.extend(graph for n in (5, 6, 7, 8, 10, 11, 12)
                   for graph in (nx.cycle_graph(n), nx.path_graph(n),
@@ -41,7 +46,7 @@ def main():
     report = {"schema": "axiom.graph.active_refutation_pilot.v1", "networkx": nx.__version__,
               "historical_false_total": len(controls), "results": results,
               "seed_graphs": [g.to_dict() for g in seeds],
-              "note": "development pilot on historical false statements; no equal-compute independent evaluation"}
+              "note": "historical false statements; no equal-compute unseen-family evaluation"}
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
 
 
