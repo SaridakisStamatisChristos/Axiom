@@ -54,18 +54,24 @@ def _lemma_facts(matches):
     )
 
 
-def _render_source(claim, name, facts):
+def _render_terms(terms):
+    return " + ".join(f"({weight} : Int) * (({_TERMS[symbol]}) : Int)"
+                      for symbol, weight in terms)
+
+
+def _render_source(claim, name, facts, *, adapters="", proof_body=None):
     bound = claim.bound
     source = files("axiom").joinpath("lean", "GraphUniversal.lean").read_text(encoding="utf-8")
-    terms = " + ".join(f"({weight} : Int) * (({_TERMS[symbol]}) : Int)"
-                       for symbol, weight in bound.terms)
+    terms = _render_terms(bound.terms)
     relation = "≤" if claim.relation == "<=" else "="
+    body = f"{facts}\n  omega" if proof_body is None else proof_body
     source += (
         "\nnamespace AxiomGraphUniversal\n"
+        f"{adapters}"
         f"theorem {name} (n : Nat) (G : SimpleGraph (Fin n)) [DecidableRel G.Adj]"
         f"{_PREMISES[bound.assumption]} :\n"
         f"    {terms} {relation} ({bound.upper} : Int) := by\n"
-        f"{facts}\n  omega\n"
+        f"{body}\n"
         f"#print axioms {name}\nend AxiomGraphUniversal\n"
     )
     return source

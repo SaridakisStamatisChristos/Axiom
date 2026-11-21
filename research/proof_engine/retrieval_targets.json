@@ -1,0 +1,7 @@
+[
+  ["clique-matching", "ALL", {"clique": 1, "matching": 1, "n": -1, "edges": -1}, 0, "clique_le_order"],
+  ["independence-components", "ALL", {"independence": 1, "components": 1, "n": -2}, 0, "independence_le_order"],
+  ["chromatic-components", "ALL", {"chromatic": 1, "components": 1, "n": -2}, 0, "chromatic_le_order"],
+  ["degree-matching", "ALL", {"maximum_degree": 1, "matching": 1, "edges": -2}, 0, "degree_le_edges"],
+  ["bipartite-chromatic-matching", "BIPARTITE", {"chromatic": 1, "matching": 1, "edges": -1}, 2, "bipartite_chromatic_le_two"]
+]

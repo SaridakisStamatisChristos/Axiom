@@ -1,5 +1,5 @@
 """All-orders proof attempts and offline replay of their evidence."""
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from hashlib import sha256
 from math import isfinite
 import re
@@ -10,14 +10,25 @@ from .graph_affine_lean_n3 import run_affine_kernel
 from .graph_checker import reference_properties
 from .graph_claims import digest, stable
 from .graph_discovery import _failed_side
+from .graph_edge_induction import (EDGE_INDUCTION_PROOF, EDGE_INDUCTION_RULE,
+                                   EDGE_INDUCTION_VERSION)
+from .graph_lemma_retrieval import INDEX_SHA256, INDEX_VERSION, MAX_RETRIEVED_LEMMAS, describe, retrieve
+from .graph_lemma_synthesis import MAX_SYNTHESIZED_LEMMAS, SYNTHESIS_VERSION, synthesize
 from .graph_model import edge_positions
+from .graph_order_split import ORDER_SPLIT_VERSION, POSITIVE_BANK, proof_body as order_split_body
 from .graph_proof_search import LemmaSpec, SearchLimits, search
 from .graph_relations import AffineRelation, _vector
 from .graph_synthesis import _witness
-from .graph_universal_lean import PINNED_MATHLIB_SHA, VERIFIED, _RULES, _lemma_facts, _render_source
+from .graph_universal_lean import (
+    PINNED_MATHLIB_SHA, VERIFIED, _PREMISES, _RULES, _lemma_facts, _render_source, _render_terms,
+)
 from .lean_backend import ALLOWED_AXIOMS, LEAN_VERSION, MATHLIB_REV, TOOLCHAIN, _axiom_report
 
 SCHEMA = "axiom.graph_proof_attempt.v1"
+RETRIEVAL_SCHEMA = "axiom.graph_proof_attempt.v2"
+SYNTHESIS_SCHEMA = "axiom.graph_proof_attempt.v3"
+SPLIT_SCHEMA = "axiom.graph_proof_attempt.v4"
+INDUCTION_SCHEMA = "axiom.graph_proof_attempt.v5"
 BANK = tuple(LemmaSpec(name, premise, _vector(weights.items()), rhs)
              for name, premise, weights, rhs in _RULES)
 UNAVAILABLE = frozenset({
@@ -57,7 +68,42 @@ def _small_witness(claim, witness_order):
     return None
 
 
-def _prepare(statement, limits, witness_order, external_witness):
+def _render_lemma(spec, proof):
+    terms = [(symbol, weight) for symbol, weight in zip(VARIABLES, spec.vector) if weight]
+    return (
+        f"private theorem {spec.theorem} {{n : Nat}} (G : SimpleGraph (Fin n)) "
+        f"[DecidableRel G.Adj]{_PREMISES[spec.premise]} :\n"
+        f"    {_render_terms(terms)} ≤ ({spec.rhs} : Int) := by\n"
+        f"{proof}\n")
+
+
+def _render_adapters(selected, projections, matches):
+    used = [step for step in projections if (step.lemma.theorem, step.lemma.premise) in matches]
+    dependencies = set(matches) | {(parent.theorem, parent.premise)
+                                    for step in used for parent, _ in step.parents}
+    wrappers = [_render_lemma(entry.lemma, "  " + entry.proof) for entry in selected
+                if (entry.lemma.theorem, entry.lemma.premise) in dependencies]
+    for step in used:
+        facts = _lemma_facts((parent.theorem, parent.premise) for parent, _ in step.parents)
+        wrappers.append(_render_lemma(step.lemma, facts + "\n  omega"))
+    return "\n".join(wrappers) + "\n" if wrappers else ""
+
+
+def _retry(claim, bank, limits, previous_nodes):
+    result = search(claim, bank, replace(limits, max_nodes=limits.max_nodes - previous_nodes))
+    return {**result, "nodes": previous_nodes + result["nodes"]}
+
+
+def _prepare(statement, limits, witness_order, external_witness, retrieval_limit=0,
+             synthesis_limit=0, split_order=False, induct_edges=False):
+    if type(induct_edges) is not bool:
+        raise ValueError("invalid edge induction option")
+    if type(split_order) is not bool:
+        raise ValueError("invalid order split option")
+    if type(retrieval_limit) is not int or not 0 <= retrieval_limit <= MAX_RETRIEVED_LEMMAS:
+        raise ValueError("invalid lemma retrieval limit")
+    if type(synthesis_limit) is not int or not 0 <= synthesis_limit <= MAX_SYNTHESIZED_LEMMAS:
+        raise ValueError("invalid lemma synthesis limit")
     if type(witness_order) is not int or not 0 <= witness_order <= 5:
         raise ValueError("witness order must be between 0 and 5")
     base = {
@@ -68,6 +114,26 @@ def _prepare(statement, limits, witness_order, external_witness):
         "search_limits": asdict(limits), "witness_order_limit": witness_order,
         "derivation": None, "counterexample": None, "generated": None,
     }
+    if retrieval_limit:
+        base.update(schema=RETRIEVAL_SCHEMA, retrieval={
+            "limit": retrieval_limit, "index": INDEX_VERSION, "index_sha256": INDEX_SHA256,
+            "primary_nodes": None, "initial_derivation": None, "selected": [], "attempted": False,
+        })
+    if synthesis_limit:
+        base.update(schema=SYNTHESIS_SCHEMA, synthesis={
+            "limit": synthesis_limit, "method": SYNTHESIS_VERSION,
+            "initial_derivation": None, "selected": [], "attempted": False,
+        })
+    if split_order:
+        base.update(schema=SPLIT_SCHEMA, order_split={
+            "method": ORDER_SPLIT_VERSION, "attempted": False,
+            "initial_derivation": None, "positive_facts": [], "zero_branch": None,
+        })
+    if induct_edges:
+        base.update(schema=INDUCTION_SCHEMA, edge_induction={
+            "method": EDGE_INDUCTION_VERSION, "attempted": False,
+            "initial_derivation": None, "selected_fact": None,
+        })
     try:
         claim = AffineRelation.from_dict(statement)
     except (ValueError, TypeError, KeyError):
@@ -85,15 +151,62 @@ def _prepare(statement, limits, witness_order, external_witness):
         return dict(base, status="COUNTEREXAMPLE", reason="INDEPENDENT_GRAPH_WITNESS",
                     counterexample=witness)
 
-    derivation = search(claim, BANK, limits)
+    bank = BANK
+    derivation = search(claim, bank, limits)
+    selected, projections = (), ()
+    if retrieval_limit:
+        info = base["retrieval"]
+        primary_nodes = derivation["nodes"]
+        info["primary_nodes"] = primary_nodes
+        remaining = limits.max_nodes - primary_nodes
+        if not derivation["derived"] and remaining > 0:
+            selected = retrieve(claim, retrieval_limit)
+            info.update(selected=[describe(entry) for entry in selected],
+                        initial_derivation=derivation, attempted=True)
+            bank = BANK + tuple(entry.lemma for entry in selected)
+            derivation = _retry(claim, bank, limits, primary_nodes)
+    if synthesis_limit and not derivation["derived"] and derivation["nodes"] < limits.max_nodes:
+        projections = synthesize(claim, bank, synthesis_limit)
+        base["synthesis"].update(attempted=True, initial_derivation=derivation,
+                                 selected=[step.evidence() for step in projections])
+        if projections:
+            bank += tuple(step.lemma for step in projections)
+            derivation = _retry(claim, bank, limits, derivation["nodes"])
+    split_used = split_order and not derivation["derived"] and derivation["nodes"] < limits.max_nodes
+    if split_used:
+        base["order_split"].update(
+            attempted=True, initial_derivation=derivation,
+            zero_branch="CONNECTED_IMPOSSIBLE" if claim.bound.assumption == "CONNECTED" else "ZERO_INVARIANTS",
+        )
+        bank += POSITIVE_BANK
+        derivation = _retry(claim, bank, limits, derivation["nodes"])
+    if induct_edges and not derivation["derived"] and derivation["nodes"] < limits.max_nodes:
+        base["edge_induction"].update(attempted=True, initial_derivation=derivation)
+        derivation = _retry(claim, bank + (EDGE_INDUCTION_RULE,), limits, derivation["nodes"])
     base["derivation"] = derivation
     if not derivation["derived"]:
-        reason = "NODE_BUDGET_EXHAUSTED" if derivation["node_budget_exhausted"] else "NO_BOUNDED_COMBINATION"
+        budget_exhausted = (derivation["node_budget_exhausted"]
+                            or ((retrieval_limit or synthesis_limit or split_order or induct_edges)
+                                and derivation["nodes"] == limits.max_nodes))
+        reason = "NODE_BUDGET_EXHAUSTED" if budget_exhausted else "NO_BOUNDED_COMBINATION"
         return dict(base, status="SEARCH_EXHAUSTED", reason=reason)
     matches = sorted({(lemma["theorem"], lemma["premise"])
                       for direction in derivation["directions"] for lemma in direction["lemmas"]})
+    body = None
+    if split_used:
+        local_bank = {lemma.theorem for lemma in POSITIVE_BANK}
+        local_names = [name for name, _ in matches if name in local_bank]
+        matches = [(name, premise) for name, premise in matches if name not in local_bank]
+        base["order_split"]["positive_facts"] = local_names
+        if local_names:
+            body = order_split_body(claim, matches, local_names)
+    adapters = _render_adapters(selected, projections, matches)
+    if (EDGE_INDUCTION_RULE.theorem, EDGE_INDUCTION_RULE.premise) in matches:
+        base["edge_induction"]["selected_fact"] = EDGE_INDUCTION_RULE.theorem
+        adapters += _render_lemma(EDGE_INDUCTION_RULE, EDGE_INDUCTION_PROOF) + "\n"
     name = "composite_" + digest(statement)[:24]
-    source = _render_source(claim, name, _lemma_facts(matches))
+    source = _render_source(claim, name, _lemma_facts(matches),
+                            adapters=adapters, proof_body=body)
     base["generated"] = {"source": source, "source_sha256": _sha(source),
                          "theorem": f"AxiomGraphUniversal.{name}"}
     return dict(base, status="NOT_ATTEMPTED", reason="DERIVATION_READY")
@@ -138,11 +251,13 @@ def _kernel_status(kernel, generated):
 
 
 def prove(statement, *, limits=SearchLimits(), witness_order=5, project_root=".", timeout=180,
-          provenance=None, external_witness=None):
+          provenance=None, external_witness=None, retrieval_limit=0, synthesis_limit=0,
+          split_order=False, induct_edges=False):
     if type(timeout) is not int or not 1 <= timeout <= 900:
         raise ValueError("Lean timeout must be between 1 and 900 seconds")
     started = perf_counter()
-    attempt = _prepare(statement, limits, witness_order, external_witness)
+    attempt = _prepare(statement, limits, witness_order, external_witness,
+                       retrieval_limit, synthesis_limit, split_order, induct_edges)
     elapsed = perf_counter() - started
     kernel = None
     if attempt["generated"] is not None:
@@ -157,7 +272,8 @@ def prove(statement, *, limits=SearchLimits(), witness_order=5, project_root="."
 
 
 def audit(attempt):
-    if type(attempt) is not dict or attempt.get("schema") != SCHEMA:
+    schemas = (SCHEMA, RETRIEVAL_SCHEMA, SYNTHESIS_SCHEMA, SPLIT_SCHEMA, INDUCTION_SCHEMA)
+    if type(attempt) is not dict or attempt.get("schema") not in schemas:
         raise ValueError("unknown proof attempt schema")
     payload = {key: value for key, value in attempt.items() if key != "record_sha256"}
     if digest(payload) != attempt.get("record_sha256"):
@@ -166,8 +282,20 @@ def audit(attempt):
     if (type(elapsed) not in (int, float) or not isfinite(elapsed) or elapsed < 0
             or type(timeout) is not int or not 1 <= timeout <= 900):
         raise ValueError("invalid proof timing evidence")
+    schema = attempt["schema"]
+    split_order = "order_split" in attempt
+    induct_edges = "edge_induction" in attempt
+    retrieval_limit = attempt["retrieval"]["limit"] if "retrieval" in attempt else 0
+    synthesis_limit = attempt["synthesis"]["limit"] if "synthesis" in attempt else 0
+    if (("retrieval" in attempt and (schema == SCHEMA or not retrieval_limit))
+            or ("synthesis" in attempt and (schema not in (SYNTHESIS_SCHEMA, SPLIT_SCHEMA, INDUCTION_SCHEMA)
+                                            or not synthesis_limit))
+            or (schema != INDUCTION_SCHEMA and split_order != (schema == SPLIT_SCHEMA))
+            or (induct_edges != (schema == INDUCTION_SCHEMA))):
+        raise ValueError("unexpected proof fallback evidence")
     expected = _prepare(attempt["statement"], SearchLimits(**attempt["search_limits"]),
-                        attempt["witness_order_limit"], attempt["external_witness"])
+                        attempt["witness_order_limit"], attempt["external_witness"],
+                        retrieval_limit, synthesis_limit, split_order, induct_edges)
     kernel = attempt["kernel"]
     if expected["generated"] is not None:
         expected["status"], expected["reason"] = _kernel_status(kernel, expected["generated"])
