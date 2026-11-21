@@ -15,18 +15,26 @@ from benchmark_graph_proof import check_small_graphs, write_json
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--synthesis", action="store_true",
-                        help="compare retrieval alone with retrieval plus projection")
+    fallback = parser.add_mutually_exclusive_group()
+    fallback.add_argument("--synthesis", action="store_true",
+                          help="compare retrieval alone with retrieval plus projection")
+    fallback.add_argument("--order-split", action="store_true",
+                          help="compare retrieval and projection with and without case splitting")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
-    if args.synthesis:
+    if args.order_split:
+        suite = root / "research/proof_engine/order_split_targets.json"
+        modes = {"synthesis": (5, 3, False), "order_split": (5, 3, True)}
+        schema = "axiom.graph_order_split_benchmark.v1"
+        scope = "zero and positive graph order on frozen evaluation goals"
+    elif args.synthesis:
         suite = root / "research/proof_engine/synthesis_targets.json"
-        modes = {"retrieval": (5, 0), "synthesis": (5, 3)}
+        modes = {"retrieval": (5, 0, False), "synthesis": (5, 3, False)}
         schema = "axiom.graph_synthesis_benchmark.v1"
         scope = "one-step affine projection and frozen composite evaluation goals"
     else:
         suite = root / "research/proof_engine/retrieval_targets.json"
-        modes = {"fixed": (0, 0), "retrieval": (1, 0)}
+        modes = {"fixed": (0, 0, False), "retrieval": (1, 0, False)}
         schema = "axiom.graph_retrieval_benchmark.v1"
         scope = "curated Mathlib index and fixed composite evaluation goals"
     baseline, upgraded = modes
@@ -40,19 +48,24 @@ def main():
         statement = case / "statement.json"
         write_json(statement, claim.to_dict())
         outcomes = {}
-        for mode, (retrieve_limit, synthesize_limit) in modes.items():
+        for mode, (retrieve_limit, synthesize_limit, split_order) in modes.items():
             output, source = case / (mode + ".json"), case / (mode + ".lean")
             subprocess.run([sys.executable, "-m", "axiom", "graph-prove", str(statement),
                             "--project-root", str(root), "--retrieve-lemmas", str(retrieve_limit),
                             "--synthesize-lemmas", str(synthesize_limit),
-                            "--output", str(output), "--source", str(source)], check=True)
+                            "--output", str(output), "--source", str(source),
+                            *(["--split-order"] if split_order else [])], check=True)
             record = json.loads(output.read_text(encoding="utf-8"))
             audit(record)
             if record["generated"] is not None:
                 assert source.read_text(encoding="utf-8") == record["generated"]["source"]
             outcomes[mode] = record["status"]
             counts[mode][record["status"]] += 1
-        if args.synthesis:
+        if args.order_split:
+            split = record["order_split"]
+            selection_ok = split["attempted"] and expected_selection in split["positive_facts"]
+            evidence = {"order_split": split}
+        elif args.synthesis:
             selected = record["synthesis"]["selected"]
             used = {lemma["theorem"] for direction in (record["derivation"] or {}).get("directions", ())
                     for lemma in direction["lemmas"] or ()}

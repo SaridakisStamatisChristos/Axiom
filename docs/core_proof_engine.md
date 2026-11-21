@@ -123,6 +123,30 @@ same default three-lemma limit in both modes. Its output retains the
 original statement, both attempt records, Lean source and the two-oracle
 bounded check.
 
+## Optional graph-order case splitting
+
+Add `--split-order` to try one partition into `n = 0` and `n > 0` after
+the enabled proof searches exhaust their candidates. The positive-order
+search uses the remaining node budget and can apply bounds that need a
+nonempty vertex type. Lean proves the empty branch from zero-valued
+invariants or from the fact that a connected graph has a vertex. Lean then
+checks both branches of the original universally quantified statement.
+
+The v4 attempt records whether the partition ran, the prior derivation,
+the positive-order facts used, and the empty-branch strategy. Offline
+audit replays the search and checks the generated source. Counterexample
+search still runs before any proof search.
+
+```bash
+axiom graph-prove statement.json --retrieve-lemmas 5 --synthesize-lemmas 3 --split-order
+python scripts/benchmark_graph_retrieval.py --order-split --output order-split-benchmark
+```
+
+The benchmark compares the same retrieval and synthesis settings with
+case splitting disabled and enabled on six frozen graph bounds, archives
+the attempts and checked source, and checks each goal against two
+small-graph oracles.
+
 ## Discovery and benchmark
 
 Use a source database built by the reconstruction step in
