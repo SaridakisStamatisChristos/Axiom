@@ -17,7 +17,7 @@ from axiom.graph_claims import digest
 from axiom.graph_proof import audit
 from axiom.graph_relations import AffineRelation
 from axiom.graph_universal_lean import (
-    PINNED_MATHLIB_SHA, VERIFIED, audit_universal_proof, build_universal_source,
+    PINNED_MATHLIB_SHA, VERIFIED, _match, audit_universal_proof, build_universal_source,
 )
 
 
@@ -41,7 +41,10 @@ def legacy(statement, premise_dir):
         status = record["status"]
         write_json(premise_dir / "legacy.json", record)
         (premise_dir / "legacy.lean").write_text(result["source"], encoding="utf-8")
+    matcher_only = all(_match(side) is not None
+                       for side in AffineRelation.from_dict(statement).inequalities())
     return {"status": status, "matcher_seconds": elapsed,
+            "single_rule_match_without_legacy_arity_gate": matcher_only,
             "kernel_seconds": record["duration_seconds"] if result is not None else None}
 
 

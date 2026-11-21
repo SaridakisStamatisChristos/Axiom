@@ -1,6 +1,7 @@
 """All-orders proof attempts and offline replay of their evidence."""
 from dataclasses import asdict
 from hashlib import sha256
+from math import isfinite
 import re
 from time import perf_counter
 
@@ -138,6 +139,8 @@ def _kernel_status(kernel, generated):
 
 def prove(statement, *, limits=SearchLimits(), witness_order=5, project_root=".", timeout=180,
           provenance=None, external_witness=None):
+    if type(timeout) is not int or not 1 <= timeout <= 900:
+        raise ValueError("Lean timeout must be between 1 and 900 seconds")
     started = perf_counter()
     attempt = _prepare(statement, limits, witness_order, external_witness)
     elapsed = perf_counter() - started
@@ -147,7 +150,8 @@ def prove(statement, *, limits=SearchLimits(), witness_order=5, project_root="."
             attempt["generated"], project_root, timeout, VERIFIED,
             expected_mathlib_revision=PINNED_MATHLIB_SHA, retain_logs=True)
         attempt["status"], attempt["reason"] = _kernel_status(kernel, attempt["generated"])
-    attempt.update(kernel=kernel, search_elapsed_seconds=elapsed, provenance=provenance,
+    attempt.update(kernel=kernel, search_elapsed_seconds=elapsed, lean_timeout_seconds=timeout,
+                   provenance=provenance,
                    external_witness=external_witness)
     return {**attempt, "record_sha256": digest(attempt)}
 
@@ -158,6 +162,10 @@ def audit(attempt):
     payload = {key: value for key, value in attempt.items() if key != "record_sha256"}
     if digest(payload) != attempt.get("record_sha256"):
         raise ValueError("proof attempt digest mismatch")
+    elapsed, timeout = attempt["search_elapsed_seconds"], attempt["lean_timeout_seconds"]
+    if (type(elapsed) not in (int, float) or not isfinite(elapsed) or elapsed < 0
+            or type(timeout) is not int or not 1 <= timeout <= 900):
+        raise ValueError("invalid proof timing evidence")
     expected = _prepare(attempt["statement"], SearchLimits(**attempt["search_limits"]),
                         attempt["witness_order_limit"], attempt["external_witness"])
     kernel = attempt["kernel"]

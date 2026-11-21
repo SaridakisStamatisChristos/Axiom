@@ -1,7 +1,8 @@
 """Source-replayed discovery handoff to all-orders compositional proof attempts."""
 from .graph_claims import digest, stable
 from .graph_discovery import audit_campaign
-from .graph_proof import audit, prove
+from .graph_proof import BANK, audit, prove
+from .graph_proof_search import SearchLimits, search
 from .graph_relations import AffineRelation, known_fact
 
 SCHEMA = "axiom.graph_composite_dispatch.v1"
@@ -16,12 +17,16 @@ def _selections(campaign, discovery):
         claim = AffineRelation.from_dict(trial["statement"])
         if claim.id != trial["candidate_id"] or discovery["selection_used_holdout_data"] is not False:
             raise ValueError("invalid source-replayed selection")
+        queue = trial.get("queue")
+        if queue is None:
+            derivable = search(claim, BANK, SearchLimits())["derived"]
+            queue = KNOWN_QUEUE if derivable or known_fact(claim) else OPEN_QUEUE
         yield trial, {
             "campaign": campaign, "discovery_sha256": report_hash,
             "source_fingerprint": discovery["source_fingerprint"],
             "training": discovery["discovery"], "configuration": discovery["configuration"],
             "selection_used_holdout_data": False, "trial": trial,
-            "queue": trial.get("queue", KNOWN_QUEUE if known_fact(claim) else OPEN_QUEUE),
+            "queue": queue,
         }
 
 
