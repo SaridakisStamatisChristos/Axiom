@@ -196,8 +196,12 @@ def screen(database, claim, exact_budget, *, split="development"):
     exhausted = 0
     witness = None
     with closing(sqlite3.connect(database)) as db:
-        rows = db.execute("""SELECT id, graph6, n, edges, maximum_degree, triangles, components
-                          FROM graphs WHERE split=? ORDER BY id""", (split,))
+        rows = db.execute("""
+            WITH probes AS (SELECT DISTINCT id FROM provenance WHERE family LIKE 'structured-%')
+            SELECT g.id, g.graph6, g.n, g.edges, g.maximum_degree, g.triangles, g.components
+            FROM graphs g LEFT JOIN probes p ON p.id=g.id
+            WHERE g.split=? ORDER BY p.id IS NULL, g.id
+            """, (split,))
         for identity, line, *values in rows:
             n, _, _, triangles, components = values
             counts[n]["visited"] += 1
