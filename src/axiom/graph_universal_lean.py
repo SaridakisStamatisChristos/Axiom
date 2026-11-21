@@ -59,9 +59,10 @@ def _render_terms(terms):
                       for symbol, weight in terms)
 
 
-def _render_source(claim, name, facts, *, adapters="", proof_body=None):
+def _render_source(claim, name, facts, *, adapters="", proof_body=None, imports=()):
     bound = claim.bound
-    source = files("axiom").joinpath("lean", "GraphUniversal.lean").read_text(encoding="utf-8")
+    prelude = files("axiom").joinpath("lean", "GraphUniversal.lean").read_text(encoding="utf-8")
+    source = "".join(f"import {module}\n" for module in imports) + prelude
     terms = _render_terms(bound.terms)
     relation = "≤" if claim.relation == "<=" else "="
     body = f"{facts}\n  omega" if proof_body is None else proof_body

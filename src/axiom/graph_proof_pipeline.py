@@ -3,7 +3,7 @@ from dataclasses import asdict
 
 from .graph_claims import digest, stable
 from .graph_discovery import audit_campaign
-from .graph_lemma_retrieval import INDEX_VERSION, STRUCTURAL_INDEX
+from .graph_lemma_retrieval import INDEX_VERSION, MATCHING_INDEX, STRUCTURAL_INDEX
 from .graph_proof import BANK, SCHEMA as ATTEMPT_SCHEMA, audit, prove
 from .graph_proof_hints import validate as validate_hints
 from .graph_proof_search import SearchLimits, search
@@ -16,12 +16,14 @@ CAMPAIGN_HINT_SCHEMA = "axiom.graph_campaign_proof_hints.v1"
 FIXED_PROFILE = "fixed"
 EXTENDED_PROFILE = "extended"
 STRUCTURAL_PROFILE = "structural"
+MATCHING_PROFILE = "matching"
 _ENGINES = {
     FIXED_PROFILE: {},
     EXTENDED_PROFILE: {"retrieval_limit": 5, "synthesis_limit": 3, "split_order": True,
                        "induct_edges": True, "plan_limit": 16},
 }
 _ENGINES[STRUCTURAL_PROFILE] = {**_ENGINES[EXTENDED_PROFILE], "retrieval_index": STRUCTURAL_INDEX}
+_ENGINES[MATCHING_PROFILE] = {**_ENGINES[EXTENDED_PROFILE], "retrieval_index": MATCHING_INDEX}
 
 
 def _selections(campaign, discovery):
@@ -53,7 +55,7 @@ def _configuration(profile, timeout, manifest):
         raise ValueError("Lean timeout must be between 1 and 900 seconds")
     if profile == FIXED_PROFILE:
         if manifest is not None:
-            raise ValueError("campaign proof hints require an extended or structural proof profile")
+            raise ValueError("campaign proof hints require a non-fixed proof profile")
         return None
     return {"profile": profile, "options": dict(_ENGINES[profile]),
             "timeout_seconds": timeout, "hints": manifest}
@@ -129,7 +131,7 @@ def audit_composed_dispatch(db, ledger, campaign, artifact, *, legacy_reports=No
     configuration = None
     if artifact["schema"] == PROFILE_SCHEMA:
         recorded = artifact.get("proof_configuration")
-        if type(recorded) is not dict or recorded.get("profile") not in (EXTENDED_PROFILE, STRUCTURAL_PROFILE):
+        if type(recorded) is not dict or recorded.get("profile") not in (EXTENDED_PROFILE, STRUCTURAL_PROFILE, MATCHING_PROFILE):
             raise ValueError("invalid discovery proof configuration")
         configuration = _configuration(recorded["profile"], recorded.get("timeout_seconds"),
                                        recorded.get("hints"))

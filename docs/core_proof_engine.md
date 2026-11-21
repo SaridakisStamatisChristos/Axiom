@@ -296,3 +296,21 @@ proves one direction of the bipartite matching–independence equality.
 The proof record carries the exact index version and digest. Replay
 uses that version. The default individual-command index and the
 `extended` campaign profile use v1.
+
+
+### Prove the bipartite matching–independence equality
+
+`--proof-profile matching` uses retrieval index v3 with the same search
+budget as `structural`. For an individual proof, use
+`--retrieve-lemmas 5 --retrieval-index v3`. On finite bipartite graphs,
+the number of vertices equals the independence number plus the maximum
+matching size.
+
+The new direction applies Hall's theorem to the complement of a maximum
+independent set. A same-color subset of that complement can replace its
+neighbors in the independent set, so its neighborhood is at least as
+large. The two color classes have disjoint neighborhoods, which gives
+Hall's condition for arbitrary subsets. The resulting matching supplies
+the missing lower bound. Index v3 records the Hall import and includes it
+in generated Lean source when the adapter is used. Earlier profiles and
+index digests are independently replayable.

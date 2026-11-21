@@ -89,12 +89,13 @@ def _render_adapters(selected, projections, matches):
     used = [step for step in projections if (step.lemma.theorem, step.lemma.premise) in matches]
     dependencies = set(matches) | {(parent.theorem, parent.premise)
                                     for step in used for parent, _ in step.parents}
-    wrappers = [_render_lemma(entry.lemma, "  " + entry.proof) for entry in selected
-                if (entry.lemma.theorem, entry.lemma.premise) in dependencies]
+    entries = [entry for entry in selected if (entry.lemma.theorem, entry.lemma.premise) in dependencies]
+    imports = sorted({module for entry in entries for module in entry.imports})
+    wrappers = [_render_lemma(entry.lemma, "  " + entry.proof) for entry in entries]
     for step in used:
         facts = _lemma_facts((parent.theorem, parent.premise) for parent, _ in step.parents)
         wrappers.append(_render_lemma(step.lemma, facts + "\n  omega"))
-    return "\n".join(wrappers) + "\n" if wrappers else ""
+    return imports, ("\n".join(wrappers) + "\n" if wrappers else "")
 
 
 def _retry(claim, bank, limits, previous_nodes):
@@ -248,7 +249,7 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
             base["order_split"]["positive_facts"] = local_names
             if local_names:
                 body = order_split_body(claim, matches, local_names)
-    adapters = _render_adapters(selected, projections, matches)
+    imports, adapters = _render_adapters(selected, projections, matches)
     if (EDGE_INDUCTION_RULE.theorem, EDGE_INDUCTION_RULE.premise) in matches:
         if not plans:
             base["edge_induction"]["selected_fact"] = EDGE_INDUCTION_RULE.theorem
@@ -260,7 +261,7 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
                      "set_option linter.unreachableTactic false in\n")
     name = "composite_" + digest(statement)[:24]
     source = _render_source(claim, name, _lemma_facts(matches),
-                            adapters=adapters, proof_body=body)
+                            adapters=adapters, proof_body=body, imports=imports)
     base["generated"] = {"source": source, "source_sha256": _sha(source),
                          "theorem": f"AxiomGraphUniversal.{name}"}
     return dict(base, status="NOT_ATTEMPTED", reason="DERIVATION_READY")

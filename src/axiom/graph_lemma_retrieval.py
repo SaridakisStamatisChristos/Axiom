@@ -1,6 +1,7 @@
 """A versioned index of affine adapters for pinned Mathlib graph theorems."""
 from dataclasses import asdict, dataclass
 
+from .graph_bipartite_matching import BIPARTITE_MATCHING_PROOF
 from .graph_claims import digest
 from .graph_proof_search import LemmaSpec
 from .graph_relations import AffineRelation, _vector
@@ -12,11 +13,12 @@ class MathlibAdapter:
     lemma: LemmaSpec
     declarations: tuple[str, ...]
     proof: str
+    imports: tuple[str, ...] = ()
 
 
-def _adapter(name, premise, weights, rhs, declarations, proof):
+def _adapter(name, premise, weights, rhs, declarations, proof, *, imports=()):
     return MathlibAdapter(LemmaSpec("retrieved_" + name, premise, _vector(weights.items()), rhs),
-                         declarations, proof)
+                         declarations, proof, imports)
 
 
 # Each entry has a closed, checked translation to AXIOM's graph semantics.
@@ -171,14 +173,28 @@ classical
   omega"""),
 )
 
+_INDEX_V3 = _INDEX_V2 + (
+    _adapter(
+        "bipartite_order_le_matching_add_independence", "BIPARTITE",
+        {"n": 1, "matching": -1, "independence": -1}, 0,
+        ("Finset.all_card_le_biUnion_card_iff_exists_injective",
+         "SimpleGraph.exists_isNIndepSet_indepNum",
+         "SimpleGraph.Subgraph.IsMatching.exists_of_disjoint_sets_of_equiv",
+         "SimpleGraph.Subgraph.isMatching_iff_forall_degree",
+         "SimpleGraph.sum_degrees_eq_twice_card_edges"),
+        BIPARTITE_MATCHING_PROOF, imports=("Mathlib.Combinatorics.Hall.Basic",),
+    ),
+)
+
 INDEX_VERSION = "axiom.mathlib_affine_graph_index.v1"
 STRUCTURAL_INDEX = "axiom.mathlib_affine_graph_index.v2"
-_INDEXES = {INDEX_VERSION: _INDEX_V1, STRUCTURAL_INDEX: _INDEX_V2}
+MATCHING_INDEX = "axiom.mathlib_affine_graph_index.v3"
+_INDEXES = {INDEX_VERSION: _INDEX_V1, STRUCTURAL_INDEX: _INDEX_V2, MATCHING_INDEX: _INDEX_V3}
 INDEX_DIGESTS = {version: digest({
     "schema": version,
     "mathlib_revision": PINNED_MATHLIB_SHA,
-    "entries": [{"lemma": asdict(a.lemma), "declarations": a.declarations, "proof": a.proof}
-                for a in entries],
+    "entries": [{"lemma": asdict(a.lemma), "declarations": a.declarations, "proof": a.proof,
+                 **({"imports": a.imports} if a.imports else {})} for a in entries],
 }) for version, entries in _INDEXES.items()}
 INDEX_SHA256 = INDEX_DIGESTS[INDEX_VERSION]
 MAX_RETRIEVED_LEMMAS = 32
@@ -200,4 +216,5 @@ def retrieve(claim: AffineRelation, limit: int, *, index=INDEX_VERSION) -> tuple
 
 def describe(entry):
     return {"adapter": entry.lemma.theorem, "premise": entry.lemma.premise,
-            "mathlib_declarations": list(entry.declarations)}
+            "mathlib_declarations": list(entry.declarations),
+            **({"mathlib_imports": list(entry.imports)} if entry.imports else {})}
