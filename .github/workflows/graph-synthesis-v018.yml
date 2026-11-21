@@ -1,7 +1,7 @@
 name: AXIOM v0.18 compositional graph conjecture synthesis
 on:
   push:
-    branches: [main, "axiom-v0.18-*", "axiom-issue-15-*", "axiom-issue-18-*"]
+    branches: [main, "axiom-v0.18-*", "axiom-issue-15-*", "axiom-issue-18-*", "axiom-v024-order-case-split"]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -192,7 +192,8 @@ jobs:
           pytest -q tests/test_graph_universal_lean.py
           lake exe cache get Mathlib.Combinatorics.SimpleGraph.Acyclic \
             Mathlib.Combinatorics.SimpleGraph.Bipartite \
-            Mathlib.Combinatorics.SimpleGraph.Matching
+            Mathlib.Combinatorics.SimpleGraph.Matching \
+            Mathlib.Combinatorics.Hall.Basic
           ROOT=research/knowledge/ci_v018
           V2="$ROOT/discovery_v2"
           common=(--db "$ROOT/science.sqlite3" --legacy-v18 "$ROOT/compositional.json" --ledger "$V2/ledger.sqlite3" --campaign first)
@@ -220,6 +221,13 @@ jobs:
           pytest -q tests/test_graph_proof_search.py tests/test_graph_proof_pipeline.py | tee "$OUT/pytest.log"
           python scripts/benchmark_graph_proof.py --output "$OUT/benchmark" | tee "$OUT/benchmark.log"
           axiom graph-prove-audit "$OUT/benchmark/P6/attempt.json"
+          AXIOM_REAL_LEAN=1 pytest -q tests/test_graph_lemma_retrieval.py tests/test_graph_lemma_synthesis.py tests/test_graph_order_split.py tests/test_graph_edge_induction.py tests/test_graph_proof_plans.py tests/test_graph_proof_hints.py tests/test_graph_proof_pipeline.py tests/test_graph_structural_retrieval.py tests/test_graph_bipartite_matching.py | tee "$OUT/fallback-tests.log"
+          python scripts/benchmark_graph_retrieval.py --output "$OUT/retrieval" | tee "$OUT/retrieval.log"
+          python scripts/benchmark_graph_retrieval.py --synthesis --output "$OUT/synthesis" | tee "$OUT/synthesis.log"
+          python scripts/benchmark_graph_retrieval.py --order-split --output "$OUT/order-split" | tee "$OUT/order-split.log"
+          python scripts/benchmark_graph_retrieval.py --edge-induction --output "$OUT/edge-induction" | tee "$OUT/edge-induction.log"
+          python scripts/benchmark_graph_retrieval.py --proof-plans --output "$OUT/proof-plans" | tee "$OUT/proof-plans.log"
+          python scripts/benchmark_graph_retrieval.py --proof-hints --output "$OUT/proof-hints" | tee "$OUT/proof-hints.log"
       - name: Replay the four-term discovery-to-proof campaign
         run: |
           ROOT=research/knowledge/ci_v018
@@ -229,6 +237,15 @@ jobs:
           axiom graph-discover-universal "${common[@]}" --compose > "$OUT/discovery_proof_report.json"
           axiom graph-discover-universal-audit "${common[@]}" --compose --artifact "$OUT/discovery_proof_report.json" > "$OUT/discovery_audited.json"
           cmp "$OUT/discovery_proof_report.json" "$OUT/discovery_audited.json"
+          axiom graph-discover-universal "${common[@]}" --proof-profile extended > "$OUT/discovery_extended.json"
+          axiom graph-discover-universal-audit "${common[@]}" --artifact "$OUT/discovery_extended.json" > "$OUT/discovery_extended_audited.json"
+          cmp "$OUT/discovery_extended.json" "$OUT/discovery_extended_audited.json"
+          axiom graph-discover-universal "${common[@]}" --proof-profile structural > "$OUT/discovery_structural.json"
+          axiom graph-discover-universal-audit "${common[@]}" --artifact "$OUT/discovery_structural.json" > "$OUT/discovery_structural_audited.json"
+          cmp "$OUT/discovery_structural.json" "$OUT/discovery_structural_audited.json"
+          axiom graph-discover-universal "${common[@]}" --proof-profile matching > "$OUT/discovery_matching.json"
+          axiom graph-discover-universal-audit "${common[@]}" --artifact "$OUT/discovery_matching.json" > "$OUT/discovery_matching_audited.json"
+          cmp "$OUT/discovery_matching.json" "$OUT/discovery_matching_audited.json"
           python - "$OUT" <<'PY'
           import json
           from pathlib import Path
@@ -236,6 +253,26 @@ jobs:
 
           root = Path(sys.argv[1])
           report = json.loads((root / "discovery_proof_report.json").read_text())
+          extended = json.loads((root / "discovery_extended.json").read_text())
+          assert extended["proof_configuration"]["profile"] == "extended"
+          assert extended["discovery_sha256"] == report["discovery_sha256"]
+          assert [a["provenance"] for a in extended["results"]] == [a["provenance"] for a in report["results"]]
+          assert all(a["schema"] == "axiom.graph_proof_attempt.v6" for a in extended["results"])
+          print("Extended profile outcomes:", [a["status"] for a in extended["results"]])
+          structural = json.loads((root / "discovery_structural.json").read_text())
+          assert structural["proof_configuration"]["profile"] == "structural"
+          assert structural["discovery_sha256"] == extended["discovery_sha256"]
+          assert [a["provenance"] for a in structural["results"]] == [a["provenance"] for a in extended["results"]]
+          improved = [b for a, b in zip(extended["results"], structural["results"], strict=True)
+                      if a["status"] != "FORMALLY_VERIFIED" and b["status"] == "FORMALLY_VERIFIED"]
+          assert len(improved) >= 3, [a["status"] for a in structural["results"]]
+          print("Additional structural proofs:", [a["candidate_id"] for a in improved])
+          matching = json.loads((root / "discovery_matching.json").read_text())
+          assert matching["proof_configuration"]["profile"] == "matching"
+          assert matching["discovery_sha256"] == structural["discovery_sha256"]
+          assert [a["provenance"] for a in matching["results"]] == [a["provenance"] for a in structural["results"]]
+          assert len(matching["results"]) == 6
+          assert all(a["status"] == "FORMALLY_VERIFIED" for a in matching["results"])
           outcomes = []
           for index, attempt in enumerate(report["results"]):
               provenance = attempt["provenance"]
@@ -269,7 +306,15 @@ jobs:
           if-no-files-found: warn
 
   proof-engine-regressions:
-    if: github.head_ref == 'axiom-v0.21-proof-engine' || github.ref_name == 'main'
+    if: >-
+      github.head_ref == 'axiom-v0.21-proof-engine' ||
+      github.head_ref == 'axiom-v025-edge-induction' ||
+      github.head_ref == 'axiom-v026-proof-plans' ||
+      github.head_ref == 'axiom-v027-proof-hints' ||
+      github.head_ref == 'axiom-v028-discovery-profiles' ||
+      github.head_ref == 'axiom-v029-graph-adapters' ||
+      github.head_ref == 'axiom-v030-bipartite-matching' ||
+      github.ref_name == 'main'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:

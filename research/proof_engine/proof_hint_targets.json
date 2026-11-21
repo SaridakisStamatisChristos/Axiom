@@ -1,0 +1,5 @@
+[
+  ["connected-order-edges-clique-triangles", "CONNECTED", {"n": 1, "edges": -1, "clique": -1, "triangles": -1}, 0, ["connected_edge_bound", "order_clique_positive"]],
+  ["scaled-clique-coloring-triangles", "ALL", {"clique": 5, "chromatic": -4, "triangles": -1}, 2, ["clique_le_chromatic", "clique_le_triangles_add_two"]],
+  ["degree-clique-order-matching", "ALL", {"clique": 1, "maximum_degree": 1, "n": -2, "matching": -1}, 0, ["order_degree_lt", "retrieved_clique_le_order"]]
+]

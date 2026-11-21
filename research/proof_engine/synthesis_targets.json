@@ -1,0 +1,6 @@
+[
+  ["triangle-free-degree-matching-components", "TRIANGLE_FREE", {"maximum_degree": 1, "matching": 1, "components": 1, "n": -2, "edges": -1}, 0, "independence"],
+  ["triangle-free-degree-clique-matching", "TRIANGLE_FREE", {"maximum_degree": 1, "clique": 1, "matching": 1, "n": -2, "edges": -1}, 0, "independence"],
+  ["bipartite-degree-clique-matching", "BIPARTITE", {"maximum_degree": 1, "clique": 1, "matching": 1, "edges": -2}, 2, "chromatic"],
+  ["bipartite-clique-components-matching", "BIPARTITE", {"clique": 1, "components": 1, "matching": 1, "n": -1, "edges": -1}, 2, "chromatic"]
+]
