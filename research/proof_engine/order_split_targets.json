@@ -1,0 +1,8 @@
+[
+  ["maximum-degree-bounded-by-order", "ALL", {"maximum_degree": 1, "n": -1}, 0, "order_degree_lt"],
+  ["degree-plus-clique-bounded-by-order", "ALL", {"maximum_degree": 1, "clique": 1, "n": -2}, 0, "order_degree_lt"],
+  ["degree-plus-components-bounded-by-order", "ALL", {"maximum_degree": 1, "components": 1, "n": -2}, 0, "order_degree_lt"],
+  ["connected-order-bounded-by-edges-and-clique", "CONNECTED", {"n": 1, "edges": -1, "clique": -1}, 0, "order_clique_positive"],
+  ["connected-order-plus-degree", "CONNECTED", {"n": 1, "maximum_degree": 1, "edges": -2, "independence": -1}, 0, "order_independence_positive"],
+  ["connected-order-positive", "CONNECTED", {"n": -1}, -1, "order_positive"]
+]
