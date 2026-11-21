@@ -1,3 +1,13 @@
+## Core graph proof engine (v0.21.0rc1)
+
+AXIOM provides bounded proof synthesis from an existing Mathlib lemma bank.
+It searches integer combinations of certified graph inequalities, generates
+the exact all-orders Lean statement, and records kernel acceptance and the
+axiom report. A graph witness can refute a claim. Bounded survival and proof
+search exhaustion leave the claim open. Mathematical novelty is unassessed.
+
+[Reproduction and evidence guide](docs/core_proof_engine.md).
+
 # AXIOM v0.19 — Premise-aware graph experiments (development)
 
 The v0.19 follow-up takes independently replayed v0.18 conjecture-synthesis

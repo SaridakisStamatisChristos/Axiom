@@ -132,7 +132,7 @@ def verify_n3_affine(statement: dict, *, project_root: str = ".",
 
 
 def run_affine_kernel(result, project_root, timeout_seconds, success_status, *,
-                      expected_mathlib_revision=None):
+                      expected_mathlib_revision=None, retain_logs=False):
     if type(timeout_seconds) is not int or not 1 <= timeout_seconds <= 900:
         raise LeanBackendError("invalid affine Lean timeout")
     root = Path(project_root).expanduser().resolve()
@@ -148,6 +148,8 @@ def run_affine_kernel(result, project_root, timeout_seconds, success_status, *,
         "duration_seconds": None,
         "offline_audit_is_execution_attestation": False,
     }
+    if retain_logs:
+        record.update(stdout=None, stderr=None, stderr_sha256=None)
     if not record["toolchain_file_matches"] or not (root/"lakefile.toml").is_file():
         record["status"] = "CONFIGURATION_MISSING"
         return record
@@ -188,8 +190,12 @@ def run_affine_kernel(result, project_root, timeout_seconds, success_status, *,
         record["stdout_sha256"] = hashlib.sha256(
             checked.stdout.encode("utf-8")).hexdigest()
         record["stderr_excerpt"] = checked.stderr[-2048:]
-        if (len(checked.stdout.encode()) > MAX_LOG_BYTES or
-                len(checked.stderr.encode()) > MAX_LOG_BYTES):
+        oversized = (len(checked.stdout.encode()) > MAX_LOG_BYTES
+                     or len(checked.stderr.encode()) > MAX_LOG_BYTES)
+        if retain_logs and not oversized:
+            record.update(stdout=checked.stdout, stderr=checked.stderr,
+                          stderr_sha256=hashlib.sha256(checked.stderr.encode("utf-8")).hexdigest())
+        if oversized:
             record["status"] = "CHECKER_OUTPUT_EXCEEDED"
         elif checked.returncode != 0 or checked.stderr.strip():
             record["status"] = "CHECKER_FAILED"

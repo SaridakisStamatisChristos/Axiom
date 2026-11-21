@@ -13,6 +13,10 @@ concurrency:
   group: axiom-v018-discovery-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   historical-sample-replay:
     runs-on: ubuntu-24.04
@@ -209,6 +213,53 @@ jobs:
               assert "PROVED" in item["claim_states"]
           assert any(item["handoff"] == "PENDING_UNSUPPORTED_RELATION" for item in artifact["results"])
           PY
+      - name: Verify the compositional proof engine against the frozen benchmark
+        run: |
+          mkdir -p research/knowledge/ci_v018/proof_engine/benchmark
+          OUT=research/knowledge/ci_v018/proof_engine
+          pytest -q tests/test_graph_proof_search.py tests/test_graph_proof_pipeline.py | tee "$OUT/pytest.log"
+          python scripts/benchmark_graph_proof.py --output "$OUT/benchmark" | tee "$OUT/benchmark.log"
+          axiom graph-prove-audit "$OUT/benchmark/P6/attempt.json"
+      - name: Replay the four-term discovery-to-proof campaign
+        run: |
+          ROOT=research/knowledge/ci_v018
+          OUT="$ROOT/proof_engine"
+          common=(--db "$ROOT/science.sqlite3" --legacy-v18 "$ROOT/compositional.json" --ledger "$OUT/discovery.sqlite3" --campaign proof-engine-v021)
+          axiom graph-discover "${common[@]}" --proof-beam 8 --holdout-budget 8 --max-candidates 2 > "$OUT/discovery.json"
+          axiom graph-discover-universal "${common[@]}" --compose > "$OUT/discovery_proof_report.json"
+          axiom graph-discover-universal-audit "${common[@]}" --compose --artifact "$OUT/discovery_proof_report.json" > "$OUT/discovery_audited.json"
+          cmp "$OUT/discovery_proof_report.json" "$OUT/discovery_audited.json"
+          python - "$OUT" <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          root = Path(sys.argv[1])
+          report = json.loads((root / "discovery_proof_report.json").read_text())
+          outcomes = []
+          for index, attempt in enumerate(report["results"]):
+              provenance = attempt["provenance"]
+              assert provenance["selection_used_holdout_data"] is False
+              if "queue" in provenance["trial"]:
+                  outcomes.append(attempt["status"])
+              if attempt["generated"] is not None:
+                  (root / f"discovery-{index}.lean").write_text(attempt["generated"]["source"])
+                  for stream in ("stdout", "stderr"):
+                      log = attempt["kernel"][stream]
+                      if log is not None:
+                          (root / f"discovery-{index}.{stream}.log").write_text(log)
+          assert set(outcomes) & {"FORMALLY_VERIFIED", "COUNTEREXAMPLE"}, outcomes
+          print("Four-term lane outcomes:", outcomes)
+          PY
+      - name: Checksum retained proof evidence
+        if: always()
+        run: |
+          OUT=research/knowledge/ci_v018/proof_engine
+          if [[ -d "$OUT" ]]; then
+            cd "$OUT"
+            find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 -r sha256sum > SHA256SUMS
+            sha256sum --check SHA256SUMS
+          fi
       - name: Preserve scientific evidence even if CI fails
         if: always()
         uses: actions/upload-artifact@v4
@@ -216,3 +267,20 @@ jobs:
           name: axiom-v018-source-replayed-novel-graphs
           path: research/knowledge/ci_v018/
           if-no-files-found: warn
+
+  proof-engine-regressions:
+    if: github.head_ref == 'axiom-v0.21-proof-engine' || github.ref_name == 'main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install -e '.[dev]' pytest-xdist==3.8.0
+      - run: pytest -q -n 4 --dist=loadfile | tee pytest-full.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: axiom-full-python-regressions
+          path: pytest-full.log

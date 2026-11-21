@@ -1,0 +1,14 @@
+{
+  "git_sha": "6c6d17f2be49e828e458f44499d534aafd75cbce",
+  "branch": "main",
+  "observed_successful_run": 44806098664,
+  "observed_run_scope": "fixed-order 6 affine graph verification",
+  "open_pull_requests": [],
+  "open_issues": [3, 5, 15],
+  "python_local": "3.12.14",
+  "architecture_local": "Linux x86_64",
+  "lean_pin": "leanprover/lean4:v4.35.0",
+  "mathlib_pin": "56a005855ea17e0b0958f73ec801ae140b0a1679",
+  "universal_dispatch": "One of the seven GraphUniversal.lean bank inequalities per direction, followed by omega",
+  "fixed_order_bridges": [3, 6]
+}

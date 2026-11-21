@@ -47,21 +47,19 @@ def _match(bound):
     return None
 
 
-def build_universal_source(statement):
-    claim = AffineRelation.from_dict(statement)
-    bound = claim.bound
-    matches = [_match(side) for side in claim.inequalities()]
-    if any(match is None for match in matches):
-        return None
-    source = files("axiom").joinpath("lean", "GraphUniversal.lean").read_text(encoding="utf-8")
-    name = "claim_" + digest(statement)[:24]
-    terms = " + ".join(f"({weight} : Int) * (({_TERMS[symbol]}) : Int)"
-                       for symbol, weight in bound.terms)
-    relation = "≤" if claim.relation == "<=" else "="
-    facts = "\n".join(
+def _lemma_facts(matches):
+    return "\n".join(
         f"  have h{index} := {lemma} G" + (" premise" if premise != "ALL" else "")
         for index, (lemma, premise) in enumerate(matches)
     )
+
+
+def _render_source(claim, name, facts):
+    bound = claim.bound
+    source = files("axiom").joinpath("lean", "GraphUniversal.lean").read_text(encoding="utf-8")
+    terms = " + ".join(f"({weight} : Int) * (({_TERMS[symbol]}) : Int)"
+                       for symbol, weight in bound.terms)
+    relation = "≤" if claim.relation == "<=" else "="
     source += (
         "\nnamespace AxiomGraphUniversal\n"
         f"theorem {name} (n : Nat) (G : SimpleGraph (Fin n)) [DecidableRel G.Adj]"
@@ -70,6 +68,16 @@ def build_universal_source(statement):
         f"{facts}\n  omega\n"
         f"#print axioms {name}\nend AxiomGraphUniversal\n"
     )
+    return source
+
+
+def build_universal_source(statement):
+    claim = AffineRelation.from_dict(statement)
+    matches = [_match(side) for side in claim.inequalities()]
+    if any(match is None for match in matches):
+        return None
+    name = "claim_" + digest(statement)[:24]
+    source = _render_source(claim, name, _lemma_facts(matches))
     return {
         "schema": PROOF_SCHEMA, "statement": statement, "statement_sha256": digest(statement),
         "scope": "every n : Nat and every simple graph on Fin n satisfying the premise",
