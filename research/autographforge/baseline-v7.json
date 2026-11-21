@@ -1,0 +1,71 @@
+{
+  "archive": {
+    "sha256": "6a0c2b9fd69c6a614b1a89c410b4ee08e5df5ce7daae875bac6aa4cb0b044a61",
+    "url": "https://chatgpt.com/library?file_id=libfile_50a5813d76188191897e20750107d421&account_id=personal"
+  },
+  "beam_width": 32,
+  "competitor": {
+    "lean_version_in_snapshot": "4.31.0",
+    "mathlib_revision_in_snapshot": "fabf563a7c95a166b8d7b6efca11c8b4dc9d911f",
+    "paper": "https://arxiv.org/abs/2609.03478",
+    "paper_run_common_per_case_budget": null,
+    "paper_run_exact_snapshot": null,
+    "upstream_snapshot": "4d1a8afc99447cacd2328cca20e47b6493e8dbc5",
+    "url": "https://github.com/JanPastorek/AutoGraphForge"
+  },
+  "dependency_manifest_sha256": "a19b8a2e5b1293ae2beadbc3ae84812adcdae07162ab07d2232d023da83841cd",
+  "engine_commit": "e03425bcb65a1ae8b74d883e736f47b2e074cf4e",
+  "external_refutation": {
+    "labelled_graphs": 285,
+    "networkx": "3.7",
+    "orders": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "role": "targeted development falsification; separate from final test"
+  },
+  "final_evaluation": {
+    "graph_families_drawn": 0,
+    "status": "UNALLOCATED",
+    "tuning_may_read": []
+  },
+  "frozen_holdouts": {
+    "heldout-proof-v1.json": {
+      "role": "proof/refutation regression; no exact answer proofs provided to proof search",
+      "sha256": "70c5d5022b723f31942791d84c75735e5feda90415a4564d3282c151202e9a88",
+      "source_pr": 31
+    }
+  },
+  "historical_preflight": {
+    "n7": 4540
+  },
+  "holdout_budget_per_trial": 48,
+  "lean_timeout_seconds_per_trial": 45,
+  "lean_version": "4.35.0",
+  "mathlib_revision": "56a005855ea17e0b0958f73ec801ae140b0a1679",
+  "schema": "axiom.graph_competition_baseline.v1",
+  "seeds": [
+    1729,
+    2718
+  ],
+  "selections_per_lane": 8,
+  "source_sha256": {
+    "source/compositional.json": "b6434a3c4580d0d6730a99ae5cb761ef7ce27ae66561e57e384c4b3611d998d4",
+    "source/initial-ledger.sqlite3": "efba6501c81b1ccb638e9c8605693be84e32f89bd76bfd28d87bae41e00b6e76",
+    "source/science.sqlite3": "a7707f079fd7303abf8dbfb36efdc601458d75134a3135880ad137430ef6ba79"
+  },
+  "training": {
+    "n5": 1024,
+    "n6": 192,
+    "n7": 128
+  },
+  "unmerged_pr_heads": {
+    "31": "1fe190c72675e3a60cea7ffadb8d940675219df9",
+    "32": "f1638aab1d376ee3726cc07d74d5d5a52c8c9636",
+    "33": "6ace0d312cd930156c8835d2d9454e8babf6e5a7",
+    "34": "6a0b7631eee5c8c1c0170fa18c80637c53928fcd",
+    "35": "e03425bcb65a1ae8b74d883e736f47b2e074cf4e"
+  }
+}
