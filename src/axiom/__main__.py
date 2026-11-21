@@ -343,6 +343,8 @@ def main() -> None:
     proof.add_argument("--max-lemmas", type=int, default=3)
     proof.add_argument("--max-coefficient", type=int, default=3)
     proof.add_argument("--max-nodes", type=int, default=10_000)
+    proof.add_argument("--retrieve-lemmas", type=int, default=0, metavar="K",
+                       help="retry exhausted composition with up to K pinned Mathlib adapters")
     proof.add_argument("--witness-order", type=int, default=5)
     proof.add_argument("--output")
     proof.add_argument("--source")
@@ -397,7 +399,7 @@ def main() -> None:
                 raise ValueError("JSON evidence and Lean source require distinct paths")
             statement = json.loads(Path(args.statement_file).read_text(encoding="utf-8"))
             record = prove(statement, project_root=args.project_root, timeout=args.timeout,
-                           witness_order=args.witness_order,
+                           witness_order=args.witness_order, retrieval_limit=args.retrieve_lemmas,
                            limits=SearchLimits(args.max_lemmas, args.max_coefficient, args.max_nodes))
             text = json.dumps(record, indent=2, sort_keys=True) + "\n"
             if args.output:

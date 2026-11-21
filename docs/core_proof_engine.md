@@ -71,6 +71,29 @@ combination search did not derive the claim. `UNSUPPORTED` indicates an input
 outside the typed proof grammar. `LEAN_UNAVAILABLE` and `LEAN_REJECTED` carry
 separate environment or checker diagnostics. Novelty is recorded independently.
 
+## Optional pinned Mathlib lemma retrieval
+
+Add `--retrieve-lemmas K` to `graph-prove` to opt in, with `K` from 1
+through 32. The first pass uses the existing bank. If it finds no derivation
+and leaves nodes in the budget, the second pass retrieves up to `K` adapters
+and reuses only those remaining nodes. Applicable adapters are ranked by
+exact direction, signed term overlap, sparsity, and stable theorem name.
+The index contains curated affine adapters to declarations at the pinned
+Mathlib revision. Coverage currently includes bounds on clique number,
+independence number, chromatic number, maximum degree and bipartite colorings.
+
+The versioned proof record includes the index digest, ranked selections,
+Mathlib declaration names, and the initial derivation when fallback runs.
+Only selected adapters used in the certificate appear in the generated
+source. Lean checks each emitted adapter and the final all-orders statement.
+Offline audit replays the selection and verifies the artifact's integrity.
+Existing attempts without the option retain their original schema and source.
+
+Run `python scripts/benchmark_graph_retrieval.py --output retrieval-benchmark`
+after installing pinned Lean. The benchmark compares the fixed bank and
+retrieval on five frozen composite goals, retains both modes' proof records,
+and cross-checks the statements with two small-graph oracles.
+
 ## Discovery and benchmark
 
 Use a source database built by the reconstruction step in

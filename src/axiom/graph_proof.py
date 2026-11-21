@@ -1,5 +1,5 @@
 """All-orders proof attempts and offline replay of their evidence."""
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from hashlib import sha256
 from math import isfinite
 import re
@@ -10,14 +10,18 @@ from .graph_affine_lean_n3 import run_affine_kernel
 from .graph_checker import reference_properties
 from .graph_claims import digest, stable
 from .graph_discovery import _failed_side
+from .graph_lemma_retrieval import INDEX_SHA256, INDEX_VERSION, MAX_RETRIEVED_LEMMAS, describe, retrieve
 from .graph_model import edge_positions
 from .graph_proof_search import LemmaSpec, SearchLimits, search
 from .graph_relations import AffineRelation, _vector
 from .graph_synthesis import _witness
-from .graph_universal_lean import PINNED_MATHLIB_SHA, VERIFIED, _RULES, _lemma_facts, _render_source
+from .graph_universal_lean import (
+    PINNED_MATHLIB_SHA, VERIFIED, _PREMISES, _RULES, _lemma_facts, _render_source, _render_terms,
+)
 from .lean_backend import ALLOWED_AXIOMS, LEAN_VERSION, MATHLIB_REV, TOOLCHAIN, _axiom_report
 
 SCHEMA = "axiom.graph_proof_attempt.v1"
+RETRIEVAL_SCHEMA = "axiom.graph_proof_attempt.v2"
 BANK = tuple(LemmaSpec(name, premise, _vector(weights.items()), rhs)
              for name, premise, weights, rhs in _RULES)
 UNAVAILABLE = frozenset({
@@ -57,7 +61,24 @@ def _small_witness(claim, witness_order):
     return None
 
 
-def _prepare(statement, limits, witness_order, external_witness):
+def _render_adapters(selected, matches):
+    wrappers = []
+    for entry in selected:
+        spec = entry.lemma
+        if (spec.theorem, spec.premise) not in matches:
+            continue
+        terms = [(symbol, weight) for symbol, weight in zip(VARIABLES, spec.vector) if weight]
+        wrappers.append(
+            f"private theorem {spec.theorem} {{n : Nat}} (G : SimpleGraph (Fin n)) "
+            f"[DecidableRel G.Adj]{_PREMISES[spec.premise]} :\n"
+            f"    {_render_terms(terms)} ≤ ({spec.rhs} : Int) := by\n"
+            f"  {entry.proof}\n")
+    return "\n".join(wrappers) + "\n" if wrappers else ""
+
+
+def _prepare(statement, limits, witness_order, external_witness, retrieval_limit=0):
+    if type(retrieval_limit) is not int or not 0 <= retrieval_limit <= MAX_RETRIEVED_LEMMAS:
+        raise ValueError("invalid lemma retrieval limit")
     if type(witness_order) is not int or not 0 <= witness_order <= 5:
         raise ValueError("witness order must be between 0 and 5")
     base = {
@@ -68,6 +89,11 @@ def _prepare(statement, limits, witness_order, external_witness):
         "search_limits": asdict(limits), "witness_order_limit": witness_order,
         "derivation": None, "counterexample": None, "generated": None,
     }
+    if retrieval_limit:
+        base.update(schema=RETRIEVAL_SCHEMA, retrieval={
+            "limit": retrieval_limit, "index": INDEX_VERSION, "index_sha256": INDEX_SHA256,
+            "primary_nodes": None, "initial_derivation": None, "selected": [], "attempted": False,
+        })
     try:
         claim = AffineRelation.from_dict(statement)
     except (ValueError, TypeError, KeyError):
@@ -86,14 +112,30 @@ def _prepare(statement, limits, witness_order, external_witness):
                     counterexample=witness)
 
     derivation = search(claim, BANK, limits)
+    selected = ()
+    if retrieval_limit:
+        info = base["retrieval"]
+        primary_nodes = derivation["nodes"]
+        info["primary_nodes"] = primary_nodes
+        remaining = limits.max_nodes - primary_nodes
+        if not derivation["derived"] and remaining > 0:
+            selected = retrieve(claim, retrieval_limit)
+            info.update(selected=[describe(entry) for entry in selected],
+                        initial_derivation=derivation, attempted=True)
+            bank = BANK + tuple(entry.lemma for entry in selected)
+            retry = search(claim, bank, replace(limits, max_nodes=remaining))
+            derivation = {**retry, "nodes": primary_nodes + retry["nodes"]}
     base["derivation"] = derivation
     if not derivation["derived"]:
-        reason = "NODE_BUDGET_EXHAUSTED" if derivation["node_budget_exhausted"] else "NO_BOUNDED_COMBINATION"
+        budget_exhausted = (derivation["node_budget_exhausted"]
+                            or (retrieval_limit > 0 and derivation["nodes"] == limits.max_nodes))
+        reason = "NODE_BUDGET_EXHAUSTED" if budget_exhausted else "NO_BOUNDED_COMBINATION"
         return dict(base, status="SEARCH_EXHAUSTED", reason=reason)
     matches = sorted({(lemma["theorem"], lemma["premise"])
                       for direction in derivation["directions"] for lemma in direction["lemmas"]})
     name = "composite_" + digest(statement)[:24]
-    source = _render_source(claim, name, _lemma_facts(matches))
+    source = _render_source(claim, name, _lemma_facts(matches),
+                            adapters=_render_adapters(selected, matches))
     base["generated"] = {"source": source, "source_sha256": _sha(source),
                          "theorem": f"AxiomGraphUniversal.{name}"}
     return dict(base, status="NOT_ATTEMPTED", reason="DERIVATION_READY")
@@ -138,11 +180,11 @@ def _kernel_status(kernel, generated):
 
 
 def prove(statement, *, limits=SearchLimits(), witness_order=5, project_root=".", timeout=180,
-          provenance=None, external_witness=None):
+          provenance=None, external_witness=None, retrieval_limit=0):
     if type(timeout) is not int or not 1 <= timeout <= 900:
         raise ValueError("Lean timeout must be between 1 and 900 seconds")
     started = perf_counter()
-    attempt = _prepare(statement, limits, witness_order, external_witness)
+    attempt = _prepare(statement, limits, witness_order, external_witness, retrieval_limit)
     elapsed = perf_counter() - started
     kernel = None
     if attempt["generated"] is not None:
@@ -157,7 +199,7 @@ def prove(statement, *, limits=SearchLimits(), witness_order=5, project_root="."
 
 
 def audit(attempt):
-    if type(attempt) is not dict or attempt.get("schema") != SCHEMA:
+    if type(attempt) is not dict or attempt.get("schema") not in (SCHEMA, RETRIEVAL_SCHEMA):
         raise ValueError("unknown proof attempt schema")
     payload = {key: value for key, value in attempt.items() if key != "record_sha256"}
     if digest(payload) != attempt.get("record_sha256"):
@@ -166,8 +208,11 @@ def audit(attempt):
     if (type(elapsed) not in (int, float) or not isfinite(elapsed) or elapsed < 0
             or type(timeout) is not int or not 1 <= timeout <= 900):
         raise ValueError("invalid proof timing evidence")
+    retrieval_limit = attempt["retrieval"]["limit"] if attempt["schema"] == RETRIEVAL_SCHEMA else 0
+    if attempt["schema"] == SCHEMA and "retrieval" in attempt:
+        raise ValueError("unexpected retrieval evidence")
     expected = _prepare(attempt["statement"], SearchLimits(**attempt["search_limits"]),
-                        attempt["witness_order_limit"], attempt["external_witness"])
+                        attempt["witness_order_limit"], attempt["external_witness"], retrieval_limit)
     kernel = attempt["kernel"]
     if expected["generated"] is not None:
         expected["status"], expected["reason"] = _kernel_status(kernel, expected["generated"])
