@@ -280,3 +280,19 @@ Each entry uses the single-statement schema described above. Pass the
 manifest with `--proof-profile extended --proof-hints campaign-hints.json`.
 Each entry must match a distinct selected statement digest. Entries affect
 only proof attempts after campaign selection and holdout replay.
+
+
+### Use structural graph facts
+
+`--proof-profile structural` uses the extended campaign budget with the
+v2 retrieval index. For an individual statement or hint context, select
+`--retrieve-lemmas 5 --retrieval-index v2`. The v2 index adds Lean proofs
+of greedy coloring by maximum degree plus one, the matching and
+independence bound, equality of chromatic and clique numbers for bipartite
+graphs (combined with the original clique bound), and vanishing triangle
+counts under bipartite or triangle-free assumptions. The matching bound
+proves one direction of the bipartite matching–independence equality.
+
+The proof record carries the exact index version and digest. Replay
+uses that version. The default individual-command index and the
+`extended` campaign profile use v1.

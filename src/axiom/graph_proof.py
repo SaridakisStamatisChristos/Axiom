@@ -12,7 +12,9 @@ from .graph_claims import digest, stable
 from .graph_discovery import _failed_side
 from .graph_edge_induction import (EDGE_INDUCTION_PROOF, EDGE_INDUCTION_RULE,
                                    EDGE_INDUCTION_VERSION)
-from .graph_lemma_retrieval import INDEX_SHA256, INDEX_VERSION, MAX_RETRIEVED_LEMMAS, describe, retrieve
+from .graph_lemma_retrieval import (
+    INDEX_DIGESTS, INDEX_VERSION, MAX_RETRIEVED_LEMMAS, describe, retrieve,
+)
 from .graph_lemma_synthesis import MAX_SYNTHESIZED_LEMMAS, SYNTHESIS_VERSION, synthesize
 from .graph_model import edge_positions
 from .graph_order_split import ORDER_SPLIT_VERSION, POSITIVE_BANK, proof_body as order_split_body
@@ -102,7 +104,11 @@ def _retry(claim, bank, limits, previous_nodes):
 
 def _prepare(statement, limits, witness_order, external_witness, retrieval_limit=0,
              synthesis_limit=0, split_order=False, induct_edges=False, plan_limit=0, *,
-             proof_hints=None, context_only=False):
+             proof_hints=None, context_only=False, retrieval_index=INDEX_VERSION):
+    if type(retrieval_index) is not str or retrieval_index not in INDEX_DIGESTS:
+        raise ValueError("unknown Mathlib retrieval index")
+    if retrieval_index != INDEX_VERSION and not retrieval_limit:
+        raise ValueError("a nondefault retrieval index requires a positive retrieval limit")
     if type(plan_limit) is not int or not 0 <= plan_limit <= MAX_PROOF_PLANS:
         raise ValueError("invalid proof plan limit")
     if type(induct_edges) is not bool:
@@ -125,7 +131,7 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
     }
     if retrieval_limit:
         base.update(schema=RETRIEVAL_SCHEMA, retrieval={
-            "limit": retrieval_limit, "index": INDEX_VERSION, "index_sha256": INDEX_SHA256,
+            "limit": retrieval_limit, "index": retrieval_index, "index_sha256": INDEX_DIGESTS[retrieval_index],
             "primary_nodes": None, "initial_derivation": None, "selected": [], "attempted": False,
         })
     if synthesis_limit:
@@ -181,7 +187,7 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
         info["primary_nodes"] = primary_nodes
         remaining = limits.max_nodes - primary_nodes
         if not derivation["derived"] and remaining > 0:
-            selected = retrieve(claim, retrieval_limit)
+            selected = retrieve(claim, retrieval_limit, index=retrieval_index)
             info.update(selected=[describe(entry) for entry in selected],
                         initial_derivation=derivation, attempted=True)
             bank = BANK + tuple(entry.lemma for entry in selected)
@@ -307,11 +313,11 @@ def _check_kernel(attempt, kernel):
 
 def hint_context(statement, *, limits=SearchLimits(), witness_order=5,
                  retrieval_limit=0, synthesis_limit=0, split_order=False,
-                 induct_edges=False, plan_limit=0):
+                 induct_edges=False, plan_limit=0, retrieval_index=INDEX_VERSION):
     if not plan_limit:
         raise ValueError("proof hint context requires a positive proof plan limit")
     result = _prepare(statement, limits, witness_order, None, retrieval_limit, synthesis_limit,
-                      split_order, induct_edges, plan_limit, context_only=True)
+                      split_order, induct_edges, plan_limit, context_only=True, retrieval_index=retrieval_index)
     facts = result.get("facts", {})
     return {
         "schema": CONTEXT_SCHEMA, "statement": statement,
@@ -327,13 +333,14 @@ def hint_context(statement, *, limits=SearchLimits(), witness_order=5,
 
 def prove(statement, *, limits=SearchLimits(), witness_order=5, project_root=".", timeout=180,
           provenance=None, external_witness=None, retrieval_limit=0, synthesis_limit=0,
-          split_order=False, induct_edges=False, plan_limit=0, proof_hints=None):
+          split_order=False, induct_edges=False, plan_limit=0, proof_hints=None,
+          retrieval_index=INDEX_VERSION):
     if type(timeout) is not int or not 1 <= timeout <= 900:
         raise ValueError("Lean timeout must be between 1 and 900 seconds")
     started = perf_counter()
     attempt = _prepare(statement, limits, witness_order, external_witness,
                        retrieval_limit, synthesis_limit, split_order, induct_edges, plan_limit,
-                       proof_hints=proof_hints)
+                       proof_hints=proof_hints, retrieval_index=retrieval_index)
     elapsed = perf_counter() - started
     kernel = None
     if attempt["generated"] is not None:
@@ -372,6 +379,7 @@ def audit(attempt):
         raise ValueError("invalid proof plan evidence")
     plan_limit = attempt["proof_plans"]["limit"] if has_plans else 0
     retrieval_limit = attempt["retrieval"]["limit"] if "retrieval" in attempt else 0
+    retrieval_index = attempt["retrieval"]["index"] if "retrieval" in attempt else INDEX_VERSION
     synthesis_limit = attempt["synthesis"]["limit"] if "synthesis" in attempt else 0
     if (("retrieval" in attempt and (schema == SCHEMA or not retrieval_limit))
             or ("synthesis" in attempt and (schema not in (SYNTHESIS_SCHEMA, SPLIT_SCHEMA, INDUCTION_SCHEMA, *plan_schemas)
@@ -386,7 +394,7 @@ def audit(attempt):
     expected = _prepare(attempt["statement"], SearchLimits(**attempt["search_limits"]),
                         attempt["witness_order_limit"], attempt["external_witness"],
                         retrieval_limit, synthesis_limit, split_order, induct_edges, plan_limit,
-                        proof_hints=hints)
+                        proof_hints=hints, retrieval_index=retrieval_index)
     kernel = attempt["kernel"]
     if expected["generated"] is not None:
         _check_kernel(expected, kernel)

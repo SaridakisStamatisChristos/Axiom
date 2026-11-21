@@ -345,6 +345,8 @@ def main() -> None:
     proof.add_argument("--max-nodes", type=int, default=10_000)
     proof.add_argument("--retrieve-lemmas", type=int, default=0, metavar="K",
                        help="retry exhausted composition with up to K pinned Mathlib adapters")
+    proof.add_argument("--retrieval-index", choices=("v1", "v2"), default="v1",
+                       help="select the original or structural Mathlib retrieval index")
     proof.add_argument("--synthesize-lemmas", type=int, default=0, metavar="K",
                        help="retry exhausted search with up to K projected intermediate lemmas")
     proof.add_argument("--split-order", action="store_true",
@@ -394,16 +396,17 @@ def main() -> None:
         elif command == "graph-discover-universal-audit":
             discovery.add_argument("--artifact", required=True)
         if command == "graph-discover-universal":
-            discovery.add_argument("--proof-profile", choices=("extended",),
+            discovery.add_argument("--proof-profile", choices=("extended", "structural"),
                                    help="use the extended proof engine on the audited selections")
             discovery.add_argument("--proof-hints", metavar="FILE",
-                                   help="statement-bound campaign hint manifest for the extended profile")
+                                   help="statement-bound campaign hint manifest for the chosen profile")
         if command in ("graph-discover-universal", "graph-discover-universal-audit"):
             discovery.add_argument("--compose", action="store_true",
                                    help="use the bounded multi-lemma proof engine")
     args = p.parse_args()
     if args.command in {"graph-prove", "graph-prove-audit"}:
         from pathlib import Path
+        from .graph_lemma_retrieval import INDEX_VERSION, STRUCTURAL_INDEX
         from .graph_proof import audit, hint_context, prove
         from .graph_proof_hints import read_hints
         from .graph_proof_search import SearchLimits
@@ -418,6 +421,7 @@ def main() -> None:
                 raise ValueError("JSON evidence and Lean source require distinct paths")
             statement = json.loads(Path(args.statement_file).read_text(encoding="utf-8"))
             options = dict(witness_order=args.witness_order, retrieval_limit=args.retrieve_lemmas,
+                           retrieval_index=STRUCTURAL_INDEX if args.retrieval_index == "v2" else INDEX_VERSION,
                            synthesis_limit=args.synthesize_lemmas, split_order=args.split_order,
                            induct_edges=args.induct_edges, plan_limit=args.proof_plans,
                            limits=SearchLimits(args.max_lemmas, args.max_coefficient, args.max_nodes))
@@ -479,7 +483,7 @@ def main() -> None:
                     result = dispatch_composed(*params, **options, proof_profile=args.proof_profile,
                                                proof_hints=hints)
                 elif args.proof_hints is not None:
-                    raise ValueError("campaign proof hints require the extended proof profile")
+                    raise ValueError("campaign proof hints require an extended or structural proof profile")
                 else:
                     dispatch = dispatch_composed if args.compose else dispatch_universal
                     result = dispatch(*params, **options)
