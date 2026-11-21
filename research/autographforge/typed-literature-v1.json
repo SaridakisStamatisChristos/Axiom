@@ -1,0 +1,103 @@
+{
+  "AGF-1": {
+    "left": {
+      "invariant": "edge_cover"
+    },
+    "predicates": [
+      "bipartite",
+      "no_isolates"
+    ],
+    "right": {
+      "invariant": "annihilation"
+    },
+    "schema": "axiom.graph.transfer.v1"
+  },
+  "AGF-2": {
+    "left": {
+      "invariant": "annihilation"
+    },
+    "predicates": [
+      "positive_regular"
+    ],
+    "right": {
+      "invariant": "edge_cover"
+    },
+    "schema": "axiom.graph.transfer.v1"
+  },
+  "TXG-1": {
+    "left": {
+      "operands": [
+        {
+          "operands": [
+            {
+              "invariant": "annihilation"
+            },
+            {
+              "invariant": "residue"
+            }
+          ],
+          "operator": "add"
+        },
+        {
+          "invariant": "maximum_degree"
+        }
+      ],
+      "operator": "divide"
+    },
+    "predicates": [
+      "connected",
+      "nontrivial"
+    ],
+    "right": {
+      "invariant": "independence"
+    },
+    "schema": "axiom.graph.transfer.v1"
+  },
+  "TXG-2": {
+    "left": {
+      "invariant": "zero_forcing"
+    },
+    "predicates": [
+      "connected",
+      "subcubic",
+      "not_k4"
+    ],
+    "right": {
+      "operands": [
+        {
+          "invariant": "independence"
+        },
+        {
+          "integer": 1
+        }
+      ],
+      "operator": "add"
+    },
+    "schema": "axiom.graph.transfer.v1"
+  },
+  "TXG-3": {
+    "left": {
+      "invariant": "independent_domination"
+    },
+    "predicates": [
+      "positive_regular"
+    ],
+    "right": {
+      "invariant": "minimum_maximal_matching"
+    },
+    "schema": "axiom.graph.transfer.v1"
+  },
+  "TXG-4": {
+    "left": {
+      "invariant": "minimum_maximal_matching"
+    },
+    "predicates": [
+      "connected",
+      "nontrivial"
+    ],
+    "right": {
+      "invariant": "harmonic_index"
+    },
+    "schema": "axiom.graph.transfer.v1"
+  }
+}

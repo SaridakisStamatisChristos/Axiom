@@ -380,6 +380,9 @@ def main() -> None:
     witness.add_argument("graph_file")
     witness.add_argument("--origin", required=True)
     witness.add_argument("--minimize", action="store_true")
+    transfer = sub.add_parser("graph-transfer-check", help="evaluate a typed literature claim exactly")
+    transfer.add_argument("statement_file")
+    transfer.add_argument("graph_file")
     corpus = sub.add_parser("graph-corpus-screen", help="refute a typed claim on a canonical graph corpus")
     corpus.add_argument("statement_file")
     corpus.add_argument("--db", required=True)
@@ -428,6 +431,20 @@ def main() -> None:
             discovery.add_argument("--compose", action="store_true",
                                    help="use the bounded multi-lemma proof engine")
     args = p.parse_args()
+    if args.command == "graph-transfer-check":
+        from pathlib import Path
+        from .graph_explicit import ExplicitGraph
+        from .graph_transfer import TransferStatement, check, replay
+
+        try:
+            statement = TransferStatement.from_dict(json.loads(Path(args.statement_file).read_bytes()))
+            graph = ExplicitGraph.from_dict(json.loads(Path(args.graph_file).read_bytes()))
+            result = check(statement, graph)
+            replay(statement, result)
+            print(json.dumps(result, indent=2, sort_keys=True))
+        except (ValueError, OSError, TypeError, KeyError) as error:
+            p.exit(2, f"REJECTED: {error}\n")
+        return
     if args.command == "graph-corpus-screen":
         from pathlib import Path
         import sqlite3
