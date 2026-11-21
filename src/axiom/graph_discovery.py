@@ -141,9 +141,29 @@ def _experiment(source, cfg, prior_pairs):
                      for mask in sorted(historical, key=lambda mask: (-mask.bit_count(), mask))]
     selected, refutations, preflight_counts = _select(bank, source_graphs, cfg["max_candidates"])
 
+    proof_beam = cfg.get("proof_beam", 0)
+    if proof_beam:
+        from .graph_proof_beam import candidate_beam
+        proof_banks, beam_counts = candidate_beam(training, proof_beam)
+        beam_summary = {}
+        beam_selected = []
+        for queue, candidates in proof_banks.items():
+            picks, rejected, counts = _select(candidates, source_graphs, cfg["max_candidates"])
+            beam_selected.extend((claim, score, count, queue) for claim, score, count in picks)
+            beam_summary[queue] = {
+                "candidate_count": len(candidates),
+                "candidate_bank_sha256": digest([claim.to_dict() for claim, _ in candidates]),
+                "historical_counterexamples": rejected,
+                "preflight_counts": dict(counts),
+            }
+
     forbidden = historical | legacy | {mask for n, mask in prior_pairs if n == HOLDOUT_ORDER}
     trials = []
-    for claim, score, past_count in selected:
+    proof_trials = []
+    all_selected = [(claim, score, count, None) for claim, score, count in selected]
+    if proof_beam:
+        all_selected.extend(beam_selected)
+    for claim, score, past_count, queue in all_selected:
         # The existing sampler uses its affine prefix as a domain tag. Include
         # relation identity so equality and inequality sample independently.
         proposed, sampling = sample_stratum(
@@ -158,7 +178,7 @@ def _experiment(source, cfg, prior_pairs):
                 witness = _witness(failed, HOLDOUT_ORDER, mask)
                 break
         forbidden.update(checked)
-        trials.append({
+        trial = {
             "candidate_id": claim.id, "statement": claim.to_dict(),
             "selection_score": list(score), "historical_applicable_graphs": past_count,
             "graph_order": HOLDOUT_ORDER, "masks_checked": checked,
@@ -168,8 +188,15 @@ def _experiment(source, cfg, prior_pairs):
                        "INCONCLUSIVE_SAMPLE_BUDGET" if len(checked) < cfg["holdout_budget"]
                        else "EXPERIMENTALLY_SURVIVING"),
             "universal_proof": "NOT_PROVED", "mathematical_novelty": "NOT_ASSESSED",
-        })
+        }
+        if queue is None:
+            trials.append(trial)
+        else:
+            proof_trials.append({**trial, "queue": queue})
+    extra = {"proof_beam": {"search_counts": beam_counts, "queues": beam_summary,
+                            "trials": proof_trials}} if proof_beam else {}
     return {
+        **extra,
         "schema": SCHEMA, "configuration": cfg, "source_fingerprint": fingerprint,
         "historical_source_histories": histories,
         "historical_masks_sha256": digest(sorted(historical)),
@@ -203,8 +230,8 @@ def _initialize(db):
 
 
 def _pairs(report):
-    return {(trial["graph_order"], mask)
-            for trial in report["trials"] for mask in trial["masks_checked"]}
+    trials = report["trials"] + report.get("proof_beam", {}).get("trials", [])
+    return {(trial["graph_order"], mask) for trial in trials for mask in trial["masks_checked"]}
 
 
 def _stored(db, row):
@@ -219,9 +246,18 @@ def _stored(db, row):
     return report
 
 
-def run_campaign(db_path, ledger, name, *, seed=42, n6_training=64, n7_training=64,
-                 holdout_budget=24, max_candidates=4, legacy_reports=None):
+def _campaign_config(seed, n6_training, n7_training, holdout_budget, max_candidates, proof_beam=0):
     cfg = _config(seed, n6_training, n7_training, holdout_budget, max_candidates)
+    if type(proof_beam) is not int or not 0 <= proof_beam <= 64:
+        raise ValueError("proof beam width must be 0..64")
+    if proof_beam:
+        cfg["proof_beam"] = proof_beam
+    return cfg
+
+
+def run_campaign(db_path, ledger, name, *, seed=42, n6_training=64, n7_training=64,
+                 holdout_budget=24, max_candidates=4, legacy_reports=None, proof_beam=0):
+    cfg = _campaign_config(seed, n6_training, n7_training, holdout_budget, max_candidates, proof_beam)
     if type(name) is not str or not name.strip() or len(name) > 128:
         raise ValueError("campaign name must have 1..128 characters")
     source_path, ledger_path = Path(db_path).resolve(), Path(ledger).resolve()
@@ -257,7 +293,7 @@ def _history(db, source, through=None):
         if report["prior_holdout_pairs_sha256"] != digest(sorted(prior)):
             raise ValueError("campaign history digest is inconsistent")
         if through is not None:
-            expected = _experiment(source, _config(**report["configuration"]), prior)
+            expected = _experiment(source, _campaign_config(**report["configuration"]), prior)
             if stable(expected) != stable(report):
                 raise ValueError(f"campaign differs from deterministic replay: {row[1]}")
             if row[1] == through:
