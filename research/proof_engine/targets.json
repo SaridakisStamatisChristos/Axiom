@@ -1,0 +1,19 @@
+[
+  ["P1", "ALL", {"matching":1,"clique":1,"edges":-1,"chromatic":-1}, 0, "<=", "proof"],
+  ["P2", "ALL", {"components":1,"matching":1,"n":-1,"edges":-1}, 0, "<=", "proof"],
+  ["P3", "TRIANGLE_FREE", {"maximum_degree":1,"clique":1,"independence":-1,"chromatic":-1}, 0, "<=", "proof"],
+  ["P4", "ALL", {"matching":1,"clique":1,"edges":-1,"triangles":-1}, 2, "<=", "proof"],
+  ["P5", "CONNECTED", {"matching":1,"n":1,"edges":-2}, 1, "<=", "proof"],
+  ["P6", "ALL", {"matching":1,"components":1,"clique":1,"edges":-1,"n":-1,"chromatic":-1}, 0, "<=", "proof"],
+  ["N1", "ALL", {"clique":1}, 1, "<=", "witness"],
+  ["N2", "ALL", {"matching":1}, 0, "<=", "witness"],
+  ["N3", "TRIANGLE_FREE", {"maximum_degree":1}, 0, "<=", "witness"],
+  ["N4", "CONNECTED", {"n":1,"edges":-1}, 0, "<=", "witness"],
+  ["N5", "ALL", {"clique":1,"chromatic":-1}, 0, "=", "witness"],
+  ["N6", "ALL", {"clique":1,"chromatic":-1}, -1, "<=", "witness"],
+  ["S1", "ALL", {"components":2,"matching":1,"n":-2,"edges":-1}, 0, "<=", "proof"],
+  ["S2", "CONNECTED", {"components":-1,"n":2,"edges":-2}, 1, "<=", "proof"],
+  ["S3", "ALL", {"maximum_degree":1,"independence":-1}, 0, "<=", "witness"],
+  ["S4", "ALL", {"triangles":-1}, 0, "<=", "exhausted"],
+  ["S5", "ALL", {"clique":1,"chromatic":-1}, 0, "<=", "proof"]
+]
