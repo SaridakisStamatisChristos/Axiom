@@ -357,3 +357,25 @@ Use `--proof-profile component-independence` for a discovery campaign.
 It uses the same limits as the `components` profile. On the frozen
 32-statement regression suite, v5 proves 22 statements and preserves
 the 10 counterexamples. A08 supplies the one additional proof over v4.
+
+### Bound matching size by vertex count
+
+`--retrieve-lemmas 5 --retrieval-index v6` can prove `2 * matching <= n`
+for every finite simple graph. Every vertex of a matching subgraph has
+degree one. The degree-sum formula gives two matched vertices per edge,
+and the matched vertices inject into the ambient graph. The proof
+applies this bound to the supremum defining the maximum matching size.
+
+Index v6 offers this adapter when a goal direction has matching
+coefficient at least two. This preserves retrieval slots for
+single-coefficient goals such as `matching + components <= n`.
+Use `--proof-profile matching-cardinality` to enable v6 in a discovery
+campaign with the same resource limits as v5.
+
+The direct bound and both compositions below received Lean proofs in v6.
+The same full-strength v5 profile exhausted its proof plans on each.
+
+- `2 * matching + chromatic <= n + maximum_degree + 1`.
+- `2 * matching + triangles <= n` for triangle-free graphs.
+
+The 32-case regression suite retains 22 proofs and 10 counterexamples.
