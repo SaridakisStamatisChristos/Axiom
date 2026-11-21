@@ -1,11 +1,24 @@
 """Source-replayed discovery handoff to all-orders compositional proof attempts."""
+from dataclasses import asdict
+
 from .graph_claims import digest, stable
 from .graph_discovery import audit_campaign
-from .graph_proof import BANK, audit, prove
+from .graph_proof import BANK, SCHEMA as ATTEMPT_SCHEMA, audit, prove
+from .graph_proof_hints import validate as validate_hints
 from .graph_proof_search import SearchLimits, search
 from .graph_relations import AffineRelation, known_fact
 
 SCHEMA = "axiom.graph_composite_dispatch.v1"
+PROFILE_SCHEMA = "axiom.graph_composite_dispatch.v2"
+DISPATCH_SCHEMAS = (SCHEMA, PROFILE_SCHEMA)
+CAMPAIGN_HINT_SCHEMA = "axiom.graph_campaign_proof_hints.v1"
+FIXED_PROFILE = "fixed"
+EXTENDED_PROFILE = "extended"
+_ENGINES = {
+    FIXED_PROFILE: {},
+    EXTENDED_PROFILE: {"retrieval_limit": 5, "synthesis_limit": 3, "split_order": True,
+                       "induct_edges": True, "plan_limit": 16},
+}
 
 
 def _selections(campaign, discovery):
@@ -30,32 +43,103 @@ def _selections(campaign, discovery):
         }
 
 
-def _report(campaign, discovery, attempts):
-    return {"schema": SCHEMA, "campaign": campaign, "discovery_sha256": digest(discovery),
-            "offline_audit_is_execution_attestation": False, "results": attempts}
+def _configuration(profile, timeout, manifest):
+    if type(profile) is not str or profile not in _ENGINES:
+        raise ValueError("unknown discovery proof profile")
+    if type(timeout) is not int or not 1 <= timeout <= 900:
+        raise ValueError("Lean timeout must be between 1 and 900 seconds")
+    if profile == FIXED_PROFILE:
+        if manifest is not None:
+            raise ValueError("campaign proof hints require the extended proof profile")
+        return None
+    return {"profile": profile, "options": dict(_ENGINES[profile]),
+            "timeout_seconds": timeout, "hints": manifest}
 
 
-def dispatch_composed(db, ledger, campaign, *, legacy_reports=None, project_root=".", timeout=180):
+def _campaign_hints(selections, manifest):
+    if manifest is None:
+        return {}
+    if (type(manifest) is not dict or set(manifest) != {"schema", "hints"}
+            or manifest["schema"] != CAMPAIGN_HINT_SCHEMA
+            or type(manifest["hints"]) is not list or not 1 <= len(manifest["hints"]) <= len(selections)):
+        raise ValueError("invalid campaign proof hints manifest")
+    selected = {digest(trial["statement"]) for trial, _ in selections}
+    inputs = {}
+    for hints in manifest["hints"]:
+        key = hints.get("statement_sha256") if type(hints) is dict else None
+        if type(key) is not str or key not in selected or key in inputs:
+            raise ValueError("campaign proof hint must identify a unique selected statement")
+        validate_hints(hints, key)
+        inputs[key] = hints
+    return inputs
+
+
+def _report(campaign, discovery, attempts, configuration):
+    result = {"schema": SCHEMA, "campaign": campaign, "discovery_sha256": digest(discovery),
+              "offline_audit_is_execution_attestation": False, "results": attempts}
+    if configuration is not None:
+        result.update(schema=PROFILE_SCHEMA, proof_configuration=configuration)
+    return result
+
+
+def dispatch_composed(db, ledger, campaign, *, legacy_reports=None, project_root=".", timeout=180,
+                      proof_profile=FIXED_PROFILE, proof_hints=None):
+    configuration = _configuration(proof_profile, timeout, proof_hints)
     discovery = audit_campaign(db, ledger, campaign, legacy_reports=legacy_reports)
+    selections = list(_selections(campaign, discovery))
+    hints = _campaign_hints(selections, proof_hints)
     attempts = [
         prove(trial["statement"], project_root=project_root, timeout=timeout,
-              provenance=provenance, external_witness=trial["counterexample"])
-        for trial, provenance in _selections(campaign, discovery)
+              provenance=provenance, external_witness=trial["counterexample"],
+              proof_hints=hints.get(digest(trial["statement"])), **_ENGINES[proof_profile])
+        for trial, provenance in selections
     ]
-    return _report(campaign, discovery, attempts)
+    return _report(campaign, discovery, attempts, configuration)
+
+
+def _audit_configuration(attempt, configuration, hints):
+    if configuration is None:
+        if attempt["schema"] != ATTEMPT_SCHEMA:
+            raise ValueError("unexpected proof options in fixed discovery dispatch")
+        return
+    options = {
+        "retrieval_limit": attempt.get("retrieval", {}).get("limit", 0),
+        "synthesis_limit": attempt.get("synthesis", {}).get("limit", 0),
+        "split_order": "order_split" in attempt, "induct_edges": "edge_induction" in attempt,
+        "plan_limit": attempt.get("proof_plans", {}).get("limit", 0),
+    }
+    if (options != configuration["options"]
+            or attempt["lean_timeout_seconds"] != configuration["timeout_seconds"]
+            or stable(attempt.get("proof_hints", {}).get("input")) != stable(hints)
+            or attempt["search_limits"] != asdict(SearchLimits())
+            or attempt["witness_order_limit"] != 5):
+        raise ValueError("proof attempt differs from discovery proof configuration")
 
 
 def audit_composed_dispatch(db, ledger, campaign, artifact, *, legacy_reports=None):
-    discovery = audit_campaign(db, ledger, campaign, legacy_reports=legacy_reports)
-    if type(artifact) is not dict or type(artifact.get("results")) is not list:
+    if (type(artifact) is not dict or artifact.get("schema") not in DISPATCH_SCHEMAS
+            or type(artifact.get("results")) is not list):
         raise ValueError("invalid compositional dispatch artifact")
-    for (trial, provenance), attempt in zip(_selections(campaign, discovery), artifact["results"], strict=True):
+    configuration = None
+    if artifact["schema"] == PROFILE_SCHEMA:
+        recorded = artifact.get("proof_configuration")
+        if type(recorded) is not dict or recorded.get("profile") != EXTENDED_PROFILE:
+            raise ValueError("invalid discovery proof configuration")
+        configuration = _configuration(recorded["profile"], recorded.get("timeout_seconds"),
+                                       recorded.get("hints"))
+        if stable(recorded) != stable(configuration):
+            raise ValueError("invalid discovery proof configuration")
+    discovery = audit_campaign(db, ledger, campaign, legacy_reports=legacy_reports)
+    selections = list(_selections(campaign, discovery))
+    hints = _campaign_hints(selections, configuration["hints"] if configuration else None)
+    for (trial, provenance), attempt in zip(selections, artifact["results"], strict=True):
         audit(attempt)
         if (stable(attempt["statement"]) != stable(trial["statement"])
                 or stable(attempt["provenance"]) != stable(provenance)
                 or stable(attempt["external_witness"]) != stable(trial["counterexample"])):
             raise ValueError("proof attempt differs from source-replayed discovery selection")
-    expected = _report(campaign, discovery, artifact["results"])
+        _audit_configuration(attempt, configuration, hints.get(digest(trial["statement"])))
+    expected = _report(campaign, discovery, artifact["results"], configuration)
     if stable(artifact) != stable(expected):
         raise ValueError("compositional dispatch evidence differs from replay")
     return expected

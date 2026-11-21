@@ -258,3 +258,25 @@ review before any novelty claim. The benchmark records the legacy grammar
 restriction, actual kernel outcomes, independent exhaustive small-graph checks,
 witnesses, and timings with their distinct measurement scopes. See the
 workflow's retained artifacts for the execution and replay evidence.
+
+### Run the extended engine on a campaign
+
+`--proof-profile extended` uses retrieval (5), synthesis (3), order
+splitting, edge induction, and up to 16 Lean plans on the campaign's
+audited statements. It uses the same selected statements and witnesses as
+`--compose`. The v2 report records the profile, timeout, optional hints,
+and each proof attempt. The audit command identifies the report format and
+checks that every attempt used the reported configuration.
+
+```bash
+common=(--db "$DB" --ledger "$LEDGER" --campaign proof-engine-v021)
+axiom graph-discover-universal "${common[@]}" --proof-profile extended > extended.json
+axiom graph-discover-universal-audit "${common[@]}" --artifact extended.json
+```
+
+To supply hints, wrap one or more statement-bound hint files in a manifest
+with schema `axiom.graph_campaign_proof_hints.v1` and a `hints` array.
+Each entry uses the single-statement schema described above. Pass the
+manifest with `--proof-profile extended --proof-hints campaign-hints.json`.
+Each entry must match a distinct selected statement digest. Entries affect
+only proof attempts after campaign selection and holdout replay.

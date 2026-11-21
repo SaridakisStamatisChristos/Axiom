@@ -393,6 +393,11 @@ def main() -> None:
             discovery.add_argument("--timeout", type=int, default=180)
         elif command == "graph-discover-universal-audit":
             discovery.add_argument("--artifact", required=True)
+        if command == "graph-discover-universal":
+            discovery.add_argument("--proof-profile", choices=("extended",),
+                                   help="use the extended proof engine on the audited selections")
+            discovery.add_argument("--proof-hints", metavar="FILE",
+                                   help="statement-bound campaign hint manifest for the extended profile")
         if command in ("graph-discover-universal", "graph-discover-universal-audit"):
             discovery.add_argument("--compose", action="store_true",
                                    help="use the bounded multi-lemma proof engine")
@@ -449,7 +454,8 @@ def main() -> None:
         from .graph_discovery_lean import dispatch_lean
         from .graph_lean import LeanBackendError
         from .graph_universal_lean import audit_dispatch, dispatch_universal
-        from .graph_proof_pipeline import audit_composed_dispatch, dispatch_composed
+        from .graph_proof_hints import read_hints
+        from .graph_proof_pipeline import DISPATCH_SCHEMAS, audit_composed_dispatch, dispatch_composed
 
         legacy = {key: path for key, path in (
             ("v18", args.legacy_v18), ("guided", args.legacy_guided),
@@ -467,12 +473,20 @@ def main() -> None:
                 result = dispatch_lean(*params, legacy_reports=legacy,
                                        project_root=args.project_root, timeout=args.timeout)
             elif args.command == "graph-discover-universal":
-                dispatch = dispatch_composed if args.compose else dispatch_universal
-                result = dispatch(*params, legacy_reports=legacy,
-                                  project_root=args.project_root, timeout=args.timeout)
+                options = dict(legacy_reports=legacy, project_root=args.project_root, timeout=args.timeout)
+                if args.proof_profile:
+                    hints = read_hints(args.proof_hints) if args.proof_hints is not None else None
+                    result = dispatch_composed(*params, **options, proof_profile=args.proof_profile,
+                                               proof_hints=hints)
+                elif args.proof_hints is not None:
+                    raise ValueError("campaign proof hints require the extended proof profile")
+                else:
+                    dispatch = dispatch_composed if args.compose else dispatch_universal
+                    result = dispatch(*params, **options)
             elif args.command == "graph-discover-universal-audit":
                 artifact = json.loads(Path(args.artifact).read_text(encoding="utf-8"))
-                replay = audit_composed_dispatch if args.compose else audit_dispatch
+                composed = args.compose or (type(artifact) is dict and artifact.get("schema") in DISPATCH_SCHEMAS)
+                replay = audit_composed_dispatch if composed else audit_dispatch
                 result = replay(*params, artifact, legacy_reports=legacy)
             else:
                 result = benchmark_campaign(*params, legacy_reports=legacy)
