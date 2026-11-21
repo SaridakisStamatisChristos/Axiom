@@ -57,6 +57,35 @@ jobs:
           axiom knowledge-formal-audit --db research/knowledge/ci_v08.sqlite3
           axiom knowledge-formal-query --db research/knowledge/ci_v08.sqlite3 \
             --domain number_theory --limit 2
+      - name: Install Lean toolchain manager
+        if: matrix.python-version == '3.11'
+        run: |
+          curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Replay all historical sources in pinned Lean
+        if: matrix.python-version == '3.11'
+        run: |
+          MATHLIB_NO_CACHE_ON_UPDATE=1 lake update
+          git diff --exit-code -- lake-manifest.json
+          lake exe cache get Mathlib.Tactic.Ring Mathlib.Tactic.Linarith
+          AXIOM_REAL_LEAN=1 pytest -q tests/test_lean_integration.py tests/test_number_theory_lean_integration.py
+          AXIOM_REAL_LEAN=1 pytest -q tests/test_formal_provenance.py -k live_replay
+          root=research/knowledge
+          axiom knowledge-formal-replay --db "$root/ci_v08.sqlite3" > "$root/ci_v08_replay.json.tmp"
+          python - "$root/ci_v08_replay.json.tmp" <<'PY'
+          from collections import Counter
+          import json
+          from pathlib import Path
+          import sys
+
+          pending = Path(sys.argv[1])
+          records = json.loads(pending.read_text())["records"]
+          assert Counter(row["domain"] for row in records) == {"algebra": 85, "number_theory": 96}
+          assert len({row["formal_record_id"] for row in records}) == 181
+          pending.rename(pending.with_suffix(""))
+          PY
+          sha256sum "$root/ci_v08_replay.json" | tee "$root/ci_v08_replay.sha256"
       - name: Preserve auditable proof index and source-bound summary
         if: always()
         uses: actions/upload-artifact@v4
@@ -65,4 +94,6 @@ jobs:
           path: |
             research/knowledge/ci_v08.sqlite3
             research/knowledge/ci_v08_summary.json
+            research/knowledge/ci_v08_replay.json
+            research/knowledge/ci_v08_replay.sha256
           if-no-files-found: warn

@@ -114,9 +114,26 @@ it. In particular, the AST-to-Lean statement translation remains a trust
 boundary; passing Lean proves the *formalized statement*, and interpreting that
 as the intended mathematical claim relies on the source translation.
 
-The user-facing query presents full provenance **without asserting external
-execution**. Authenticating historical GitHub provenance into a formally signed,
-cross-platform proof certificate is a separate future milestone.
+To get fresh execution evidence, replay the indexed sources in a trusted
+environment with the historical Lean toolchain and committed Lake manifest.
+
+    axiom knowledge-formal-replay --db research/knowledge/axiom.sqlite3 > lean-replay.json
+    axiom knowledge-cross-query --db research/knowledge/axiom.sqlite3 \
+      --domain algebra --status PROVED_IN_SUPPORTED_FRAGMENT --replay-lean
+
+Replay takes an audited database snapshot, regenerates the original Lean source
+from each typed statement and certificate, runs the kernel, and compares the
+source, resolved Mathlib commit, Lake manifest digest, and transitive axioms
+against the original record. A failed check rejects the entire invocation.
+Cross-domain query rows carry the resulting `verified_evidence` references
+alongside their original finding statuses.
+
+The formal provenance workflow archives the complete fresh replay with a SHA-256
+digest and the audited knowledge index. Verify the trusted runner and workflow
+revision when relying on the GitHub run, or reproduce the report with a trusted
+local Lean installation. The JSON and checksum alone establish neither execution
+nor the authenticity of a historical run. The report is deterministic across
+successful replays and excludes wall-clock metadata.
 
 ## Tests and release gates
 
