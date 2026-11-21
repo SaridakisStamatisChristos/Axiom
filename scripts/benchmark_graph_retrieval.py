@@ -25,9 +25,16 @@ def main():
                           help="compare the existing fallbacks with and without edge induction")
     fallback.add_argument("--proof-plans", action="store_true",
                           help="compare the existing fallbacks with and without Lean plan search")
+    fallback.add_argument("--proof-hints", action="store_true",
+                          help="compare two-plan search with and without external fact suggestions")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
-    if args.proof_plans:
+    if args.proof_hints:
+        suite = root / "research/proof_engine/proof_hint_targets.json"
+        modes = {"proof_plans": (5, 3, True), "proof_hints": (5, 3, True)}
+        schema = "axiom.graph_proof_hint_benchmark.v1"
+        scope = "external fact suggestions under a two-plan budget"
+    elif args.proof_plans:
         suite = root / "research/proof_engine/proof_plan_targets.json"
         modes = {"edge_induction": (5, 3, True), "proof_plans": (5, 3, True)}
         schema = "axiom.graph_proof_plan_benchmark.v1"
@@ -62,16 +69,30 @@ def main():
         claim = AffineRelation.normalized(weights, rhs, premise)
         statement = case / "statement.json"
         write_json(statement, claim.to_dict())
+        hints_path = case / "hints.json"
+        if args.proof_hints:
+            context_path = case / "context.json"
+            subprocess.run([sys.executable, "-m", "axiom", "graph-prove", str(statement),
+                            "--retrieve-lemmas", "5", "--synthesize-lemmas", "3",
+                            "--split-order", "--induct-edges", "--proof-plans", "2",
+                            "--proof-hint-context", "--output", str(context_path)], check=True)
+            context = json.loads(context_path.read_text(encoding="utf-8"))
+            assert context["status"] == "PLAN_SEARCH_READY" and context["plan_slots"] == 2
+            assert set(expected_selection) <= {fact["theorem"] for fact in context["facts"]}
+            write_json(hints_path, {**context["response_template"], "plans": [expected_selection]})
         outcomes = {}
         for mode, (retrieve_limit, synthesize_limit, split_order) in modes.items():
             output, source = case / (mode + ".json"), case / (mode + ".lean")
+            plan_limit = 2 if args.proof_hints else 16 if mode == "proof_plans" else 0
             subprocess.run([sys.executable, "-m", "axiom", "graph-prove", str(statement),
                             "--project-root", str(root), "--retrieve-lemmas", str(retrieve_limit),
                             "--synthesize-lemmas", str(synthesize_limit),
                             "--output", str(output), "--source", str(source),
                             *(["--split-order"] if split_order else []),
-                            *(["--induct-edges"] if mode in ("edge_induction", "proof_plans") else []),
-                            *(["--proof-plans", "16"] if mode == "proof_plans" else [])], check=True)
+                            *(["--induct-edges"] if mode in ("edge_induction", "proof_plans", "proof_hints") else []),
+                            "--proof-plans", str(plan_limit),
+                            *(["--proof-hints", str(hints_path)] if mode == "proof_hints" else [])],
+                           check=True)
             record = json.loads(output.read_text(encoding="utf-8"))
             audit(record)
             if record["generated"] is not None:
@@ -80,7 +101,13 @@ def main():
             counts[mode][record["status"]] += 1
         used = {lemma["theorem"] for direction in (record["derivation"] or {}).get("directions", ())
                 for lemma in direction["lemmas"] or ()}
-        if args.proof_plans:
+        if args.proof_hints:
+            plans = record["proof_plans"]
+            indices = record["proof_hints"]["hint_indices"]
+            selection_ok = (indices == [None, 0] and plans["accepted_index"] == 1
+                            and plans["candidates"][1] == sorted(expected_selection))
+            evidence = {"proof_hints": record["proof_hints"], "accepted_index": plans["accepted_index"]}
+        elif args.proof_plans:
             plans = record["proof_plans"]
             index = plans["accepted_index"]
             accepted = plans["candidates"][index] if index is not None else None
@@ -108,7 +135,8 @@ def main():
         violations = check_small_graphs(claim)
         cases.append({"name": name, "outcomes": outcomes, **evidence,
                       "small_graph_violations": violations})
-        expected = {baseline: "SEARCH_EXHAUSTED", upgraded: "FORMALLY_VERIFIED"}
+        baseline_status = "LEAN_REJECTED" if args.proof_hints else "SEARCH_EXHAUSTED"
+        expected = {baseline: baseline_status, upgraded: "FORMALLY_VERIFIED"}
         if outcomes != expected or violations or not selection_ok:
             failures.append(name)
         print(f"{name}: {outcomes[baseline]} -> {outcomes[upgraded]}", flush=True)

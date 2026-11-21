@@ -220,12 +220,13 @@ jobs:
           pytest -q tests/test_graph_proof_search.py tests/test_graph_proof_pipeline.py | tee "$OUT/pytest.log"
           python scripts/benchmark_graph_proof.py --output "$OUT/benchmark" | tee "$OUT/benchmark.log"
           axiom graph-prove-audit "$OUT/benchmark/P6/attempt.json"
-          AXIOM_REAL_LEAN=1 pytest -q tests/test_graph_lemma_retrieval.py tests/test_graph_lemma_synthesis.py tests/test_graph_order_split.py tests/test_graph_edge_induction.py tests/test_graph_proof_plans.py | tee "$OUT/fallback-tests.log"
+          AXIOM_REAL_LEAN=1 pytest -q tests/test_graph_lemma_retrieval.py tests/test_graph_lemma_synthesis.py tests/test_graph_order_split.py tests/test_graph_edge_induction.py tests/test_graph_proof_plans.py tests/test_graph_proof_hints.py | tee "$OUT/fallback-tests.log"
           python scripts/benchmark_graph_retrieval.py --output "$OUT/retrieval" | tee "$OUT/retrieval.log"
           python scripts/benchmark_graph_retrieval.py --synthesis --output "$OUT/synthesis" | tee "$OUT/synthesis.log"
           python scripts/benchmark_graph_retrieval.py --order-split --output "$OUT/order-split" | tee "$OUT/order-split.log"
           python scripts/benchmark_graph_retrieval.py --edge-induction --output "$OUT/edge-induction" | tee "$OUT/edge-induction.log"
           python scripts/benchmark_graph_retrieval.py --proof-plans --output "$OUT/proof-plans" | tee "$OUT/proof-plans.log"
+          python scripts/benchmark_graph_retrieval.py --proof-hints --output "$OUT/proof-hints" | tee "$OUT/proof-hints.log"
       - name: Replay the four-term discovery-to-proof campaign
         run: |
           ROOT=research/knowledge/ci_v018
@@ -279,6 +280,7 @@ jobs:
       github.head_ref == 'axiom-v0.21-proof-engine' ||
       github.head_ref == 'axiom-v025-edge-induction' ||
       github.head_ref == 'axiom-v026-proof-plans' ||
+      github.head_ref == 'axiom-v027-proof-hints' ||
       github.ref_name == 'main'
     runs-on: ubuntu-24.04
     timeout-minutes: 60

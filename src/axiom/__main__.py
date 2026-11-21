@@ -353,6 +353,11 @@ def main() -> None:
                        help="retry with a bound certified by strong induction on the number of edges")
     proof.add_argument("--proof-plans", type=int, default=0, metavar="K",
                        help="try up to K ranked Lean tactic plans after composition exhausts search")
+    hint_mode = proof.add_mutually_exclusive_group()
+    hint_mode.add_argument("--proof-hint-context", action="store_true",
+                           help="export the eligible facts and hint schema without invoking Lean")
+    hint_mode.add_argument("--proof-hints", metavar="FILE",
+                           help="try statement-bound JSON fact bundles in the proof plan fallback")
     proof.add_argument("--witness-order", type=int, default=5)
     proof.add_argument("--output")
     proof.add_argument("--source")
@@ -394,7 +399,8 @@ def main() -> None:
     args = p.parse_args()
     if args.command in {"graph-prove", "graph-prove-audit"}:
         from pathlib import Path
-        from .graph_proof import audit, prove
+        from .graph_proof import audit, hint_context, prove
+        from .graph_proof_hints import read_hints
         from .graph_proof_search import SearchLimits
 
         try:
@@ -406,11 +412,18 @@ def main() -> None:
             if args.output and args.source and Path(args.output).resolve() == Path(args.source).resolve():
                 raise ValueError("JSON evidence and Lean source require distinct paths")
             statement = json.loads(Path(args.statement_file).read_text(encoding="utf-8"))
-            record = prove(statement, project_root=args.project_root, timeout=args.timeout,
-                           witness_order=args.witness_order, retrieval_limit=args.retrieve_lemmas,
+            options = dict(witness_order=args.witness_order, retrieval_limit=args.retrieve_lemmas,
                            synthesis_limit=args.synthesize_lemmas, split_order=args.split_order,
                            induct_edges=args.induct_edges, plan_limit=args.proof_plans,
                            limits=SearchLimits(args.max_lemmas, args.max_coefficient, args.max_nodes))
+            if args.proof_hint_context:
+                if args.source:
+                    raise ValueError("proof hint context has no Lean source")
+                record = hint_context(statement, **options)
+            else:
+                hints = read_hints(args.proof_hints) if args.proof_hints is not None else None
+                record = prove(statement, **options, project_root=args.project_root,
+                               timeout=args.timeout, proof_hints=hints)
             text = json.dumps(record, indent=2, sort_keys=True) + "\n"
             if args.output:
                 path = Path(args.output)

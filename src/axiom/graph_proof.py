@@ -16,6 +16,8 @@ from .graph_lemma_retrieval import INDEX_SHA256, INDEX_VERSION, MAX_RETRIEVED_LE
 from .graph_lemma_synthesis import MAX_SYNTHESIZED_LEMMAS, SYNTHESIS_VERSION, synthesize
 from .graph_model import edge_positions
 from .graph_order_split import ORDER_SPLIT_VERSION, POSITIVE_BANK, proof_body as order_split_body
+from .graph_proof_hints import (CONTEXT_SCHEMA, HINT_SCHEMA, eligible_facts,
+                                schedule as schedule_hints, validate as validate_hints)
 from .graph_proof_plans import (MAX_PROOF_PLANS, PLAN_VERSION, accepted_plan,
                                 body as plan_body, candidates as plan_candidates)
 from .graph_proof_search import LemmaSpec, SearchLimits, search
@@ -32,6 +34,7 @@ SYNTHESIS_SCHEMA = "axiom.graph_proof_attempt.v3"
 SPLIT_SCHEMA = "axiom.graph_proof_attempt.v4"
 INDUCTION_SCHEMA = "axiom.graph_proof_attempt.v5"
 PLAN_SCHEMA = "axiom.graph_proof_attempt.v6"
+HINT_ATTEMPT_SCHEMA = "axiom.graph_proof_attempt.v7"
 BANK = tuple(LemmaSpec(name, premise, _vector(weights.items()), rhs)
              for name, premise, weights, rhs in _RULES)
 UNAVAILABLE = frozenset({
@@ -98,7 +101,8 @@ def _retry(claim, bank, limits, previous_nodes):
 
 
 def _prepare(statement, limits, witness_order, external_witness, retrieval_limit=0,
-             synthesis_limit=0, split_order=False, induct_edges=False, plan_limit=0):
+             synthesis_limit=0, split_order=False, induct_edges=False, plan_limit=0, *,
+             proof_hints=None, context_only=False):
     if type(plan_limit) is not int or not 0 <= plan_limit <= MAX_PROOF_PLANS:
         raise ValueError("invalid proof plan limit")
     if type(induct_edges) is not bool:
@@ -143,6 +147,13 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
         base.update(schema=PLAN_SCHEMA, proof_plans={
             "method": PLAN_VERSION, "limit": plan_limit,
             "candidates": [], "accepted_index": None,
+        })
+    if proof_hints is not None:
+        if not plan_limit:
+            raise ValueError("proof hints require a positive proof plan limit")
+        validate_hints(proof_hints, base["statement_sha256"])
+        base.update(schema=HINT_ATTEMPT_SCHEMA, proof_hints={
+            "input": proof_hints, "hint_indices": [], "rejected": [],
         })
     try:
         claim = AffineRelation.from_dict(statement)
@@ -198,7 +209,15 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
     plans = ()
     remaining = limits.max_nodes - derivation["nodes"]
     if not derivation["derived"] and plan_limit and remaining:
-        plans = plan_candidates(claim, bank, limits.max_lemmas, min(plan_limit, remaining))
+        limit = min(plan_limit, remaining)
+        if context_only:
+            return dict(base, status="PLAN_SEARCH_READY", reason="PLAN_SEARCH_READY",
+                        facts=eligible_facts(claim, bank), plan_slots=limit)
+        plans = plan_candidates(claim, bank, limits.max_lemmas, limit)
+        if proof_hints is not None:
+            plans, indices, rejected = schedule_hints(
+                proof_hints, eligible_facts(claim, bank), plans, limits.max_lemmas, limit)
+            base["proof_hints"].update(hint_indices=indices, rejected=rejected)
         base["proof_plans"]["candidates"] = [[lemma.theorem for lemma in plan] for plan in plans]
     if not (derivation["derived"] or plans):
         budget_exhausted = (derivation["node_budget_exhausted"]
@@ -206,6 +225,8 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
                                 and derivation["nodes"] == limits.max_nodes))
         reason = "NODE_BUDGET_EXHAUSTED" if budget_exhausted else "NO_BOUNDED_COMBINATION"
         return dict(base, status="SEARCH_EXHAUSTED", reason=reason)
+    if context_only:
+        return dict(base, status="EXACT_DERIVATION_READY", reason="DERIVATION_READY")
     body = None
     local_bank = {lemma.theorem for lemma in POSITIVE_BANK}
     if plans:
@@ -284,14 +305,35 @@ def _check_kernel(attempt, kernel):
         plans["accepted_index"] = accepted_plan(kernel["stdout"], len(plans["candidates"]))
 
 
+def hint_context(statement, *, limits=SearchLimits(), witness_order=5,
+                 retrieval_limit=0, synthesis_limit=0, split_order=False,
+                 induct_edges=False, plan_limit=0):
+    if not plan_limit:
+        raise ValueError("proof hint context requires a positive proof plan limit")
+    result = _prepare(statement, limits, witness_order, None, retrieval_limit, synthesis_limit,
+                      split_order, induct_edges, plan_limit, context_only=True)
+    facts = result.get("facts", {})
+    return {
+        "schema": CONTEXT_SCHEMA, "statement": statement,
+        "statement_sha256": result["statement_sha256"], "status": result["status"],
+        "reason": result["reason"], "invariant_order": result["invariant_order"],
+        "plan_slots": result.get("plan_slots", 0), "max_lemmas": limits.max_lemmas,
+        "facts": [{**asdict(lemma), "scope": "POSITIVE_ORDER" if lemma in POSITIVE_BANK else "GLOBAL"}
+                  for _, lemma in sorted(facts.items())],
+        "response_template": {"schema": HINT_SCHEMA,
+                              "statement_sha256": result["statement_sha256"], "plans": []},
+    }
+
+
 def prove(statement, *, limits=SearchLimits(), witness_order=5, project_root=".", timeout=180,
           provenance=None, external_witness=None, retrieval_limit=0, synthesis_limit=0,
-          split_order=False, induct_edges=False, plan_limit=0):
+          split_order=False, induct_edges=False, plan_limit=0, proof_hints=None):
     if type(timeout) is not int or not 1 <= timeout <= 900:
         raise ValueError("Lean timeout must be between 1 and 900 seconds")
     started = perf_counter()
     attempt = _prepare(statement, limits, witness_order, external_witness,
-                       retrieval_limit, synthesis_limit, split_order, induct_edges, plan_limit)
+                       retrieval_limit, synthesis_limit, split_order, induct_edges, plan_limit,
+                       proof_hints=proof_hints)
     elapsed = perf_counter() - started
     kernel = None
     if attempt["generated"] is not None:
@@ -306,7 +348,8 @@ def prove(statement, *, limits=SearchLimits(), witness_order=5, project_root="."
 
 
 def audit(attempt):
-    schemas = (SCHEMA, RETRIEVAL_SCHEMA, SYNTHESIS_SCHEMA, SPLIT_SCHEMA, INDUCTION_SCHEMA, PLAN_SCHEMA)
+    schemas = (SCHEMA, RETRIEVAL_SCHEMA, SYNTHESIS_SCHEMA, SPLIT_SCHEMA, INDUCTION_SCHEMA, PLAN_SCHEMA,
+               HINT_ATTEMPT_SCHEMA)
     if type(attempt) is not dict or attempt.get("schema") not in schemas:
         raise ValueError("unknown proof attempt schema")
     payload = {key: value for key, value in attempt.items() if key != "record_sha256"}
@@ -319,6 +362,11 @@ def audit(attempt):
     schema = attempt["schema"]
     split_order = "order_split" in attempt
     induct_edges = "edge_induction" in attempt
+    plan_schemas = (PLAN_SCHEMA, HINT_ATTEMPT_SCHEMA)
+    has_hints = "proof_hints" in attempt
+    if has_hints and (type(attempt["proof_hints"]) is not dict or "input" not in attempt["proof_hints"]):
+        raise ValueError("invalid proof hint evidence")
+    hints = attempt["proof_hints"]["input"] if has_hints else None
     has_plans = "proof_plans" in attempt
     if has_plans and (type(attempt["proof_plans"]) is not dict or "limit" not in attempt["proof_plans"]):
         raise ValueError("invalid proof plan evidence")
@@ -326,16 +374,19 @@ def audit(attempt):
     retrieval_limit = attempt["retrieval"]["limit"] if "retrieval" in attempt else 0
     synthesis_limit = attempt["synthesis"]["limit"] if "synthesis" in attempt else 0
     if (("retrieval" in attempt and (schema == SCHEMA or not retrieval_limit))
-            or ("synthesis" in attempt and (schema not in (SYNTHESIS_SCHEMA, SPLIT_SCHEMA, INDUCTION_SCHEMA, PLAN_SCHEMA)
+            or ("synthesis" in attempt and (schema not in (SYNTHESIS_SCHEMA, SPLIT_SCHEMA, INDUCTION_SCHEMA, *plan_schemas)
                                             or not synthesis_limit))
-            or (schema not in (INDUCTION_SCHEMA, PLAN_SCHEMA) and split_order != (schema == SPLIT_SCHEMA))
-            or (schema != PLAN_SCHEMA and induct_edges != (schema == INDUCTION_SCHEMA))
-            or (has_plans != (schema == PLAN_SCHEMA))
-            or (schema == PLAN_SCHEMA and not plan_limit)):
+            or (schema not in (INDUCTION_SCHEMA, *plan_schemas) and split_order != (schema == SPLIT_SCHEMA))
+            or (schema not in plan_schemas and induct_edges != (schema == INDUCTION_SCHEMA))
+            or (has_plans != (schema in plan_schemas))
+            or (schema in plan_schemas and not plan_limit)
+            or (has_hints != (schema == HINT_ATTEMPT_SCHEMA))
+            or (has_hints and hints is None)):
         raise ValueError("unexpected proof fallback evidence")
     expected = _prepare(attempt["statement"], SearchLimits(**attempt["search_limits"]),
                         attempt["witness_order_limit"], attempt["external_witness"],
-                        retrieval_limit, synthesis_limit, split_order, induct_edges, plan_limit)
+                        retrieval_limit, synthesis_limit, split_order, induct_edges, plan_limit,
+                        proof_hints=hints)
     kernel = attempt["kernel"]
     if expected["generated"] is not None:
         _check_kernel(expected, kernel)

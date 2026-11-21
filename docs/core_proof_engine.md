@@ -200,6 +200,35 @@ python scripts/benchmark_graph_retrieval.py --proof-plans --output proof-plan-be
 The benchmark compares the same earlier fallbacks with and without tactic
 plans and retains both attempts, checked source, and two-oracle graph checks.
 
+## Optional external proof hints
+
+Use `--proof-hint-context` with the desired proof options to export the
+statement, eligible fact names and coefficient vectors, local or global
+scopes, and a response template. This option does not invoke Lean. An
+external model or a person can fill the template's `plans` array with
+ordered suggestions. Each suggestion is an array of eligible fact names.
+Keep the template's schema and statement digest intact.
+
+```bash
+common=(--retrieve-lemmas 5 --synthesize-lemmas 3 --split-order --induct-edges --proof-plans 2)
+axiom graph-prove statement.json "${common[@]}" --proof-hint-context --output context.json
+axiom graph-prove statement.json "${common[@]}" --proof-hints hints.json --output attempt.json --source attempt.lean
+axiom graph-prove-audit attempt.json
+python scripts/benchmark_graph_retrieval.py --proof-hints --output proof-hint-benchmark
+```
+
+AXIOM reserves the first plan for arithmetic alone, then tries eligible
+hint bundles, then fills remaining slots with ranked plans. Hints can displace ranked plans within
+the same cap. It records unavailable facts, over-budget bundles and
+duplicates, and uses only its own templates to generate Lean. The v7
+attempt stores the input, rejected proposals, and the mapping from
+scheduled plans to hint indices. Lean checks the original statement under
+the same timeout and axiom policy. AXIOM runs this interface offline.
+
+The benchmark compares three frozen suggestions against ordinary
+two-plan search. It tests whether suggestions can improve a tight budget
+on those goals.
+
 ## Discovery and benchmark
 
 Use a source database built by the reconstruction step in
