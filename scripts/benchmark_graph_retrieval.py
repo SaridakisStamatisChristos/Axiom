@@ -23,9 +23,16 @@ def main():
                           help="compare retrieval and projection with and without case splitting")
     fallback.add_argument("--edge-induction", action="store_true",
                           help="compare the existing fallbacks with and without edge induction")
+    fallback.add_argument("--proof-plans", action="store_true",
+                          help="compare the existing fallbacks with and without Lean plan search")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
-    if args.edge_induction:
+    if args.proof_plans:
+        suite = root / "research/proof_engine/proof_plan_targets.json"
+        modes = {"edge_induction": (5, 3, True), "proof_plans": (5, 3, True)}
+        schema = "axiom.graph_proof_plan_benchmark.v1"
+        scope = "bounded Lean tactic plans on frozen evaluation goals"
+    elif args.edge_induction:
         suite = root / "research/proof_engine/edge_induction_targets.json"
         modes = {"order_split": (5, 3, True), "edge_induction": (5, 3, True)}
         schema = "axiom.graph_edge_induction_benchmark.v1"
@@ -63,7 +70,8 @@ def main():
                             "--synthesize-lemmas", str(synthesize_limit),
                             "--output", str(output), "--source", str(source),
                             *(["--split-order"] if split_order else []),
-                            *(["--induct-edges"] if mode == "edge_induction" else [])], check=True)
+                            *(["--induct-edges"] if mode in ("edge_induction", "proof_plans") else []),
+                            *(["--proof-plans", "16"] if mode == "proof_plans" else [])], check=True)
             record = json.loads(output.read_text(encoding="utf-8"))
             audit(record)
             if record["generated"] is not None:
@@ -72,7 +80,14 @@ def main():
             counts[mode][record["status"]] += 1
         used = {lemma["theorem"] for direction in (record["derivation"] or {}).get("directions", ())
                 for lemma in direction["lemmas"] or ()}
-        if args.edge_induction:
+        if args.proof_plans:
+            plans = record["proof_plans"]
+            index = plans["accepted_index"]
+            accepted = plans["candidates"][index] if index is not None else None
+            selection_ok = (index is not None and set(expected_selection) <= set(accepted)
+                            and (index > 0) == bool(expected_selection))
+            evidence = {"accepted_index": index, "accepted_plan": accepted}
+        elif args.edge_induction:
             induction = record["edge_induction"]
             selection_ok = (induction["attempted"] and induction["selected_fact"] == EDGE_INDUCTION_RULE.theorem
                             and {induction["selected_fact"], expected_selection} <= used)

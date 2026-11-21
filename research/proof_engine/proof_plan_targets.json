@@ -1,0 +1,8 @@
+[
+  ["sum-of-natural-invariants", "ALL", {"triangles": -1, "matching": -1}, 0, []],
+  ["scaled-matching-bound", "ALL", {"matching": 5, "edges": -6}, 0, ["matching_le_edges"]],
+  ["weakened-components-and-matching", "ALL", {"components": 2, "matching": 1, "n": -3, "edges": -2, "triangles": -1}, 0, ["components_le_order", "matching_le_edges"]],
+  ["weakened-edge-induction", "ALL", {"n": 2, "edges": -2, "independence": -2, "triangles": -1}, 0, ["edge_induction_order_le_edges_add_independence"]],
+  ["weakened-bipartite-coloring", "BIPARTITE", {"chromatic": 3, "matching": 1, "edges": -2, "triangles": -1}, 6, ["matching_le_edges", "retrieved_bipartite_chromatic_le_two"]],
+  ["connected-order-edges-clique-triangles", "CONNECTED", {"n": 1, "edges": -1, "clique": -1, "triangles": -1}, 0, ["connected_edge_bound", "order_clique_positive"]]
+]

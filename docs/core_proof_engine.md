@@ -173,6 +173,33 @@ The benchmark keeps the earlier fallbacks enabled in both modes. It archives
 the exact statements, proof records and checked Lean source, and cross-checks
 the targets with two independent small-graph oracles.
 
+## Optional Lean proof-plan search
+
+Add `--proof-plans K` (1–16) after the existing fallbacks. AXIOM tries
+`omega` on the goal alone, then ranked bundles of facts from the enabled
+proof stages. Bundles draw from at most seven eligible facts and respect
+`--max-lemmas`. The remaining search-node budget also caps how many plans
+are emitted. The earlier coefficient cap applies to exact composition.
+Lean's arithmetic tactic can combine facts with other coefficients and
+use the nonnegativity of natural-number invariants. A plan that uses a
+positive-order fact proves both graph-order branches.
+
+Lean tries the plans in one invocation under the existing timeout. A
+plan must close every goal to reach its trace marker. The v6 record keeps
+the ordered plans, the accepted index from the checked Lean log, and the
+exact generated source. Offline audit regenerates that source and checks
+the index against the recorded log. Exhausting all plans yields a Lean
+rejection. The ordinary counterexample search still runs first.
+
+```bash
+axiom graph-prove statement.json --retrieve-lemmas 5 --synthesize-lemmas 3 \
+  --split-order --induct-edges --proof-plans 16
+python scripts/benchmark_graph_retrieval.py --proof-plans --output proof-plan-benchmark
+```
+
+The benchmark compares the same earlier fallbacks with and without tactic
+plans and retains both attempts, checked source, and two-oracle graph checks.
+
 ## Discovery and benchmark
 
 Use a source database built by the reconstruction step in
