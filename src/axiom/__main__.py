@@ -115,6 +115,10 @@ def main() -> None:
     fed_q.add_argument("--domain", choices=("graph", "algebra", "number_theory", "recurrence"))
     fed_q.add_argument("--status")
     fed_q.add_argument("--limit", type=int, default=20)
+    fed_q.add_argument("--replay-lean", action="store_true",
+                       help="kernel-check audited formal records for the selected statements")
+    fed_q.add_argument("--project-root", default=".")
+    fed_q.add_argument("--timeout", type=int, default=180)
     form_imp = sub.add_parser("knowledge-formal-import", help="source-bind preserved complete Lean records; no offline formal promotion")
     form_imp.add_argument("--db", default="research/knowledge/axiom.sqlite3")
     form_imp.add_argument("--algebra-ndjson")
@@ -126,6 +130,11 @@ def main() -> None:
     form_q.add_argument("--db", default="research/knowledge/axiom.sqlite3")
     form_q.add_argument("--domain", choices=("algebra", "number_theory"))
     form_q.add_argument("--limit", type=int, default=20)
+    form_replay = sub.add_parser("knowledge-formal-replay",
+                                 help="recheck audited historical proof records in pinned Lean")
+    form_replay.add_argument("--db", default="research/knowledge/axiom.sqlite3")
+    form_replay.add_argument("--project-root", default=".")
+    form_replay.add_argument("--timeout", type=int, default=180)
     graph_frontier = sub.add_parser(
         "graph-frontier-run",
         help="boundedly falsify n=6/7 graph conjectures motivated by n=5 finite proofs")
@@ -948,7 +957,8 @@ def main() -> None:
         print(json.dumps(result, sort_keys=True, indent=2))
         return
 
-    if args.command in {"knowledge-formal-import", "knowledge-formal-audit", "knowledge-formal-query"}:
+    if args.command in {"knowledge-formal-import", "knowledge-formal-audit",
+                        "knowledge-formal-query", "knowledge-formal-replay"}:
         from .formal_provenance import import_formal, formal_summary, formal_query
         import sqlite3
         try:
@@ -958,6 +968,10 @@ def main() -> None:
                                        number_records_dir=args.number_records_dir)
             elif args.command == "knowledge-formal-audit":
                 result = formal_summary(args.db)
+            elif args.command == "knowledge-formal-replay":
+                from .formal_replay import replay_formal
+                result = replay_formal(args.db, project_root=args.project_root,
+                                       timeout_seconds=args.timeout)
             else:
                 result = {"records": formal_query(
                     args.db, domain=args.domain, limit=args.limit)}
@@ -979,6 +993,11 @@ def main() -> None:
                 result = {"statements": query_federation(
                     args.db, domain=args.domain, status=args.status,
                     limit=args.limit)}
+                if args.replay_lean:
+                    from .formal_replay import add_replayed_evidence
+                    result = add_replayed_evidence(args.db, result["statements"],
+                                                   project_root=args.project_root,
+                                                   timeout_seconds=args.timeout)
         except (ValueError, TypeError, KeyError, OSError, sqlite3.DatabaseError,
                 json.JSONDecodeError) as exc:
             p.exit(2, f"REJECTED: {exc}\n")

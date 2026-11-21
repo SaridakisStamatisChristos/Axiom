@@ -12,6 +12,8 @@ import pytest
 from axiom.knowledge_graph import build_knowledge_graph, knowledge_summary
 from axiom.knowledge_federation import federate, federation_summary
 from axiom.formal_provenance import import_formal, formal_summary, formal_query
+from axiom import formal_replay
+from axiom.knowledge_federation import query_federation
 
 ROOT = Path(__file__).parents[1]
 ALGEBRA = ROOT / "research/v03_formal_results.ndjson"
@@ -190,3 +192,55 @@ def test_cli_formal_evidence_import_audit_and_query(cloned_db, small_records):
     rejected = cli("knowledge-formal-query", "--db", cloned_db,
                    "--domain", "graph")
     assert rejected.returncode != 0
+
+
+def test_replay_rejects_empty_index_and_unpinned_environment(cloned_db, small_records, tmp_path):
+    with pytest.raises(ValueError, match="no audited formal records"):
+        formal_replay.replay_formal(cloned_db, project_root=tmp_path)
+    ap, _ = small_records
+    import_formal(cloned_db, algebra_ndjson=str(ap))
+    with pytest.raises(ValueError, match="pinned historical Lake manifest"):
+        formal_replay.replay_formal(cloned_db, project_root=tmp_path)
+
+
+@pytest.mark.skipif(os.environ.get("AXIOM_REAL_LEAN") != "1", reason="requires pinned Lean")
+def test_live_replay_preserves_source_bound_findings(cloned_db, small_records):
+    ap, np = small_records
+    import_formal(cloned_db, algebra_ndjson=str(ap),
+                  number_index=str(np), number_records_dir=str(NT_DIR))
+    first = formal_replay.replay_formal(cloned_db, project_root=ROOT)
+    assert first == formal_replay.replay_formal(cloned_db, project_root=ROOT)
+    records = first["records"]
+    assert len(records) == 4
+    assert {record["domain"] for record in records} == {"algebra", "number_theory"}
+    assert {record["status"] for record in records} == {"LEAN_KERNEL_REPLAY_VERIFIED"}
+    offline = {row["source_sha256"] for row in formal_query(cloned_db)}
+    assert offline == {record["source_sha256"] for record in records}
+
+    algebra_record = next(row for row in records if row["domain"] == "algebra")
+    statements = query_federation(cloned_db, domain="algebra",
+                                 status="PROVED_IN_SUPPORTED_FRAGMENT", limit=100)
+    algebra = next(row for row in statements
+                   if row["statement_id"] == algebra_record["statement_id"])
+    graph = query_federation(cloned_db, domain="graph", limit=1)[0]
+    assert formal_replay.add_replayed_evidence(
+        cloned_db, [algebra, graph], project_root=ROOT, timeout_seconds=180,
+    )["statements"] == [
+        {**algebra, "verified_evidence": [algebra_record]},
+        {**graph, "verified_evidence": []},
+    ]
+    assert formal_summary(cloned_db)["knowledge_graph_status_upgrades"] == 0
+
+
+def test_failed_kernel_cannot_produce_execution_evidence(cloned_db, small_records, monkeypatch):
+    ap, _ = small_records
+    import_formal(cloned_db, algebra_ndjson=str(ap))
+    monkeypatch.setattr(formal_replay, "_dependency_manifest", lambda _: {
+        "mathlib_revision": formal_replay.MATHLIB_COMMIT,
+        "manifest_sha256": formal_replay.MANIFEST_SHA256,
+    })
+    monkeypatch.setattr(formal_replay, "verify_with_lean", lambda *_, **__: {
+        "accepted": False, "status": "CHECKER_FAILED", "checker_exit_code": 1,
+    })
+    with pytest.raises(ValueError, match="CHECKER_FAILED"):
+        formal_replay.replay_formal(cloned_db, project_root=ROOT)
