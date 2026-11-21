@@ -354,7 +354,7 @@ def main() -> None:
     proof.add_argument("--max-nodes", type=int, default=10_000)
     proof.add_argument("--retrieve-lemmas", type=int, default=0, metavar="K",
                        help="retry exhausted composition with up to K pinned Mathlib adapters")
-    proof.add_argument("--retrieval-index", choices=("v1", "v2", "v3"), default="v1",
+    proof.add_argument("--retrieval-index", choices=("v1", "v2", "v3", "v4"), default="v1",
                        help="select the Mathlib retrieval index version")
     proof.add_argument("--synthesize-lemmas", type=int, default=0, metavar="K",
                        help="retry exhausted search with up to K projected intermediate lemmas")
@@ -405,7 +405,7 @@ def main() -> None:
         elif command == "graph-discover-universal-audit":
             discovery.add_argument("--artifact", required=True)
         if command == "graph-discover-universal":
-            discovery.add_argument("--proof-profile", choices=("extended", "structural", "matching"),
+            discovery.add_argument("--proof-profile", choices=("extended", "structural", "matching", "components"),
                                    help="use the extended proof engine on the audited selections")
             discovery.add_argument("--proof-hints", metavar="FILE",
                                    help="statement-bound campaign hint manifest for the chosen profile")
@@ -415,7 +415,7 @@ def main() -> None:
     args = p.parse_args()
     if args.command in {"graph-prove", "graph-prove-audit"}:
         from pathlib import Path
-        from .graph_lemma_retrieval import INDEX_VERSION, MATCHING_INDEX, STRUCTURAL_INDEX
+        from .graph_lemma_retrieval import COMPONENT_INDEX, INDEX_VERSION, MATCHING_INDEX, STRUCTURAL_INDEX
         from .graph_proof import audit, hint_context, prove
         from .graph_proof_hints import read_hints
         from .graph_proof_search import SearchLimits
@@ -429,7 +429,8 @@ def main() -> None:
             if args.output and args.source and Path(args.output).resolve() == Path(args.source).resolve():
                 raise ValueError("JSON evidence and Lean source require distinct paths")
             statement = json.loads(Path(args.statement_file).read_text(encoding="utf-8"))
-            indexes = {"v1": INDEX_VERSION, "v2": STRUCTURAL_INDEX, "v3": MATCHING_INDEX}
+            indexes = {"v1": INDEX_VERSION, "v2": STRUCTURAL_INDEX, "v3": MATCHING_INDEX,
+                       "v4": COMPONENT_INDEX}
             options = dict(witness_order=args.witness_order, retrieval_limit=args.retrieve_lemmas,
                            retrieval_index=indexes[args.retrieval_index],
                            synthesis_limit=args.synthesize_lemmas, split_order=args.split_order,

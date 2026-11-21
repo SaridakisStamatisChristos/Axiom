@@ -3,7 +3,7 @@ from dataclasses import asdict
 
 from .graph_claims import digest, stable
 from .graph_discovery import audit_campaign
-from .graph_lemma_retrieval import INDEX_VERSION, MATCHING_INDEX, STRUCTURAL_INDEX
+from .graph_lemma_retrieval import COMPONENT_INDEX, INDEX_VERSION, MATCHING_INDEX, STRUCTURAL_INDEX
 from .graph_proof import BANK, SCHEMA as ATTEMPT_SCHEMA, audit, prove
 from .graph_proof_hints import validate as validate_hints
 from .graph_proof_search import SearchLimits, search
@@ -17,6 +17,7 @@ FIXED_PROFILE = "fixed"
 EXTENDED_PROFILE = "extended"
 STRUCTURAL_PROFILE = "structural"
 MATCHING_PROFILE = "matching"
+COMPONENT_PROFILE = "components"
 _ENGINES = {
     FIXED_PROFILE: {},
     EXTENDED_PROFILE: {"retrieval_limit": 5, "synthesis_limit": 3, "split_order": True,
@@ -24,6 +25,7 @@ _ENGINES = {
 }
 _ENGINES[STRUCTURAL_PROFILE] = {**_ENGINES[EXTENDED_PROFILE], "retrieval_index": STRUCTURAL_INDEX}
 _ENGINES[MATCHING_PROFILE] = {**_ENGINES[EXTENDED_PROFILE], "retrieval_index": MATCHING_INDEX}
+_ENGINES[COMPONENT_PROFILE] = {**_ENGINES[EXTENDED_PROFILE], "retrieval_index": COMPONENT_INDEX}
 
 
 def _selections(campaign, discovery):
@@ -131,11 +133,11 @@ def audit_composed_dispatch(db, ledger, campaign, artifact, *, legacy_reports=No
     configuration = None
     if artifact["schema"] == PROFILE_SCHEMA:
         recorded = artifact.get("proof_configuration")
-        if type(recorded) is not dict or recorded.get("profile") not in (EXTENDED_PROFILE, STRUCTURAL_PROFILE, MATCHING_PROFILE):
+        if type(recorded) is not dict:
             raise ValueError("invalid discovery proof configuration")
-        configuration = _configuration(recorded["profile"], recorded.get("timeout_seconds"),
+        configuration = _configuration(recorded.get("profile"), recorded.get("timeout_seconds"),
                                        recorded.get("hints"))
-        if stable(recorded) != stable(configuration):
+        if configuration is None or stable(recorded) != stable(configuration):
             raise ValueError("invalid discovery proof configuration")
     discovery = audit_campaign(db, ledger, campaign, legacy_reports=legacy_reports)
     selections = list(_selections(campaign, discovery))

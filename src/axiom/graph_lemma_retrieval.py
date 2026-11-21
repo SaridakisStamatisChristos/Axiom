@@ -3,6 +3,7 @@ from dataclasses import asdict, dataclass
 
 from .graph_bipartite_matching import BIPARTITE_MATCHING_PROOF
 from .graph_claims import digest
+from .graph_component_coloring import COMPONENT_COLORING_PROOF
 from .graph_proof_search import LemmaSpec
 from .graph_relations import AffineRelation, _vector
 from .graph_universal_lean import PINNED_MATHLIB_SHA
@@ -186,10 +187,32 @@ _INDEX_V3 = _INDEX_V2 + (
     ),
 )
 
+_INDEX_V4 = _INDEX_V3 + (
+    _adapter(
+        "chromatic_add_components_le_order_add_one", "ALL",
+        {"chromatic": 1, "components": 1, "n": -1}, 1,
+        ("SimpleGraph.ConnectedComponent.sound", "Finset.card_image_of_injective",
+         "Finset.card_add_card_compl", "SimpleGraph.Coloring.mk",
+         "SimpleGraph.Colorable.chromaticNumber_le"),
+        COMPONENT_COLORING_PROOF,
+    ),
+    _adapter(
+        "connected_components_le_one", "CONNECTED", {"components": 1}, 1,
+        ("SimpleGraph.Preconnected.subsingleton_connectedComponent", "Nat.card_eq_one_iff_unique"),
+        """\
+have h : components G = 1 := Nat.card_eq_one_iff_unique.mpr
+    ⟨premise.preconnected.subsingleton_connectedComponent,
+      Nonempty.map G.connectedComponentMk premise.nonempty⟩
+  omega""",
+    ),
+)
+
 INDEX_VERSION = "axiom.mathlib_affine_graph_index.v1"
 STRUCTURAL_INDEX = "axiom.mathlib_affine_graph_index.v2"
 MATCHING_INDEX = "axiom.mathlib_affine_graph_index.v3"
-_INDEXES = {INDEX_VERSION: _INDEX_V1, STRUCTURAL_INDEX: _INDEX_V2, MATCHING_INDEX: _INDEX_V3}
+COMPONENT_INDEX = "axiom.mathlib_affine_graph_index.v4"
+_INDEXES = {INDEX_VERSION: _INDEX_V1, STRUCTURAL_INDEX: _INDEX_V2, MATCHING_INDEX: _INDEX_V3,
+            COMPONENT_INDEX: _INDEX_V4}
 INDEX_DIGESTS = {version: digest({
     "schema": version,
     "mathlib_revision": PINNED_MATHLIB_SHA,

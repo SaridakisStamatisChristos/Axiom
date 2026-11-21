@@ -232,6 +232,7 @@ jobs:
         run: |
           ROOT=research/knowledge/ci_v018
           OUT="$ROOT/proof_engine"
+          AXIOM_REAL_LEAN=1 pytest -q tests/test_graph_component_coloring.py | tee "$OUT/components-tests.log"
           common=(--db "$ROOT/science.sqlite3" --legacy-v18 "$ROOT/compositional.json" --ledger "$OUT/discovery.sqlite3" --campaign proof-engine-v021)
           axiom graph-discover "${common[@]}" --proof-beam 8 --holdout-budget 8 --max-candidates 2 > "$OUT/discovery.json"
           axiom graph-discover-universal "${common[@]}" --compose > "$OUT/discovery_proof_report.json"
@@ -246,6 +247,9 @@ jobs:
           axiom graph-discover-universal "${common[@]}" --proof-profile matching > "$OUT/discovery_matching.json"
           axiom graph-discover-universal-audit "${common[@]}" --artifact "$OUT/discovery_matching.json" > "$OUT/discovery_matching_audited.json"
           cmp "$OUT/discovery_matching.json" "$OUT/discovery_matching_audited.json"
+          axiom graph-discover-universal "${common[@]}" --proof-profile components > "$OUT/discovery_components.json"
+          axiom graph-discover-universal-audit "${common[@]}" --artifact "$OUT/discovery_components.json" > "$OUT/discovery_components_audited.json"
+          cmp "$OUT/discovery_components.json" "$OUT/discovery_components_audited.json"
           python - "$OUT" <<'PY'
           import json
           from pathlib import Path
@@ -273,6 +277,12 @@ jobs:
           assert [a["provenance"] for a in matching["results"]] == [a["provenance"] for a in structural["results"]]
           assert len(matching["results"]) == 6
           assert all(a["status"] == "FORMALLY_VERIFIED" for a in matching["results"])
+          components = json.loads((root / "discovery_components.json").read_text())
+          assert components["proof_configuration"]["profile"] == "components"
+          assert components["discovery_sha256"] == matching["discovery_sha256"]
+          assert [a["provenance"] for a in components["results"]] == [a["provenance"] for a in matching["results"]]
+          assert len(components["results"]) == 6
+          assert all(a["status"] == "FORMALLY_VERIFIED" for a in components["results"])
           outcomes = []
           for index, attempt in enumerate(report["results"]):
               provenance = attempt["provenance"]
@@ -314,6 +324,7 @@ jobs:
       github.head_ref == 'axiom-v028-discovery-profiles' ||
       github.head_ref == 'axiom-v029-graph-adapters' ||
       github.head_ref == 'axiom-v030-bipartite-matching' ||
+      github.head_ref == 'axiom-component-proofs' ||
       github.ref_name == 'main'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
