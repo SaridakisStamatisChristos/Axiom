@@ -370,10 +370,21 @@ def main() -> None:
     hint_mode.add_argument("--proof-hints", metavar="FILE",
                            help="try statement-bound JSON fact bundles in the proof plan fallback")
     proof.add_argument("--witness-order", type=int, default=5)
+    proof.add_argument("--external-witness", metavar="FILE")
     proof.add_argument("--output")
     proof.add_argument("--source")
     proof_audit = sub.add_parser("graph-prove-audit", help="replay proof evidence integrity offline")
     proof_audit.add_argument("report_file")
+    witness = sub.add_parser("graph-witness", help="independently certify an explicit counterexample")
+    witness.add_argument("statement_file")
+    witness.add_argument("graph_file")
+    witness.add_argument("--origin", required=True)
+    witness.add_argument("--minimize", action="store_true")
+    corpus = sub.add_parser("graph-corpus-screen", help="refute a typed claim on a canonical graph corpus")
+    corpus.add_argument("statement_file")
+    corpus.add_argument("--db", required=True)
+    corpus.add_argument("--split", choices=("development", "validation", "final"), default="development")
+    corpus.add_argument("--exact-budget", type=int, default=1000)
     for command, help_text in (
         ("graph-discover", "synthesize and test affine graph relations in a persistent campaign"),
         ("graph-discover-audit", "replay a campaign and its predecessor history"),
@@ -417,6 +428,37 @@ def main() -> None:
             discovery.add_argument("--compose", action="store_true",
                                    help="use the bounded multi-lemma proof engine")
     args = p.parse_args()
+    if args.command == "graph-corpus-screen":
+        from pathlib import Path
+        import sqlite3
+        from .graph_corpus import screen
+        from .graph_relations import AffineRelation
+
+        try:
+            claim = AffineRelation.from_dict(json.loads(Path(args.statement_file).read_bytes()))
+            report = screen(args.db, claim, args.exact_budget, split=args.split)
+            print(json.dumps(report, indent=2, sort_keys=True))
+        except (ValueError, OSError, TypeError, KeyError, sqlite3.Error) as error:
+            p.exit(2, f"REJECTED: {error}\n")
+        return
+    if args.command == "graph-witness":
+        from pathlib import Path
+        from .graph_explicit import ExplicitGraph
+        from .graph_large_witness import certify_witness, minimize_witness
+        from .graph_relations import AffineRelation
+
+        try:
+            claim = AffineRelation.from_dict(json.loads(Path(args.statement_file).read_bytes()))
+            path = Path(args.graph_file)
+            graph = (ExplicitGraph.from_graph6(path.read_text(encoding="ascii"))
+                     if path.suffix == ".g6" else ExplicitGraph.from_dict(json.loads(path.read_bytes())))
+            if args.minimize:
+                graph = minimize_witness(claim, graph)
+            report = certify_witness(claim, graph, origin=args.origin)
+            print(json.dumps(report, indent=2, sort_keys=True))
+        except (ValueError, OSError, TypeError, KeyError) as error:
+            p.exit(2, f"REJECTED: {error}\n")
+        return
     if args.command in {"graph-prove", "graph-prove-audit"}:
         from pathlib import Path
         from .graph_lemma_retrieval import (
@@ -446,13 +488,14 @@ def main() -> None:
                            induct_edges=args.induct_edges, plan_limit=args.proof_plans,
                            limits=SearchLimits(args.max_lemmas, args.max_coefficient, args.max_nodes))
             if args.proof_hint_context:
-                if args.source:
-                    raise ValueError("proof hint context has no Lean source")
+                if args.source or args.external_witness:
+                    raise ValueError("proof hint context accepts neither source output nor a witness")
                 record = hint_context(statement, **options)
             else:
                 hints = read_hints(args.proof_hints) if args.proof_hints is not None else None
+                external = json.loads(Path(args.external_witness).read_bytes()) if args.external_witness else None
                 record = prove(statement, **options, project_root=args.project_root,
-                               timeout=args.timeout, proof_hints=hints)
+                               timeout=args.timeout, proof_hints=hints, external_witness=external)
             text = json.dumps(record, indent=2, sort_keys=True) + "\n"
             if args.output:
                 path = Path(args.output)

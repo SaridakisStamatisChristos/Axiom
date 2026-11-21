@@ -12,6 +12,7 @@ dependencies = ["sympy>=1.12,<2"]
 [project.optional-dependencies]
 dev = ["pytest>=8"]
 novelty = ["scipy>=1.13,<2"]
+corpus = ["numpy>=1.26,<3", "networkx>=3.3,<4"]
 
 [project.scripts]
 axiom = "axiom.__main__:main"
