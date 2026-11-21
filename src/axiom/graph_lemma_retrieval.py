@@ -321,6 +321,11 @@ def retrieve(claim: AffineRelation, limit: int, *, index=INDEX_VERSION) -> tuple
     return tuple(sorted(applicable, key=rank)[:limit])
 
 
+def indexed_facts(index):
+    """Return the full pinned inventory, without top-k retrieval."""
+    return _INDEXES[index]
+
+
 def describe(entry):
     return {"adapter": entry.lemma.theorem, "premise": entry.lemma.premise,
             "mathlib_declarations": list(entry.declarations),

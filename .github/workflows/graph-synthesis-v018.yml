@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install source dependencies
-        run: python -m pip install -e '.[dev]'
+        run: python -m pip install -e '.[dev,novelty]'
       - name: Adversarial sampler regression
         run: pytest -q tests/test_graph_nonduplicate.py tests/test_graph_adaptive.py tests/test_graph_synthesis.py
       - name: Reconstruct all independently audited source layers
@@ -124,7 +124,7 @@ jobs:
           PY
       - name: Synthesize equalities and inequalities and audit the cross-run holdout ledger
         run: |
-          pytest -q tests/test_graph_discovery.py
+          pytest -q tests/test_graph_discovery.py tests/test_graph_novelty.py
           ROOT=research/knowledge/ci_v018
           V2="$ROOT/discovery_v2"
           mkdir -p "$V2"
