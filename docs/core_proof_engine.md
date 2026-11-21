@@ -147,6 +147,32 @@ case splitting disabled and enabled on six frozen graph bounds, archives
 the attempts and checked source, and checks each goal against two
 small-graph oracles.
 
+## Optional edge-count induction
+
+Add `--induct-edges` to retry within the remaining node budget after the
+enabled fallbacks. It adds one general-purpose bound, `n ≤ edges + independence`,
+to the affine search. Lean proves it by strong induction on the number of
+edges. With no edges all vertices form an independent set. Otherwise, delete
+one edge, apply the induction hypothesis to the smaller graph, and discard
+one endpoint from its maximum independent set to obtain an independent set
+of the original graph.
+
+The engine can combine this bound with fixed or retrieved lemmas, synthesized
+bounds, and local case facts when order splitting is enabled. It emits the
+induction proof only if the final derivation uses the bound. The v5 record
+includes the preceding search and the selected induction fact. The offline
+auditor regenerates the same source and checks its digest. The induction
+rule is specific to this bound on finite simple graphs.
+
+```bash
+axiom graph-prove statement.json --retrieve-lemmas 5 --synthesize-lemmas 3 --split-order --induct-edges
+python scripts/benchmark_graph_retrieval.py --edge-induction --output edge-induction-benchmark
+```
+
+The benchmark keeps the earlier fallbacks enabled in both modes. It archives
+the exact statements, proof records and checked Lean source, and cross-checks
+the targets with two independent small-graph oracles.
+
 ## Discovery and benchmark
 
 Use a source database built by the reconstruction step in

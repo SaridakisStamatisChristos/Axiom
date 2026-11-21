@@ -349,6 +349,8 @@ def main() -> None:
                        help="retry exhausted search with up to K projected intermediate lemmas")
     proof.add_argument("--split-order", action="store_true",
                        help="retry with a checked split between zero and positive order")
+    proof.add_argument("--induct-edges", action="store_true",
+                       help="retry with a bound certified by strong induction on the number of edges")
     proof.add_argument("--witness-order", type=int, default=5)
     proof.add_argument("--output")
     proof.add_argument("--source")
@@ -405,6 +407,7 @@ def main() -> None:
             record = prove(statement, project_root=args.project_root, timeout=args.timeout,
                            witness_order=args.witness_order, retrieval_limit=args.retrieve_lemmas,
                            synthesis_limit=args.synthesize_lemmas, split_order=args.split_order,
+                           induct_edges=args.induct_edges,
                            limits=SearchLimits(args.max_lemmas, args.max_coefficient, args.max_nodes))
             text = json.dumps(record, indent=2, sort_keys=True) + "\n"
             if args.output:
