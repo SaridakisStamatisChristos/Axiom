@@ -207,12 +207,40 @@ have h : components G = 1 := Nat.card_eq_one_iff_unique.mpr
     ),
 )
 
+_INDEX_V5 = _INDEX_V4 + (
+    _adapter(
+        "components_le_independence", "ALL", {"components": 1, "independence": -1}, 0,
+        ("SimpleGraph.ConnectedComponent.sound", "Finset.card_image_of_injective",
+         "SimpleGraph.IsIndepSet.card_le_indepNum"),
+        """\
+classical
+  have surj : Function.Surjective G.connectedComponentMk := Quot.mk_surjective
+  let rep : G.ConnectedComponent → Fin n := fun c => (surj c).choose
+  have section_rep : Function.LeftInverse G.connectedComponentMk rep :=
+    fun c => (surj c).choose_spec
+  let reps : Finset (Fin n) := Finset.univ.image rep
+  have hreps : reps.card = components G := by
+    simp [reps, Finset.card_image_of_injective _ section_rep.injective,
+      components, Nat.card_eq_fintype_card]
+  have independent : G.IsIndepSet (↑reps : Set (Fin n)) := by
+    intro u hu v hv hne adj
+    obtain ⟨a, _, rfl⟩ := Finset.mem_image.mp (Finset.mem_coe.mp hu)
+    obtain ⟨b, _, rfl⟩ := Finset.mem_image.mp (Finset.mem_coe.mp hv)
+    have hc := SimpleGraph.ConnectedComponent.sound adj.reachable
+    rw [section_rep a, section_rep b] at hc
+    exact hne (congrArg rep hc)
+  have h : components G ≤ independence G := hreps ▸ independent.card_le_indepNum
+  omega""",
+    ),
+)
+
 INDEX_VERSION = "axiom.mathlib_affine_graph_index.v1"
 STRUCTURAL_INDEX = "axiom.mathlib_affine_graph_index.v2"
 MATCHING_INDEX = "axiom.mathlib_affine_graph_index.v3"
 COMPONENT_INDEX = "axiom.mathlib_affine_graph_index.v4"
+COMPONENT_INDEPENDENCE_INDEX = "axiom.mathlib_affine_graph_index.v5"
 _INDEXES = {INDEX_VERSION: _INDEX_V1, STRUCTURAL_INDEX: _INDEX_V2, MATCHING_INDEX: _INDEX_V3,
-            COMPONENT_INDEX: _INDEX_V4}
+            COMPONENT_INDEX: _INDEX_V4, COMPONENT_INDEPENDENCE_INDEX: _INDEX_V5}
 INDEX_DIGESTS = {version: digest({
     "schema": version,
     "mathlib_revision": PINNED_MATHLIB_SHA,

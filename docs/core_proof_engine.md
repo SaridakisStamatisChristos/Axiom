@@ -343,3 +343,17 @@ axiom graph-prove statement.json --max-lemmas 3 --max-coefficient 3 \
   --split-order --induct-edges --proof-plans 16 --output attempt.json
 axiom graph-prove-audit attempt.json
 ```
+
+### Compose component and matching bounds
+
+`--retrieve-lemmas 5 --retrieval-index v5` adds the universal fact
+`components <= independence`. Pick one representative per connected
+component. Two distinct representatives cannot share an edge, so they
+form an independent set. AXIOM combines the new fact with the existing
+`matching + independence <= n` adapter to prove `matching + components <= n`
+without any bipartite or connected premise.
+
+Use `--proof-profile component-independence` for a discovery campaign.
+It uses the same limits as the `components` profile. On the frozen
+32-statement regression suite, v5 proves 22 statements and preserves
+the 10 counterexamples. A08 supplies the one additional proof over v4.
