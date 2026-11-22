@@ -1,0 +1,25 @@
+{
+  "axiom_commit": "481453c2c8f38d818dad11b7b8591064427c5961",
+  "autographforge_commit": "4d1a8afc99447cacd2328cca20e47b6493e8dbc5",
+  "bootstrap_replicates": 20000,
+  "bootstrap_seed": 208519,
+  "budget": {
+    "max_coefficient": 3,
+    "max_lemmas": 3,
+    "max_nodes": 10000,
+    "plan_limit": 16,
+    "retrieval_limit": 5,
+    "synthesis_limit": 3,
+    "timeout": 45,
+    "witness_order": 5
+  },
+  "cases": 100,
+  "coverage_gate_points": 15,
+  "families": 20,
+  "lanes": ["v7", "v9", "autographforge-cpu-tactics"],
+  "lean": "4.35.0",
+  "manifest_sha256": "c1277b106bb4f7df16b047a6e893e11dffda8f92448b7abb1f22d190e8262d8d",
+  "mathlib": "56a005855ea17e0b0958f73ec801ae140b0a1679",
+  "primary": "Percentage of all frozen statements verified by the pinned Lean kernel, separately by lane",
+  "schema": "axiom.graph_proof_coverage_protocol.v1"
+}

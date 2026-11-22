@@ -1,0 +1,144 @@
+{
+  "all": {
+    "autographforge-cpu-tactics": {
+      "CHECKER_FAILED": 100
+    },
+    "v7": {
+      "FORMALLY_VERIFIED": 67,
+      "LEAN_REJECTED": 33
+    },
+    "v9": {
+      "FORMALLY_VERIFIED": 76,
+      "LEAN_REJECTED": 15,
+      "SEARCH_EXHAUSTED": 9
+    }
+  },
+  "by_scope": {
+    "ALL": {
+      "autographforge-cpu-tactics": {
+        "CHECKER_FAILED": 25
+      },
+      "v7": {
+        "FORMALLY_VERIFIED": 21,
+        "LEAN_REJECTED": 4
+      },
+      "v9": {
+        "FORMALLY_VERIFIED": 24,
+        "SEARCH_EXHAUSTED": 1
+      }
+    },
+    "BIPARTITE": {
+      "autographforge-cpu-tactics": {
+        "CHECKER_FAILED": 25
+      },
+      "v7": {
+        "FORMALLY_VERIFIED": 15,
+        "LEAN_REJECTED": 10
+      },
+      "v9": {
+        "FORMALLY_VERIFIED": 14,
+        "LEAN_REJECTED": 8,
+        "SEARCH_EXHAUSTED": 3
+      }
+    },
+    "CONNECTED": {
+      "autographforge-cpu-tactics": {
+        "CHECKER_FAILED": 25
+      },
+      "v7": {
+        "FORMALLY_VERIFIED": 13,
+        "LEAN_REJECTED": 12
+      },
+      "v9": {
+        "FORMALLY_VERIFIED": 19,
+        "LEAN_REJECTED": 3,
+        "SEARCH_EXHAUSTED": 3
+      }
+    },
+    "TRIANGLE_FREE": {
+      "autographforge-cpu-tactics": {
+        "CHECKER_FAILED": 25
+      },
+      "v7": {
+        "FORMALLY_VERIFIED": 18,
+        "LEAN_REJECTED": 7
+      },
+      "v9": {
+        "FORMALLY_VERIFIED": 19,
+        "LEAN_REJECTED": 4,
+        "SEARCH_EXHAUSTED": 2
+      }
+    }
+  },
+  "coverage_gate_passed": false,
+  "native_vocabulary_overlap": {
+    "autographforge-cpu-tactics": {
+      "CHECKER_FAILED": 10
+    },
+    "v7": {
+      "FORMALLY_VERIFIED": 7,
+      "LEAN_REJECTED": 3
+    },
+    "v9": {
+      "FORMALLY_VERIFIED": 7,
+      "LEAN_REJECTED": 2,
+      "SEARCH_EXHAUSTED": 1
+    }
+  },
+  "paired_all": [
+    {
+      "baseline": "v7",
+      "case_count": 100,
+      "contender": "v9",
+      "delta_points": 9.0,
+      "family_count": 20,
+      "losses": 5,
+      "paired_family_bootstrap_95_points": [
+        -4.0,
+        25.0
+      ],
+      "wins": 14
+    },
+    {
+      "baseline": "autographforge-cpu-tactics",
+      "case_count": 100,
+      "contender": "v9",
+      "delta_points": 76.0,
+      "family_count": 20,
+      "losses": 0,
+      "paired_family_bootstrap_95_points": [
+        61.0,
+        89.0
+      ],
+      "wins": 76
+    }
+  ],
+  "paired_native_vocabulary_overlap": [
+    {
+      "baseline": "v7",
+      "case_count": 10,
+      "contender": "v9",
+      "delta_points": 0.0,
+      "family_count": 6,
+      "losses": 0,
+      "paired_family_bootstrap_95_points": [
+        0.0,
+        0.0
+      ],
+      "wins": 0
+    },
+    {
+      "baseline": "autographforge-cpu-tactics",
+      "case_count": 10,
+      "contender": "v9",
+      "delta_points": 70.0,
+      "family_count": 6,
+      "losses": 0,
+      "paired_family_bootstrap_95_points": [
+        37.5,
+        100.0
+      ],
+      "wins": 7
+    }
+  ]
+}
