@@ -415,8 +415,10 @@ def main() -> None:
             discovery.add_argument("--n7-training", type=int, default=64)
             discovery.add_argument("--holdout-budget", type=int, default=24)
             discovery.add_argument("--max-candidates", type=int, default=4)
-            discovery.add_argument("--novelty-profile", choices=("certified-v1",),
-                                   help="check implications against the complete v7 fact bank")
+            from .graph_novelty import PROFILES
+
+            discovery.add_argument("--novelty-profile", choices=PROFILES,
+                                   help="check exact implications against a versioned graph fact bank")
             discovery.add_argument("--proof-beam", type=int, default=0,
                                    help="opt in to the four-term candidate lane at this beam width")
         elif command == "graph-discover-audit":

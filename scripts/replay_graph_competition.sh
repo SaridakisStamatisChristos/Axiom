@@ -7,7 +7,7 @@ profile=${3:-legacy}
 flags=()
 case "$profile" in
     legacy) ;;
-    certified-v1) flags+=(--novelty-profile "$profile") ;;
+    certified-v1|certified-v2) flags+=(--novelty-profile "$profile") ;;
     *) printf 'Unknown discovery profile %s\n' "$profile" >&2; exit 2 ;;
 esac
 (cd "$archive" && sha256sum -c SHA256SUMS) > "$out/input-checksums.log"

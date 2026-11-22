@@ -214,6 +214,12 @@ jobs:
               assert "PROVED" in item["claim_states"]
           assert any(item["handoff"] == "PENDING_UNSUPPORTED_RELATION" for item in artifact["results"])
           PY
+      - name: Check the structural novelty bounds in Lean
+        run: |
+          proof=$(mktemp --suffix=.lean)
+          trap 'rm -f "$proof"' EXIT
+          cat src/axiom/lean/GraphUniversal.lean research/autographforge/novelty-v2-support.lean > "$proof"
+          lake env lean -DwarningAsError=true "$proof"
       - name: Verify the compositional proof engine against the frozen benchmark
         run: |
           mkdir -p research/knowledge/ci_v018/proof_engine/benchmark

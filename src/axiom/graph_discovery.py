@@ -1,6 +1,7 @@
 """Source-replayed affine discovery with transactional holdout history."""
 from collections import Counter
 from contextlib import closing
+from functools import partial
 from itertools import combinations, product
 import json
 from pathlib import Path
@@ -13,7 +14,7 @@ from .graph_campaign import _discovery_properties
 from .graph_checker import reference_properties
 from .graph_claims import digest, stable
 from .graph_guided import audit_guided
-from .graph_novelty import PROFILE, NoveltyFilter, dominates
+from .graph_novelty import PROFILE, PROFILES, NoveltyFilter, dominates
 from .graph_relations import AffineRelation, implies, known_fact
 from .graph_research_cycle import _tasks
 from .graph_stratified import audit_followup, sample_stratum
@@ -97,11 +98,11 @@ def _coverage_rank(selected, training, limit):
     return picks
 
 
-def _select(bank, historical, limit, *, training=None):
+def _select(bank, historical, limit, *, training=None, novelty_profile=PROFILE):
     selected = []
     refutations = []
     counts = Counter()
-    compare = implies if training is None else dominates
+    compare = implies if training is None else partial(dominates, profile=novelty_profile)
     measure = "SYMBOLIC_DOMINATION" if training is None else "CERTIFIED_DOMINATION"
     # The finite historical preflight is isolated from all new observations.
     for claim, score in bank:
@@ -175,12 +176,14 @@ def _experiment(source, cfg, prior_pairs, *, replay=None):
     if cfg.get("novelty_profile"):
         if replay is not None and type(replay.get("novelty")) is not dict:
             raise ValueError("missing certified novelty evidence")
-        novelty = NoveltyFilter(replay["novelty"] if replay is not None else None)
+        novelty = NoveltyFilter(replay["novelty"] if replay is not None else None,
+                                profile=cfg["novelty_profile"])
     bank, discovery_counts = _discover(training) if novelty is None else _discover(training, novelty)
     source_graphs = [(mask, reference_properties(HOLDOUT_ORDER, mask))
                      for mask in sorted(historical, key=lambda mask: (-mask.bit_count(), mask))]
     selected, refutations, preflight_counts = _select(
-        bank, source_graphs, cfg["max_candidates"], training=training if novelty else None)
+        bank, source_graphs, cfg["max_candidates"], training=training if novelty else None,
+        novelty_profile=novelty.profile if novelty else PROFILE)
 
     proof_beam = cfg.get("proof_beam", 0)
     if proof_beam:
@@ -192,7 +195,8 @@ def _experiment(source, cfg, prior_pairs, *, replay=None):
         for queue, candidates in proof_banks.items():
             picks, rejected, counts = _select(
                 candidates, source_graphs, cfg["max_candidates"],
-                training=training if novelty and queue == OPEN_QUEUE else None)
+                training=training if novelty and queue == OPEN_QUEUE else None,
+                novelty_profile=novelty.profile if novelty else PROFILE)
             beam_selected.extend((claim, score, count, queue) for claim, score, count in picks)
             beam_summary[queue] = {
                 "candidate_count": len(candidates),
@@ -301,7 +305,7 @@ def _campaign_config(seed, n6_training, n7_training, holdout_budget, max_candida
     if proof_beam:
         cfg["proof_beam"] = proof_beam
     if novelty_profile is not None:
-        if novelty_profile != PROFILE:
+        if novelty_profile not in PROFILES:
             raise ValueError("unknown graph novelty profile")
         cfg["novelty_profile"] = novelty_profile
     return cfg
