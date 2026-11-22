@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass
 from .graph_bipartite_matching import BIPARTITE_MATCHING_PROOF
 from .graph_claims import digest
 from .graph_component_coloring import COMPONENT_COLORING_PROOF
+from .graph_matching_cardinality import MATCHING_CARDINALITY_PROOF
 from .graph_proof_search import LemmaSpec
 from .graph_relations import AffineRelation, _vector
 from .graph_universal_lean import PINNED_MATHLIB_SHA
@@ -234,18 +235,34 @@ classical
     ),
 )
 
+_INDEX_V6 = _INDEX_V5 + (
+    _adapter(
+        "twice_matching_le_order", "ALL", {"matching": 2, "n": -1}, 0,
+        ("SimpleGraph.Subgraph.isMatching_iff_forall_degree",
+         "SimpleGraph.sum_degrees_eq_twice_card_edges",
+         "SimpleGraph.Subgraph.image_coe_edgeSet_coe",
+         "Fintype.card_le_of_injective"),
+        MATCHING_CARDINALITY_PROOF,
+    ),
+)
+
 INDEX_VERSION = "axiom.mathlib_affine_graph_index.v1"
 STRUCTURAL_INDEX = "axiom.mathlib_affine_graph_index.v2"
 MATCHING_INDEX = "axiom.mathlib_affine_graph_index.v3"
 COMPONENT_INDEX = "axiom.mathlib_affine_graph_index.v4"
 COMPONENT_INDEPENDENCE_INDEX = "axiom.mathlib_affine_graph_index.v5"
+MATCHING_CARDINALITY_INDEX = "axiom.mathlib_affine_graph_index.v6"
 _INDEXES = {INDEX_VERSION: _INDEX_V1, STRUCTURAL_INDEX: _INDEX_V2, MATCHING_INDEX: _INDEX_V3,
-            COMPONENT_INDEX: _INDEX_V4, COMPONENT_INDEPENDENCE_INDEX: _INDEX_V5}
+            COMPONENT_INDEX: _INDEX_V4, COMPONENT_INDEPENDENCE_INDEX: _INDEX_V5,
+            MATCHING_CARDINALITY_INDEX: _INDEX_V6}
+_MATCHING_CARDINALITY_ADAPTER = "retrieved_twice_matching_le_order"
+_MATCHING_CARDINALITY_POLICY = "offer_cardinality_adapter_for_matching_coefficient_at_least_two"
 INDEX_DIGESTS = {version: digest({
     "schema": version,
     "mathlib_revision": PINNED_MATHLIB_SHA,
     "entries": [{"lemma": asdict(a.lemma), "declarations": a.declarations, "proof": a.proof,
                  **({"imports": a.imports} if a.imports else {})} for a in entries],
+    **({"selection": _MATCHING_CARDINALITY_POLICY} if version == MATCHING_CARDINALITY_INDEX else {}),
 }) for version, entries in _INDEXES.items()}
 INDEX_SHA256 = INDEX_DIGESTS[INDEX_VERSION]
 MAX_RETRIEVED_LEMMAS = 32
@@ -253,7 +270,9 @@ MAX_RETRIEVED_LEMMAS = 32
 
 def retrieve(claim: AffineRelation, limit: int, *, index=INDEX_VERSION) -> tuple[MathlibAdapter, ...]:
     """Rank exact directions first, then signed overlaps and sparse supports."""
-    targets = [_vector(side.terms) for side in claim.inequalities()]
+    directions = claim.inequalities()
+    targets = [_vector(side.terms) for side in directions]
+    needs_cardinality = any(dict(side.terms).get("matching", 0) >= 2 for side in directions)
 
     def rank(entry):
         vector = entry.lemma.vector
@@ -261,7 +280,8 @@ def retrieve(claim: AffineRelation, limit: int, *, index=INDEX_VERSION) -> tuple
         return (vector not in targets, -shared, sum(x != 0 for x in vector), entry.lemma.theorem)
 
     applicable = (entry for entry in _INDEXES[index]
-                  if entry.lemma.premise in ("ALL", claim.bound.assumption))
+                  if entry.lemma.premise in ("ALL", claim.bound.assumption)
+                  and (entry.lemma.theorem != _MATCHING_CARDINALITY_ADAPTER or needs_cardinality))
     return tuple(sorted(applicable, key=rank)[:limit])
 
 
