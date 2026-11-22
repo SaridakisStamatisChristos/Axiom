@@ -314,3 +314,32 @@ Hall's condition for arbitrary subsets. The resulting matching supplies
 the missing lower bound. Index v3 records the Hall import and includes it
 in generated Lean source when the adapter is used. Earlier profiles and
 index digests are independently replayable.
+
+### Prove bounds involving connected components
+
+`--proof-profile components` enables retrieval index v4 for an audited
+campaign. For one statement, use `--retrieve-lemmas 5 --retrieval-index v4`.
+The index adds two Lean-checked facts:
+
+- For every graph, `chromatic + components <= n + 1`. Choose one vertex
+  per component. Representatives share a color because no edge joins two
+  of them. Every other vertex gets its own color.
+- For a connected graph, `components <= 1`. The proof uses connectivity
+  and nonemptiness to show that the component type has exactly one element.
+
+With the same limits on the frozen [32-statement suite](https://github.com/SaridakisStamatisChristos/Axiom/pull/31),
+v4 increased the proof count from 14 to 21. All 10 counterexamples
+and all 14 v3 proofs were preserved. The seven new proofs are A01, A07,
+B07, C02, C04, C07 and C08. A08 (`matching + components <= n`) remains
+unresolved by this profile. These cases informed development, so this
+comparison is a regression result for v4.
+
+To replay a suite input under the same limits:
+
+```sh
+axiom graph-prove statement.json --max-lemmas 3 --max-coefficient 3 \
+  --max-nodes 10000 --witness-order 5 --timeout 45 \
+  --retrieve-lemmas 5 --retrieval-index v4 --synthesize-lemmas 3 \
+  --split-order --induct-edges --proof-plans 16 --output attempt.json
+axiom graph-prove-audit attempt.json
+```
