@@ -189,3 +189,24 @@ def test_edge_case_rows_agree_with_all_small_graphs_with_an_edge():
             graph = reference_properties(n, mask)
             for name, weights, rhs in EDGE_FACTS:
                 assert sum(coefficient * graph[var] for var, coefficient in weights.items()) <= rhs, name
+
+
+
+def test_clique_bounds_stop_rediscovery_at_both_scopes(monkeypatch):
+    claims = [
+        AffineRelation.normalized(terms, rhs, premise)
+        for terms, rhs in [({"clique": 2, "triangles": -1}, 5), ({"chromatic": 2, "clique": -1, "n": -1}, 0)]
+        for premise in ("ALL", "CONNECTED")
+    ]
+    baseline = NoveltyFilter(profile="certified-v3")
+    current = NoveltyFilter(profile="certified-v4")
+    for claim in claims:
+        assert not baseline.classify(claim)
+        assert current.classify(claim)
+        direction, = current.report()["decisions"][claim.id]["directions"]
+        assert direction["method"] == "EXACT_CLOSURE"
+    report = current.report()
+    monkeypatch.setattr("axiom.graph_novelty._propose", lambda *_: pytest.fail("solver ran in audit"))
+    replay = NoveltyFilter(report, profile="certified-v4")
+    assert all(replay.classify(claim) for claim in claims)
+    assert replay.report() == report

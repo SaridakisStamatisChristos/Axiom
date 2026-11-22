@@ -273,6 +273,102 @@ classical
     ),
 )
 
+_INDEX_V8 = _INDEX_V7 + (
+    _adapter(
+        "twice_clique_le_triangles_add_five", "ALL", {"clique": 2, "triangles": -1}, 5,
+        ("SimpleGraph.exists_isNClique_cliqueNum", "SimpleGraph.mem_cliqueFinset_iff",
+         "Finset.card_powersetCard", "Nat.choose_succ_succ", "Nat.choose_le_choose"),
+        """\
+classical
+  have choose_bound (k : Nat) : 2 * k ≤ k.choose 3 + 5 := by
+    induction k with
+    | zero => decide
+    | succ k ih =>
+      by_cases h : 3 ≤ k
+      · have h2 : 2 ≤ k.choose 2 :=
+          (show 2 ≤ (3 : Nat).choose 2 from by decide).trans (Nat.choose_le_choose 2 h)
+        rw [Nat.choose_succ_succ k 2]
+        change 2 * (k + 1) ≤ k.choose 2 + k.choose 3 + 5
+        omega
+      · have small : k = 0 ∨ k = 1 ∨ k = 2 := by omega
+        rcases small with rfl | rfl | rfl <;> decide
+  obtain ⟨s, hs⟩ := G.exists_isNClique_cliqueNum
+  have hsubset : s.powersetCard 3 ⊆ G.cliqueFinset 3 := by
+    intro t ht
+    obtain ⟨hst, hcard⟩ := Finset.mem_powersetCard.mp ht
+    exact SimpleGraph.mem_cliqueFinset_iff.mpr
+      ⟨(hs.isClique.subset (by exact_mod_cast hst)), hcard⟩
+  have hcount := Finset.card_le_card hsubset
+  rw [Finset.card_powersetCard, hs.card_eq] at hcount
+  have hfinal := choose_bound (G.cliqueNum)
+  unfold clique triangles
+  omega""",
+    ),
+    _adapter(
+        "twice_chromatic_le_clique_add_order", "ALL", {"chromatic": 2, "clique": -1, "n": -1}, 0,
+        ("SimpleGraph.chromaticNumber_top", "SimpleGraph.cliqueNum_top", "SimpleGraph.cliqueNum_induce_le",
+         "SimpleGraph.colorable_chromaticNumber_of_fintype", "SimpleGraph.Coloring.mk"),
+        """\
+classical
+  have aux (k : Nat) : ∀ (V : Type) [Fintype V] (H : SimpleGraph V),
+      Fintype.card V = k → 2 * H.chromaticNumber.toNat ≤ H.cliqueNum + k := by
+    induction k using Nat.strong_induction_on with
+    | h k ih =>
+      intro V inst H hk
+      by_cases htop : H = ⊤
+      · subst H
+        simp [SimpleGraph.chromaticNumber_top, SimpleGraph.cliqueNum_top,
+          Nat.card_eq_fintype_card, hk]
+        omega
+      · have hpair : ∃ a b : V, a ≠ b ∧ ¬ H.Adj a b := by
+          by_contra! hall
+          apply htop
+          ext a b
+          exact ⟨fun h => H.ne_of_adj h, fun h => hall a b h⟩
+        obtain ⟨a, b, hab, hn⟩ := hpair
+        let rest : Finset V := (Finset.univ.erase a).erase b
+        let J := H.induce (rest : Set V)
+        have hcard : rest.card + 2 = k := by
+          have hb : b ∈ Finset.univ.erase a := Finset.mem_erase.mpr ⟨hab.symm, Finset.mem_univ _⟩
+          have ha : a ∈ (Finset.univ : Finset V) := Finset.mem_univ _
+          have h1 := Finset.card_erase_add_one hb
+          have h2 := Finset.card_erase_add_one ha
+          rw [Finset.card_univ, hk] at h2
+          change ((Finset.univ.erase a).erase b).card + 2 = k
+          omega
+        have hrest : Fintype.card (rest : Set V) = rest.card := Fintype.card_coe rest
+        have hj := ih rest.card (by omega) _ J hrest
+        have hcl := H.cliqueNum_induce_le (rest : Set V)
+        change J.cliqueNum ≤ H.cliqueNum at hcl
+        let q := J.chromaticNumber.toNat
+        obtain ⟨c⟩ : J.Colorable q := J.colorable_chromaticNumber_of_fintype
+        let f (v : V) : Fin (q + 1) :=
+          if hv : v ∈ rest then (c ⟨v, hv⟩).castSucc else Fin.last q
+        have hc : H.Colorable (q + 1) := by
+          refine ⟨SimpleGraph.Coloring.mk f ?_⟩
+          intro u v huv
+          by_cases hu : u ∈ rest <;> by_cases hv : v ∈ rest
+          · simpa [f, hu, hv] using c.valid (show J.Adj ⟨u, hu⟩ ⟨v, hv⟩ from huv)
+          · simp [f, hu, hv]
+          · simpa [f, hu, hv] using (Fin.castSucc_ne_last (c ⟨v, hv⟩)).symm
+          · have houtside (w : V) (hw : w ∉ rest) : w = a ∨ w = b := by
+              by_contra! h
+              exact hw (Finset.mem_erase.mpr ⟨h.2, Finset.mem_erase.mpr ⟨h.1, Finset.mem_univ _⟩⟩)
+            rcases houtside u hu with rfl | rfl <;> rcases houtside v hv with rfl | rfl
+            · exact (H.ne_of_adj huv rfl).elim
+            · exact (hn huv).elim
+            · exact (hn huv.symm).elim
+            · exact (H.ne_of_adj huv rfl).elim
+        have hb := ENat.toNat_le_toNat hc.chromaticNumber_le (ENat.natCast_ne_top _)
+        simp only [ENat.toNat_natCast] at hb
+        change 2 * q ≤ _ at hj
+        omega
+  have h := aux n (Fin n) G (Fintype.card_fin n)
+  unfold chromatic clique
+  omega""",
+    ),
+)
+
 INDEX_VERSION = "axiom.mathlib_affine_graph_index.v1"
 STRUCTURAL_INDEX = "axiom.mathlib_affine_graph_index.v2"
 MATCHING_INDEX = "axiom.mathlib_affine_graph_index.v3"
@@ -280,13 +376,19 @@ COMPONENT_INDEX = "axiom.mathlib_affine_graph_index.v4"
 COMPONENT_INDEPENDENCE_INDEX = "axiom.mathlib_affine_graph_index.v5"
 MATCHING_CARDINALITY_INDEX = "axiom.mathlib_affine_graph_index.v6"
 CLIQUE_INDEPENDENCE_INDEX = "axiom.mathlib_affine_graph_index.v7"
+CLIQUE_BOUNDS_INDEX = "axiom.mathlib_affine_graph_index.v8"
 _INDEXES = {INDEX_VERSION: _INDEX_V1, STRUCTURAL_INDEX: _INDEX_V2, MATCHING_INDEX: _INDEX_V3,
             COMPONENT_INDEX: _INDEX_V4, COMPONENT_INDEPENDENCE_INDEX: _INDEX_V5,
-            MATCHING_CARDINALITY_INDEX: _INDEX_V6, CLIQUE_INDEPENDENCE_INDEX: _INDEX_V7}
+            MATCHING_CARDINALITY_INDEX: _INDEX_V6, CLIQUE_INDEPENDENCE_INDEX: _INDEX_V7,
+            CLIQUE_BOUNDS_INDEX: _INDEX_V8}
 _MATCHING_CARDINALITY_ADAPTER = "retrieved_twice_matching_le_order"
 _MATCHING_CARDINALITY_POLICY = "offer_cardinality_adapter_for_matching_coefficient_at_least_two"
 _CLIQUE_INDEPENDENCE_ADAPTER = "retrieved_clique_add_independence_le_order_add_one"
 _CLIQUE_INDEPENDENCE_POLICY = "offer_joint_bound_for_positive_clique_and_independence"
+_CLIQUE_TRIANGLE_ADAPTER = "retrieved_twice_clique_le_triangles_add_five"
+_CLIQUE_TRIANGLE_POLICY = "offer_clique_triangle_bound_for_positive_clique_and_negative_triangles"
+_COLOR_CLIQUE_ADAPTER = "retrieved_twice_chromatic_le_clique_add_order"
+_COLOR_CLIQUE_POLICY = "offer_chromatic_bound_for_positive_chromatic_negative_clique_and_order"
 INDEX_DIGESTS = {version: digest({
     "schema": version,
     "mathlib_revision": PINNED_MATHLIB_SHA,
@@ -295,6 +397,9 @@ INDEX_DIGESTS = {version: digest({
     **({"selection": _MATCHING_CARDINALITY_POLICY} if version == MATCHING_CARDINALITY_INDEX else {}),
     **({"selection": [_MATCHING_CARDINALITY_POLICY, _CLIQUE_INDEPENDENCE_POLICY]}
        if version == CLIQUE_INDEPENDENCE_INDEX else {}),
+    **({"selection": [_MATCHING_CARDINALITY_POLICY, _CLIQUE_INDEPENDENCE_POLICY,
+                       _CLIQUE_TRIANGLE_POLICY, _COLOR_CLIQUE_POLICY]}
+       if version == CLIQUE_BOUNDS_INDEX else {}),
 }) for version, entries in _INDEXES.items()}
 INDEX_SHA256 = INDEX_DIGESTS[INDEX_VERSION]
 MAX_RETRIEVED_LEMMAS = 32
@@ -309,6 +414,13 @@ def retrieve(claim: AffineRelation, limit: int, *, index=INDEX_VERSION) -> tuple
     needs_joint_bound = any(dict(side.terms).get("clique", 0) > 0
                             and dict(side.terms).get("independence", 0) > 0 for side in directions)
 
+    needs_clique_triangle_bound = any(dict(side.terms).get("clique", 0) > 0
+                                      and dict(side.terms).get("triangles", 0) < 0 for side in directions)
+
+    needs_color_clique_bound = any(dict(side.terms).get("chromatic", 0) > 0
+                                   and dict(side.terms).get("clique", 0) < 0
+                                   and dict(side.terms).get("n", 0) < 0 for side in directions)
+
     def rank(entry):
         vector = entry.lemma.vector
         shared = max(sum(x * y > 0 for x, y in zip(vector, target)) for target in targets)
@@ -317,7 +429,9 @@ def retrieve(claim: AffineRelation, limit: int, *, index=INDEX_VERSION) -> tuple
     applicable = (entry for entry in _INDEXES[index]
                   if entry.lemma.premise in ("ALL", claim.bound.assumption)
                   and (entry.lemma.theorem != _MATCHING_CARDINALITY_ADAPTER or needs_cardinality)
-                  and (entry.lemma.theorem != _CLIQUE_INDEPENDENCE_ADAPTER or needs_joint_bound))
+                  and (entry.lemma.theorem != _CLIQUE_INDEPENDENCE_ADAPTER or needs_joint_bound)
+                  and (entry.lemma.theorem != _CLIQUE_TRIANGLE_ADAPTER or needs_clique_triangle_bound)
+                  and (entry.lemma.theorem != _COLOR_CLIQUE_ADAPTER or needs_color_clique_bound))
     return tuple(sorted(applicable, key=rank)[:limit])
 
 

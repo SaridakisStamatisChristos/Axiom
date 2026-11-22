@@ -107,3 +107,30 @@ refuted all nine previously missed statements in one active evaluation
 each. The frontier comparison measures the combined order and round-policy
 changes. Within the two new lanes, witness refitting increased cross-seed
 diversity and yielded nearly the same per-slot survivor count.
+
+## Component stress and certified clique bounds
+
+Use `--profile frontier-v3 --development-order 11` to test disjoint
+five-cycles and use the newer certified novelty bank. The disconnected seed
+can enter active search at order 10 when a cheap invariant bound allows a
+violation. The active budget still accounts for each exact graph evaluation.
+The two cycles refute `n - independence - matching <= 1` under the
+triangle-free premise. Their order is 10, and both their independence and
+matching numbers are 4. Verified development witnesses follow the usual
+feedback and cross-refutation rules.
+
+The `v8` retrieval index adds two reusable estimates for finite graphs.
+
+- `2 * clique - triangles <= 5` counts triples in a maximum clique.
+- `2 * chromatic - clique - n <= 0` colors a nonadjacent pair with one
+  additional color after inducing on the remaining vertices.
+
+Use `graph-prove --retrieve-lemmas 5 --retrieval-index v8` for an individual
+claim, or `graph-discover-universal --proof-profile clique-bounds` for a
+compositional proof dispatch. The frontier uses these same two Lean-checked
+bounds in its novelty fact bank. On replay of the eight prior survivors,
+the two bounds verified four statements across the unrestricted and
+connected scopes. The disconnected witness resolved one more statement.
+Three remained unresolved at the original 25-second Lean budget.
+
+Historical profiles retain their recorded novelty and search settings.

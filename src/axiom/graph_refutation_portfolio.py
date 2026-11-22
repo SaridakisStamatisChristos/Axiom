@@ -2,6 +2,7 @@
 from itertools import combinations
 
 from .graph_explicit import ExplicitGraph
+from .graph_refutation_priority import violation_interval
 
 
 def _union(parts):
@@ -34,10 +35,17 @@ def mycielski(graph):
     return ExplicitGraph(2 * n + 1, tuple(sorted(edges)))
 
 
-def frontier_seeds(max_order, premise):
+def frontier_seeds(max_order, premise, *, component_claim=None):
+    """Offer disjoint odd cycles when their cheap bounds allow a violation."""
+    cycle = _circulant(5, {1})
+    seeds = []
+    if component_claim is not None and max_order >= 10 and premise in ("ALL", "TRIANGLE_FREE"):
+        disconnected = _union((cycle, cycle))
+        if violation_interval(component_claim, disconnected)[1] > 0:
+            seeds.append(disconnected)
     if max_order >= 11 and premise != "BIPARTITE":
-        return (mycielski(_circulant(5, {1})),)
-    return ()
+        seeds.append(mycielski(cycle))
+    return tuple(seeds)
 
 
 def structured_graphs(max_order, premise):

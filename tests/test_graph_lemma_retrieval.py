@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from axiom.graph_claims import digest
-from axiom.graph_lemma_retrieval import retrieve
+from axiom.graph_lemma_retrieval import CLIQUE_INDEPENDENCE_INDEX, CLIQUE_BOUNDS_INDEX, retrieve
 from axiom.graph_proof import RETRIEVAL_SCHEMA, SCHEMA, audit, prove
 from axiom.graph_proof_search import SearchLimits
 from axiom.graph_relations import AffineRelation
@@ -77,3 +77,23 @@ def test_retrieval_metadata_is_replayed_after_rehash(tmp_path):
     for bad_limit in (-1, 33, True):
         with pytest.raises(ValueError, match="retrieval limit"):
             prove(goal, retrieval_limit=bad_limit)
+
+
+@pytest.mark.parametrize("premise", ["ALL", "CONNECTED"])
+@pytest.mark.parametrize("terms,rhs,adapter", [
+    ({"clique": 2, "triangles": -1}, 5, "twice_clique_le_triangles_add_five"),
+    ({"chromatic": 2, "clique": -1, "n": -1}, 0, "twice_chromatic_le_clique_add_order"),
+])
+def test_clique_bounds_close_both_scopes(tmp_path, premise, terms, rhs, adapter):
+    claim = AffineRelation.normalized(terms, rhs, premise)
+    baseline = prove(claim.to_dict(), retrieval_limit=5, retrieval_index=CLIQUE_INDEPENDENCE_INDEX,
+                     project_root=tmp_path)
+    assert baseline["status"] == "SEARCH_EXHAUSTED"
+    project_root = PROJECT if os.environ.get("AXIOM_REAL_LEAN") == "1" else tmp_path
+    result = prove(claim.to_dict(), retrieval_limit=5, retrieval_index=CLIQUE_BOUNDS_INDEX,
+                   project_root=project_root, timeout=25)
+    expected = "FORMALLY_VERIFIED" if project_root == PROJECT else "LEAN_UNAVAILABLE"
+    assert result["status"] == expected, result["kernel"]
+    selected = result["derivation"]["directions"][0]["lemmas"]
+    assert [term["theorem"] for term in selected] == ["retrieved_" + adapter]
+    assert audit(result)

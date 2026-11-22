@@ -16,7 +16,9 @@ from .graph_relations import _FACTS, _vector
 PROFILE = "certified-v1"
 STRUCTURAL_PROFILE = "certified-v2"
 INTEGER_PROFILE = "certified-v3"
-PROFILES = (PROFILE, STRUCTURAL_PROFILE, INTEGER_PROFILE)
+CLIQUE_BOUNDS_PROFILE = "certified-v4"
+_INTEGER_PROFILES = (INTEGER_PROFILE, CLIQUE_BOUNDS_PROFILE)
+PROFILES = (PROFILE, STRUCTURAL_PROFILE, *_INTEGER_PROFILES)
 LP_ITERATIONS = 1000
 MAX_DENOMINATOR = 4096
 UNKNOWN_REASONS = {"LP_UNAVAILABLE", "LP_NO_CERTIFICATE", "LP_LIMIT",
@@ -33,7 +35,9 @@ def entails(premise, required):
 def fact_bank(profile=PROFILE):
     if profile not in PROFILES:
         raise ValueError("unknown graph novelty profile")
-    from .graph_lemma_retrieval import CLIQUE_INDEPENDENCE_INDEX, INDEX_DIGESTS, describe, indexed_facts
+    from .graph_lemma_retrieval import (
+        CLIQUE_BOUNDS_INDEX, CLIQUE_INDEPENDENCE_INDEX, INDEX_DIGESTS, describe, indexed_facts,
+    )
     from .graph_proof import BANK
 
     rows = {}
@@ -45,7 +49,8 @@ def fact_bank(profile=PROFILE):
 
     for row in BANK:
         add(row, {"kind": "lean_base_bank", "declaration": row.theorem})
-    for entry in indexed_facts(CLIQUE_INDEPENDENCE_INDEX):
+    fact_index = CLIQUE_BOUNDS_INDEX if profile == CLIQUE_BOUNDS_PROFILE else CLIQUE_INDEPENDENCE_INDEX
+    for entry in indexed_facts(fact_index):
         add(entry.lemma, {"kind": "lean_adapter", **describe(entry)})
     for premise, facts in _FACTS.items():
         for index, (weights, rhs) in enumerate(facts):
@@ -61,13 +66,13 @@ def fact_bank(profile=PROFILE):
             row = LemmaSpec(name, premise, _vector(weights.items()), rhs)
             add(row, {"kind": "mathematical_argument", "justification": justification})
     bank = {row.theorem: row for row in sorted(rows.values(), key=lambda row: row.theorem)}
-    manifest = {"profile": profile, "fact_index": CLIQUE_INDEPENDENCE_INDEX,
-                "fact_index_sha256": INDEX_DIGESTS[CLIQUE_INDEPENDENCE_INDEX],
+    manifest = {"profile": profile, "fact_index": fact_index,
+                "fact_index_sha256": INDEX_DIGESTS[fact_index],
                 "variable_order": VARIABLES, "budget": {"closure_rows": 2, "closure_multiplier": 3,
                 "lp_iterations": LP_ITERATIONS, "denominator_limit": MAX_DENOMINATOR},
                 "premise_entailment": {a: [b for b in ASSUMPTIONS if entails(a, b)] for a in ASSUMPTIONS},
                 "facts": [{**asdict(row), "provenance": sources[row.theorem]} for row in bank.values()]}
-    if profile == INTEGER_PROFILE:
+    if profile in _INTEGER_PROFILES:
         manifest["arithmetic"] = "integer-valued affine bound with exact rational rounding"
         manifest["edge_split"] = {
             "empty": "all invariants equal zero; excluded by CONNECTED",
@@ -129,7 +134,7 @@ def _support_bound(side, support, bank):
 def _certificate_method(side, support, profile):
     bank = fact_bank(profile)[0]
     if type(support) is dict:
-        if profile != INTEGER_PROFILE or set(support) != {"has_edge"} or not _edgeless_holds(side):
+        if profile not in _INTEGER_PROFILES or set(support) != {"has_edge"} or not _edgeless_holds(side):
             return None
         edge_bank = {**bank, **{row.theorem: row for row in _edge_rows()}}
         upper = _support_bound(side, support["has_edge"], edge_bank)
@@ -140,7 +145,7 @@ def _certificate_method(side, support, profile):
         return None
     if upper <= side.upper:
         return "LP_EXACTLY_CHECKED"
-    if profile == INTEGER_PROFILE and upper < side.upper + 1:
+    if profile in _INTEGER_PROFILES and upper < side.upper + 1:
         return "LP_INTEGER_ROUNDING"
     return None
 
@@ -210,7 +215,7 @@ def _propose(side, profile):
     if exact is not None:
         return "EXACT_CLOSURE", deepcopy(exact)
     rows, _ = _closure(side.assumption, profile)
-    integer = profile == INTEGER_PROFILE
+    integer = profile in _INTEGER_PROFILES
     reason, support = _lp_support(side, rows, optimize=integer)
     method = _certificate_method(side, support, profile)
     if method:
