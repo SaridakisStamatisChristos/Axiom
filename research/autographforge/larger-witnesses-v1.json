@@ -1,0 +1,211 @@
+{
+  "barbell": {
+    "graph": {
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          4,
+          6
+        ],
+        [
+          4,
+          7
+        ],
+        [
+          5,
+          6
+        ],
+        [
+          5,
+          7
+        ],
+        [
+          6,
+          7
+        ]
+      ],
+      "n": 8
+    },
+    "observed_lhs": 0,
+    "origin": "barbell(8)",
+    "rhs": -1,
+    "statement": {
+      "bound": {
+        "assumption": "ALL",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "independence"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "maximum_degree"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "n"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": -1
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "grotzsch": {
+    "graph": {
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          6
+        ],
+        [
+          0,
+          9
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          1,
+          7
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          6
+        ],
+        [
+          2,
+          8
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          3,
+          7
+        ],
+        [
+          3,
+          9
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          4,
+          8
+        ],
+        [
+          5,
+          10
+        ],
+        [
+          6,
+          10
+        ],
+        [
+          7,
+          10
+        ],
+        [
+          8,
+          10
+        ],
+        [
+          9,
+          10
+        ]
+      ],
+      "n": 11
+    },
+    "observed_lhs": 2,
+    "origin": "Gr\u00f6tzsch (Mycielskian of C5)",
+    "rhs": 1,
+    "statement": {
+      "bound": {
+        "assumption": "ALL",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "clique"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 1
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "<="
+    }
+  }
+}

@@ -15,6 +15,7 @@ from .graph_edge_induction import (EDGE_INDUCTION_PROOF, EDGE_INDUCTION_RULE,
 from .graph_lemma_retrieval import (
     INDEX_DIGESTS, INDEX_VERSION, MAX_RETRIEVED_LEMMAS, describe, retrieve,
 )
+from .graph_large_witness import SCHEMA as LARGE_WITNESS_SCHEMA, replay_witness
 from .graph_lemma_synthesis import MAX_SYNTHESIZED_LEMMAS, SYNTHESIS_VERSION, synthesize
 from .graph_model import edge_positions
 from .graph_order_split import ORDER_SPLIT_VERSION, POSITIVE_BANK, proof_body as order_split_body
@@ -169,11 +170,16 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
     base.update(candidate_id=claim.id, scope="ALL_GRAPH_ORDERS")
     witness = _small_witness(claim, witness_order)
     if external_witness is not None:
-        order = external_witness["exact_order"]
-        mask = external_witness["labelled_edge_mask"]
-        side = _failed_side(claim, reference_properties(order, mask))
-        if side is None or stable(_witness(side, order, mask)) != stable(external_witness):
+        if type(external_witness) is not dict:
             raise ValueError("invalid externally supplied graph witness")
+        if external_witness.get("schema") == LARGE_WITNESS_SCHEMA:
+            replay_witness(claim, external_witness)
+        else:
+            order = external_witness["exact_order"]
+            mask = external_witness["labelled_edge_mask"]
+            side = _failed_side(claim, reference_properties(order, mask))
+            if side is None or stable(_witness(side, order, mask)) != stable(external_witness):
+                raise ValueError("invalid externally supplied graph witness")
         witness = witness or external_witness
     if witness:
         return dict(base, status="COUNTEREXAMPLE", reason="INDEPENDENT_GRAPH_WITNESS",
