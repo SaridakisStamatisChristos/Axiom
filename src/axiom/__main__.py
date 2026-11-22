@@ -464,20 +464,20 @@ def main() -> None:
     args = p.parse_args()
     if args.command.startswith("graph-discover-feedback"):
         import sqlite3
-        from .graph_feedback import audit_campaign, evaluate_final, run_campaign
+        from . import graph_feedback
 
         params = (args.corpus, args.ledger, args.campaign)
         try:
             if args.command == "graph-discover-feedback":
-                report = run_campaign(
+                report = graph_feedback.run_campaign(
                     *params, seed=args.seed, rounds=args.rounds, candidates=args.candidates,
                     corpus_scan=args.corpus_scan, corpus_exact=args.corpus_exact,
                     active_budget=args.active_budget, development_order=args.development_order,
                     feedback=not args.no_feedback, final_sha256=args.final_sha256)
             elif args.command == "graph-discover-feedback-audit":
-                report = audit_campaign(*params)
+                report = graph_feedback.audit_campaign(*params)
             else:
-                report = evaluate_final(*params)
+                report = graph_feedback.evaluate_final(*params)
         except (ValueError, TypeError, KeyError, IndexError, OSError, sqlite3.DatabaseError) as exc:
             p.exit(2, f"REJECTED: {exc}\n")
         print(json.dumps(report, indent=2, sort_keys=True))
