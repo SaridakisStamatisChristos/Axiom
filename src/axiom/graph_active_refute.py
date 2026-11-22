@@ -57,7 +57,7 @@ def _score(claim, graph):
     return abs(slack) if claim.relation == "=" else slack
 
 
-def _mutations(graph, assumption):
+def _mutations(graph, assumption, max_order):
     edges = set(graph.edges)
     partition = None
     if assumption == "BIPARTITE":
@@ -80,24 +80,24 @@ def _mutations(graph, assumption):
         remaining = tuple((a - (a > removed), b - (b > removed)) for a, b in graph.edges
                           if removed not in (a, b))
         yield "delete_vertex", ExplicitGraph(graph.n - 1, remaining)
-    if graph.n < MAX_EXACT_ORDER:
+    if graph.n < max_order:
         for a in range(graph.n):
             yield "attach_leaf", ExplicitGraph(graph.n + 1, tuple(sorted((*graph.edges, (a, graph.n)))))
     n = graph.n
-    if assumption != "BIPARTITE" and graph.edges and 2 * n + 1 <= MAX_EXACT_ORDER:
+    if assumption != "BIPARTITE" and graph.edges and 2 * n + 1 <= max_order:
         edges = graph.edges + tuple((a, n + b) for a, b in graph.edges)
         edges += tuple((b, n + a) for a, b in graph.edges)
         edges += tuple((n + a, 2 * n) for a in range(n))
         yield "mycielski", ExplicitGraph(2 * n + 1, tuple(sorted(edges)))
 
 
-def _structural_mutations(graph, assumption):
+def _structural_mutations(graph, assumption, max_order):
     n = graph.n
     if assumption in ("ALL", "CONNECTED") and graph.edges:
         edges = set(graph.edges)
         yield "complement", ExplicitGraph(n, tuple(edge for edge in combinations(range(n), 2)
                                                    if edge not in edges))
-    if n >= MAX_EXACT_ORDER:
+    if n >= max_order:
         return
     if assumption != "CONNECTED":
         yield "add_isolate", ExplicitGraph(n + 1, graph.edges)
@@ -109,11 +109,11 @@ def _structural_mutations(graph, assumption):
         yield "clone_neighbors", ExplicitGraph(n + 1, tuple(sorted(edges)))
 
 
-def _portfolio_frontier(winners, assumption, visited, rng):
+def _portfolio_frontier(winners, assumption, visited, rng, max_order):
     buckets = {}
     planned = set(visited)
     for _, graph in winners:
-        for moves in (_structural_mutations(graph, assumption), _mutations(graph, assumption)):
+        for moves in (_structural_mutations(graph, assumption, max_order), _mutations(graph, assumption, max_order)):
             for operator, candidate in moves:
                 if candidate in planned:
                     continue
@@ -151,13 +151,13 @@ def _guided_mutations(claim, frontier, counts, remaining):
     yield from frontier
 
 
-def _seed_frontier(initial, claim, budget, portfolio, guided, counts):
+def _seed_frontier(initial, claim, budget, portfolio, guided, counts, max_order):
     yield from (("input", graph) for graph in initial)
     if portfolio:
         seen = set(initial)
 
         def additional():
-            for family, graph in structured_graphs(MAX_EXACT_ORDER, claim.bound.assumption):
+            for family, graph in structured_graphs(max_order, claim.bound.assumption):
                 if graph not in seen:
                     seen.add(graph)
                     yield f"family_{family}", graph
@@ -168,7 +168,8 @@ def _seed_frontier(initial, claim, budget, portfolio, guided, counts):
         yield from islice(candidates, min(96, max(1, budget // 4)))
 
 
-def search(claim, initial, *, seed=42, budget=1000, beam=8, profile="portfolio-v2"):
+def search(claim, initial, *, seed=42, budget=1000, beam=8, profile="portfolio-v2",
+           max_order=MAX_EXACT_ORDER):
     """Spend a fixed number of deterministic, unique labelled graph evaluations."""
     if profile not in PROFILES:
         raise ValueError("unknown active refutation profile")
@@ -176,8 +177,9 @@ def search(claim, initial, *, seed=42, budget=1000, beam=8, profile="portfolio-v
     guided = profile == "guided-v3"
     if (type(seed) is not int or type(budget) is not int or not 1 <= budget <= 100_000
             or type(beam) is not int or not 1 <= beam <= 64
+            or type(max_order) is not int or not 1 <= max_order <= MAX_EXACT_ORDER
             or (not initial and not portfolio)
-            or any(type(g) is not ExplicitGraph or g.n > MAX_EXACT_ORDER for g in initial)):
+            or any(type(g) is not ExplicitGraph or g.n > max_order for g in initial)):
         raise ValueError("invalid active refutation graph inputs or budget")
     initial = sorted(set(initial), key=lambda graph: (graph.n, graph.edges))
     schema = GUIDED_SCHEMA if guided else PORTFOLIO_SCHEMA if portfolio else SCHEMA
@@ -186,7 +188,7 @@ def search(claim, initial, *, seed=42, budget=1000, beam=8, profile="portfolio-v
     visited = set()
     counts = Counter()
     levels = []
-    frontier = _seed_frontier(initial, claim, budget, portfolio, guided, counts)
+    frontier = _seed_frontier(initial, claim, budget, portfolio, guided, counts, max_order)
     while frontier and len(visited) < budget:
         ranked = []
         for operator, graph in frontier:
@@ -202,7 +204,7 @@ def search(claim, initial, *, seed=42, budget=1000, beam=8, profile="portfolio-v
                 if score > 0:
                     witness = certify_witness(claim, graph, origin=f"{schema} seed={seed}, operator={operator}")
                     replay_witness(claim, witness)
-                    return _report(schema, claim, initial, seed, beam, budget, counts, len(visited), levels, witness)
+                    return _report(schema, claim, initial, seed, beam, budget, counts, len(visited), levels, witness, max_order)
             if len(visited) == budget:
                 break
         if not ranked:
@@ -217,20 +219,22 @@ def search(claim, initial, *, seed=42, budget=1000, beam=8, profile="portfolio-v
             winners.extend([row for row in ranked if row[1] not in used][:beam - len(winners)])
         levels.append({"applicable": len(ranked), "best_violation": ranked[0][0]})
         if portfolio:
-            frontier = _portfolio_frontier(winners, assumption, visited, rng)
+            frontier = _portfolio_frontier(winners, assumption, visited, rng, max_order)
             if guided:
                 frontier = _guided_mutations(claim, frontier, counts, budget - len(visited))
         else:
-            frontier = [mutation for _, graph in winners for mutation in _mutations(graph, assumption)]
+            frontier = [mutation for _, graph in winners for mutation in _mutations(graph, assumption, max_order)]
             rng.shuffle(frontier)
-    return _report(schema, claim, initial, seed, beam, budget, counts, len(visited), levels, None)
+    return _report(schema, claim, initial, seed, beam, budget, counts, len(visited), levels, None, max_order)
 
 
-def _report(schema, claim, initial, seed, beam, budget, counts, evaluations, levels, witness):
+def _report(schema, claim, initial, seed, beam, budget, counts, evaluations, levels, witness, max_order):
     from .graph_claims import digest
 
     counts = dict(counts)
     metrics = {"priority_evaluations": counts.pop("priority_evaluations", 0)} if schema == GUIDED_SCHEMA else {}
+    if max_order != MAX_EXACT_ORDER:
+        metrics["max_order"] = max_order
     return {"schema": schema, "candidate_id": claim.id, "seed": seed, "budget": budget, "beam": beam,
             "initial_sha256": digest([g.to_dict() for g in initial]),
             "evaluations": evaluations, "counts": counts, "levels": levels, **metrics,

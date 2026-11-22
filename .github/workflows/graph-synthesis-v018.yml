@@ -124,7 +124,7 @@ jobs:
           PY
       - name: Synthesize equalities and inequalities and audit the cross-run holdout ledger
         run: |
-          pytest -q tests/test_graph_discovery.py tests/test_graph_novelty.py
+          pytest -q tests/test_graph_discovery.py tests/test_graph_novelty.py tests/test_graph_feedback.py
           ROOT=research/knowledge/ci_v018
           V2="$ROOT/discovery_v2"
           mkdir -p "$V2"

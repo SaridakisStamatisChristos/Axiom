@@ -187,7 +187,21 @@ def summarize(database, split="development"):
                 "corpus_sha256": hasher.hexdigest()}
 
 
+def screening_rows(db, split, *, max_order=256, limit=-1):
+    return db.execute("""
+        WITH probes AS (SELECT DISTINCT id FROM provenance WHERE family LIKE 'structured-%')
+        SELECT g.id, g.graph6, g.n, g.edges, g.maximum_degree, g.triangles, g.components
+        FROM graphs g LEFT JOIN probes p ON p.id=g.id
+        WHERE g.split=? AND g.n<=? ORDER BY p.id IS NULL, g.id LIMIT ?
+        """, (split, max_order, limit))
+
+
 def screen(database, claim, exact_budget, *, split="development"):
+    with closing(sqlite3.connect(database)) as db:
+        return screen_rows(screening_rows(db, split), claim, exact_budget, split=split)
+
+
+def screen_rows(rows, claim, exact_budget, *, split):
     """Evaluate cheap rows first, and explicitly count expensive or unsupported rows."""
     if type(exact_budget) is not int or exact_budget < 0:
         raise ValueError("expected a nonnegative exact graph budget")
@@ -195,44 +209,37 @@ def screen(database, claim, exact_budget, *, split="development"):
     counts = defaultdict(Counter)
     exhausted = 0
     witness = None
-    with closing(sqlite3.connect(database)) as db:
-        rows = db.execute("""
-            WITH probes AS (SELECT DISTINCT id FROM provenance WHERE family LIKE 'structured-%')
-            SELECT g.id, g.graph6, g.n, g.edges, g.maximum_degree, g.triangles, g.components
-            FROM graphs g LEFT JOIN probes p ON p.id=g.id
-            WHERE g.split=? ORDER BY p.id IS NULL, g.id
-            """, (split,))
-        for identity, line, *values in rows:
-            n, _, _, triangles, components = values
-            counts[n]["visited"] += 1
-            props = dict(zip(FEATURES, values))
-            if None in values:
+    for identity, line, *values in rows:
+        n, _, _, triangles, components = values
+        counts[n]["visited"] += 1
+        props = dict(zip(FEATURES, values))
+        if None in values:
+            counts[n]["missing_features"] += 1
+            continue
+        graph = None
+        props.update(connected=components == 1, triangle_free=triangles == 0)
+        if claim.bound.assumption == "BIPARTITE":
+            graph = ExplicitGraph.from_graph6(line)
+            props["bipartite"] = bipartite(graph)
+        if not applicable(claim.bound.assumption, props):
+            counts[n]["outside_premise"] += 1
+            continue
+        if needed - props.keys():
+            if exhausted >= exact_budget or n > MAX_EXACT_ORDER:
                 counts[n]["missing_features"] += 1
                 continue
-            graph = None
-            props.update(connected=components == 1, triangle_free=triangles == 0)
-            if claim.bound.assumption == "BIPARTITE":
-                graph = ExplicitGraph.from_graph6(line)
-                props["bipartite"] = bipartite(graph)
-            if not applicable(claim.bound.assumption, props):
-                counts[n]["outside_premise"] += 1
+            graph = graph or ExplicitGraph.from_graph6(line)
+            props = exact_properties(graph)
+            exhausted += 1
+        counts[n]["evaluated"] += 1
+        if _violation(claim, props) is not None:
+            graph = graph or ExplicitGraph.from_graph6(line)
+            if n > MAX_EXACT_ORDER:
+                counts[n]["evaluated"] -= 1
+                counts[n]["missing_features"] += 1
                 continue
-            if needed - props.keys():
-                if exhausted >= exact_budget or n > MAX_EXACT_ORDER:
-                    counts[n]["missing_features"] += 1
-                    continue
-                graph = graph or ExplicitGraph.from_graph6(line)
-                props = exact_properties(graph)
-                exhausted += 1
-            counts[n]["evaluated"] += 1
-            if _violation(claim, props) is not None:
-                graph = graph or ExplicitGraph.from_graph6(line)
-                if n > MAX_EXACT_ORDER:
-                    counts[n]["evaluated"] -= 1
-                    counts[n]["missing_features"] += 1
-                    continue
-                witness = certify_witness(claim, graph, origin=f"canonical corpus graph {identity}")
-                break
+            witness = certify_witness(claim, graph, origin=f"canonical corpus graph {identity}")
+            break
     return {"schema": "axiom.graph.corpus_screen.v1", "candidate_id": claim.id, "split": split,
             "exact_budget": exact_budget, "exact_graphs": exhausted, "coverage_by_order": dict(counts),
             "status": "REFUTED" if witness else "NO_REFUTATION_OBSERVED", "witness": witness}
