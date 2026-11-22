@@ -15,7 +15,8 @@ from .graph_relations import _FACTS, _vector
 
 PROFILE = "certified-v1"
 STRUCTURAL_PROFILE = "certified-v2"
-PROFILES = (PROFILE, STRUCTURAL_PROFILE)
+INTEGER_PROFILE = "certified-v3"
+PROFILES = (PROFILE, STRUCTURAL_PROFILE, INTEGER_PROFILE)
 LP_ITERATIONS = 1000
 MAX_DENOMINATOR = 4096
 UNKNOWN_REASONS = {"LP_UNAVAILABLE", "LP_NO_CERTIFICATE", "LP_LIMIT",
@@ -53,7 +54,7 @@ def fact_bank(profile=PROFILE):
     for name in VARIABLES:
         row = LemmaSpec(f"nonnegative_{name}", "ALL", _vector(((name, -1),)), 0)
         add(row, {"kind": "typed_natural_nonnegativity", "invariant": name})
-    if profile == STRUCTURAL_PROFILE:
+    if profile != PROFILE:
         from .graph_novelty_facts import STRUCTURAL_FACTS
 
         for name, premise, weights, rhs, justification in STRUCTURAL_FACTS:
@@ -66,6 +67,14 @@ def fact_bank(profile=PROFILE):
                 "lp_iterations": LP_ITERATIONS, "denominator_limit": MAX_DENOMINATOR},
                 "premise_entailment": {a: [b for b in ASSUMPTIONS if entails(a, b)] for a in ASSUMPTIONS},
                 "facts": [{**asdict(row), "provenance": sources[row.theorem]} for row in bank.values()]}
+    if profile == INTEGER_PROFILE:
+        manifest["arithmetic"] = "integer-valued affine bound with exact rational rounding"
+        manifest["edge_split"] = {
+            "empty": "all invariants equal zero; excluded by CONNECTED",
+            "nonempty_edgeless": "n >= 1, independence = components = n, clique = chromatic = 1; "
+                                 "all other counts zero; CONNECTED forces n = 1",
+            "has_edge": [asdict(row) for row in _edge_rows()],
+        }
     return MappingProxyType(bank), manifest, digest(manifest)
 
 
@@ -74,26 +83,71 @@ def _encoded(weights):
             for name, value in sorted(weights.items()) if value]
 
 
-def verify_direction(side, support, *, profile=PROFILE):
-    """Accept only a nonnegative exact rational combination of entailed rows."""
-    bank = fact_bank(profile)[0]
-    if type(support) is not list:
+@lru_cache(maxsize=1)
+def _edge_rows():
+    from .graph_novelty_facts import EDGE_FACTS
+
+    return tuple(LemmaSpec(f"has_{name}", "ALL", _vector(weights.items()), rhs)
+                 for name, weights, rhs in EDGE_FACTS)
+
+
+def _edgeless_holds(side):
+    # The empty graph is excluded only by the connected premise.
+    weights = dict(side.terms)
+    slope = sum(weights.get(name, 0) for name in ("n", "independence", "components"))
+    constant = weights.get("clique", 0) + weights.get("chromatic", 0)
+    if slope + constant > side.upper:
         return False
+    if side.assumption == "CONNECTED":
+        return True  # The only connected edgeless graph has n = 1.
+    return side.upper >= 0 and slope <= 0
+
+
+def _support_bound(side, support, bank):
+    """Check the coefficient identity and return its upper bound over Q."""
+    if type(support) is not list:
+        return None
     weights = {}
     for item in support:
         if type(item) is not list or len(item) != 3:
-            return False
+            return None
         name, numerator, denominator = item
         if (type(name) is not str or name not in bank or name in weights
                 or type(numerator) is not int or type(denominator) is not int
                 or numerator <= 0 or denominator <= 0 or gcd(numerator, denominator) != 1
                 or not entails(side.assumption, bank[name].premise)):
-            return False
+            return None
         weights[name] = Fraction(numerator, denominator)
     vector = tuple(sum(value * bank[name].vector[i] for name, value in weights.items())
                    for i in range(len(VARIABLES)))
     rhs = sum(value * bank[name].rhs for name, value in weights.items())
-    return list(weights) == sorted(weights) and vector == _vector(side.terms) and rhs <= side.upper
+    if list(weights) != sorted(weights) or vector != _vector(side.terms):
+        return None
+    return rhs
+
+
+def _certificate_method(side, support, profile):
+    bank = fact_bank(profile)[0]
+    if type(support) is dict:
+        if profile != INTEGER_PROFILE or set(support) != {"has_edge"} or not _edgeless_holds(side):
+            return None
+        edge_bank = {**bank, **{row.theorem: row for row in _edge_rows()}}
+        upper = _support_bound(side, support["has_edge"], edge_bank)
+        return "LP_EDGE_CASES" if upper is not None and upper < side.upper + 1 else None
+
+    upper = _support_bound(side, support, bank)
+    if upper is None:
+        return None
+    if upper <= side.upper:
+        return "LP_EXACTLY_CHECKED"
+    if profile == INTEGER_PROFILE and upper < side.upper + 1:
+        return "LP_INTEGER_ROUNDING"
+    return None
+
+
+def verify_direction(side, support, *, profile=PROFILE):
+    """Accept a proof only after exact checking in the declared profile."""
+    return _certificate_method(side, support, profile) is not None
 
 
 def verify_certificate(claim, certificate, *, profile=PROFILE):
@@ -126,28 +180,49 @@ def _short_certificate(side, profile):
     return hit[1] if hit is not None and hit[0] <= side.upper else None
 
 
-def _propose(side, profile):
-    exact = _short_certificate(side, profile)
-    if exact is not None:
-        return "EXACT_CLOSURE", deepcopy(exact)
+def _lp_support(side, rows, *, optimize):
     try:
         from scipy.optimize import linprog
     except ImportError:
         return "LP_UNAVAILABLE", None
-    rows, _ = _closure(side.assumption, profile)
+    bounds = [row.rhs for row in rows]
+    options = {} if optimize else {"A_ub": [bounds], "b_ub": [side.upper]}
     try:
-        result = linprog([0] * len(rows), A_eq=list(zip(*(row.vector for row in rows))),
-                         b_eq=_vector(side.terms), A_ub=[[row.rhs for row in rows]], b_ub=[side.upper],
-                         method="highs-ds", options={"maxiter": LP_ITERATIONS})
+        result = linprog(bounds if optimize else [0] * len(rows),
+                         A_eq=list(zip(*(row.vector for row in rows))), b_eq=_vector(side.terms),
+                         method="highs-ds", options={"maxiter": LP_ITERATIONS}, **options)
     except (ValueError, RuntimeError):
         return "LP_NUMERIC_FAILURE", None
     if not result.success:
         return ("LP_LIMIT" if result.status == 1 else "LP_NO_CERTIFICATE"), None
     if any(value < 0 or not isfinite(value) for value in result.x):
         return "LP_RECONSTRUCTION_FAILED", None
-    support = _encoded({row.theorem: Fraction(float(value)).limit_denominator(MAX_DENOMINATOR)
-                        for row, value in zip(rows, result.x)})
-    return ("LP_EXACTLY_CHECKED", support) if verify_direction(side, support, profile=profile) else ("LP_RECONSTRUCTION_FAILED", None)
+    weights = {row.theorem: Fraction(float(value)).limit_denominator(MAX_DENOMINATOR)
+               for row, value in zip(rows, result.x)}
+    support = _encoded(weights)
+    if optimize and _support_bound(side, support, {row.theorem: row for row in rows}) is not None:
+        return "LP_NO_CERTIFICATE", support
+    return "LP_RECONSTRUCTION_FAILED", support
+
+
+def _propose(side, profile):
+    exact = _short_certificate(side, profile)
+    if exact is not None:
+        return "EXACT_CLOSURE", deepcopy(exact)
+    rows, _ = _closure(side.assumption, profile)
+    integer = profile == INTEGER_PROFILE
+    reason, support = _lp_support(side, rows, optimize=integer)
+    method = _certificate_method(side, support, profile)
+    if method:
+        return method, support
+    if integer and reason != "LP_UNAVAILABLE" and _edgeless_holds(side):
+        edge_reason, edge_support = _lp_support(side, (*rows, *_edge_rows()), optimize=True)
+        certificate = {"has_edge": edge_support}
+        method = _certificate_method(side, certificate, profile)
+        if method:
+            return method, certificate
+        return edge_reason, None
+    return reason, None
 
 
 @lru_cache(maxsize=len(ASSUMPTIONS) * len(PROFILES))
@@ -221,8 +296,9 @@ class NoveltyFilter:
                 exact = _short_certificate(side, self.profile)
                 if exact is not None:
                     valid = method == "EXACT_CLOSURE" and support == exact
-                elif method == "LP_EXACTLY_CHECKED" and self.solver["version"] is not None:
-                    valid = verify_direction(side, support, profile=self.profile)
+                elif method in ("LP_EXACTLY_CHECKED", "LP_INTEGER_ROUNDING", "LP_EDGE_CASES"):
+                    valid = (self.solver["version"] is not None
+                             and method == _certificate_method(side, support, self.profile))
                 else:
                     valid = type(method) is str and method in UNKNOWN_REASONS and support is None
                 if not valid:

@@ -46,3 +46,19 @@ STRUCTURAL_FACTS = (
         "The connected premise requires a nonempty vertex set.",
     ),
 )
+
+
+# Every edge contains distinct vertices. Its endpoints give a two-clique
+# and a matching of size one. Its component contains at least two vertices.
+EDGE_FACTS = (
+    ("edge_order", {"n": -1}, -2),
+    ("edge_exists", {"edges": -1}, -1),
+    ("edge_clique", {"clique": -1}, -2),
+    ("edge_chromatic", {"chromatic": -1}, -2),
+    ("edge_matching", {"matching": -1}, -1),
+    ("edge_degree", {"maximum_degree": -1}, -1),
+    ("edge_independence", {"independence": -1}, -1),
+    ("edge_component", {"components": -1}, -1),
+    ("edge_maximum_degree", {"maximum_degree": 1, "n": -1}, -1),
+    ("edge_nontrivial_component", {"components": 1, "n": -1}, -1),
+)
