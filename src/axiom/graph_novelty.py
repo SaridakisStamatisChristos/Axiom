@@ -14,6 +14,8 @@ from .graph_proof_search import LemmaSpec
 from .graph_relations import _FACTS, _vector
 
 PROFILE = "certified-v1"
+STRUCTURAL_PROFILE = "certified-v2"
+PROFILES = (PROFILE, STRUCTURAL_PROFILE)
 LP_ITERATIONS = 1000
 MAX_DENOMINATOR = 4096
 UNKNOWN_REASONS = {"LP_UNAVAILABLE", "LP_NO_CERTIFICATE", "LP_LIMIT",
@@ -26,8 +28,10 @@ def entails(premise, required):
     )
 
 
-@lru_cache(maxsize=1)
-def fact_bank():
+@lru_cache(maxsize=len(PROFILES))
+def fact_bank(profile=PROFILE):
+    if profile not in PROFILES:
+        raise ValueError("unknown graph novelty profile")
     from .graph_lemma_retrieval import CLIQUE_INDEPENDENCE_INDEX, INDEX_DIGESTS, describe, indexed_facts
     from .graph_proof import BANK
 
@@ -49,8 +53,14 @@ def fact_bank():
     for name in VARIABLES:
         row = LemmaSpec(f"nonnegative_{name}", "ALL", _vector(((name, -1),)), 0)
         add(row, {"kind": "typed_natural_nonnegativity", "invariant": name})
+    if profile == STRUCTURAL_PROFILE:
+        from .graph_novelty_facts import STRUCTURAL_FACTS
+
+        for name, premise, weights, rhs, justification in STRUCTURAL_FACTS:
+            row = LemmaSpec(name, premise, _vector(weights.items()), rhs)
+            add(row, {"kind": "mathematical_argument", "justification": justification})
     bank = {row.theorem: row for row in sorted(rows.values(), key=lambda row: row.theorem)}
-    manifest = {"profile": PROFILE, "fact_index": CLIQUE_INDEPENDENCE_INDEX,
+    manifest = {"profile": profile, "fact_index": CLIQUE_INDEPENDENCE_INDEX,
                 "fact_index_sha256": INDEX_DIGESTS[CLIQUE_INDEPENDENCE_INDEX],
                 "variable_order": VARIABLES, "budget": {"closure_rows": 2, "closure_multiplier": 3,
                 "lp_iterations": LP_ITERATIONS, "denominator_limit": MAX_DENOMINATOR},
@@ -64,9 +74,9 @@ def _encoded(weights):
             for name, value in sorted(weights.items()) if value]
 
 
-def verify_direction(side, support):
+def verify_direction(side, support, *, profile=PROFILE):
     """Accept only a nonnegative exact rational combination of entailed rows."""
-    bank = fact_bank()[0]
+    bank = fact_bank(profile)[0]
     if type(support) is not list:
         return False
     weights = {}
@@ -86,15 +96,15 @@ def verify_direction(side, support):
     return list(weights) == sorted(weights) and vector == _vector(side.terms) and rhs <= side.upper
 
 
-def verify_certificate(claim, certificate):
+def verify_certificate(claim, certificate, *, profile=PROFILE):
     sides = claim.inequalities()
     return (type(certificate) is list and len(certificate) == len(sides)
-            and all(verify_direction(side, support) for side, support in zip(sides, certificate)))
+            and all(verify_direction(side, support, profile=profile) for side, support in zip(sides, certificate)))
 
 
-@lru_cache(maxsize=len(ASSUMPTIONS))
-def _closure(premise):
-    rows = tuple(row for row in fact_bank()[0].values() if entails(premise, row.premise))
+@lru_cache(maxsize=len(ASSUMPTIONS) * len(PROFILES))
+def _closure(premise, profile):
+    rows = tuple(row for row in fact_bank(profile)[0].values() if entails(premise, row.premise))
     closure = {}
 
     def add(vector, rhs, weights):
@@ -111,20 +121,20 @@ def _closure(premise):
     return rows, closure
 
 
-def _short_certificate(side):
-    hit = _closure(side.assumption)[1].get(_vector(side.terms))
+def _short_certificate(side, profile):
+    hit = _closure(side.assumption, profile)[1].get(_vector(side.terms))
     return hit[1] if hit is not None and hit[0] <= side.upper else None
 
 
-def _propose(side):
-    exact = _short_certificate(side)
+def _propose(side, profile):
+    exact = _short_certificate(side, profile)
     if exact is not None:
         return "EXACT_CLOSURE", deepcopy(exact)
     try:
         from scipy.optimize import linprog
     except ImportError:
         return "LP_UNAVAILABLE", None
-    rows, _ = _closure(side.assumption)
+    rows, _ = _closure(side.assumption, profile)
     try:
         result = linprog([0] * len(rows), A_eq=list(zip(*(row.vector for row in rows))),
                          b_eq=_vector(side.terms), A_ub=[[row.rhs for row in rows]], b_ub=[side.upper],
@@ -137,12 +147,12 @@ def _propose(side):
         return "LP_RECONSTRUCTION_FAILED", None
     support = _encoded({row.theorem: Fraction(float(value)).limit_denominator(MAX_DENOMINATOR)
                         for row, value in zip(rows, result.x)})
-    return ("LP_EXACTLY_CHECKED", support) if verify_direction(side, support) else ("LP_RECONSTRUCTION_FAILED", None)
+    return ("LP_EXACTLY_CHECKED", support) if verify_direction(side, support, profile=profile) else ("LP_RECONSTRUCTION_FAILED", None)
 
 
-@lru_cache(maxsize=len(ASSUMPTIONS))
-def _equalities(premise):
-    directions = {(row.vector, row.rhs) for row in _closure(premise)[0]}
+@lru_cache(maxsize=len(ASSUMPTIONS) * len(PROFILES))
+def _equalities(premise, profile):
+    directions = {(row.vector, row.rhs) for row in _closure(premise, profile)[0]}
     equations = [list(map(Fraction, (*vector, rhs))) for vector, rhs in sorted(directions)
                  if tuple(-v for v in vector) < vector and (tuple(-v for v in vector), -rhs) in directions]
     pivots = []
@@ -158,22 +168,22 @@ def _equalities(premise):
 
 
 @lru_cache(maxsize=8192)
-def _reduced(claim, premise):
+def _reduced(claim, premise, profile):
     rows = []
     for side in claim.inequalities():
         row = list(map(Fraction, (*_vector(side.terms), side.upper)))
-        for index, pivot in _equalities(premise):
+        for index, pivot in _equalities(premise, profile):
             row = [x - row[index] * y for x, y in zip(row, pivot)]
         magnitude = next((abs(value) for value in row[:-1] if value), Fraction(1))
         rows.append(tuple(value / magnitude for value in row))
     return tuple(sorted(rows))
 
 
-def dominates(left, right):
+def dominates(left, right, *, profile=PROFILE):
     premise = right.bound.assumption
     if not entails(premise, left.bound.assumption):
         return False
-    a, b = _reduced(left, premise), _reduced(right, premise)
+    a, b = _reduced(left, premise, profile), _reduced(right, premise, profile)
     return all(any(source[:-1] == target[:-1] and source[-1] <= target[-1]
                    for source in a) for target in b)
 
@@ -181,7 +191,10 @@ def dominates(left, right):
 class NoveltyFilter:
     """Store a single decision per canonical statement; replay needs no solver."""
 
-    def __init__(self, replay=None):
+    def __init__(self, replay=None, *, profile=PROFILE):
+        if profile not in PROFILES:
+            raise ValueError("unknown graph novelty profile")
+        self.profile = profile
         self.replay = replay
         self.records = {}
         try:
@@ -198,30 +211,30 @@ class NoveltyFilter:
         sides = claim.inequalities()
         if self.replay is None:
             directions = [{"method": method, "support": support}
-                          for method, support in map(_propose, sides)]
+                          for method, support in (_propose(side, self.profile) for side in sides)]
         else:
             directions = self.replay["decisions"][claim.id]["directions"]
             if type(directions) is not list or len(directions) != len(sides):
                 raise ValueError("novelty replay direction count differs")
             for side, direction in zip(sides, directions):
                 method, support = direction["method"], direction["support"]
-                exact = _short_certificate(side)
+                exact = _short_certificate(side, self.profile)
                 if exact is not None:
                     valid = method == "EXACT_CLOSURE" and support == exact
                 elif method == "LP_EXACTLY_CHECKED" and self.solver["version"] is not None:
-                    valid = verify_direction(side, support)
+                    valid = verify_direction(side, support, profile=self.profile)
                 else:
                     valid = type(method) is str and method in UNKNOWN_REASONS and support is None
                 if not valid:
                     raise ValueError("invalid exact novelty evidence")
-        known = verify_certificate(claim, [row["support"] for row in directions])
-        reduced = [[str(value) for value in row] for row in _reduced(claim, claim.bound.assumption)]
+        known = verify_certificate(claim, [row["support"] for row in directions], profile=self.profile)
+        reduced = [[str(value) for value in row] for row in _reduced(claim, claim.bound.assumption, self.profile)]
         self.records[claim.id] = {"statement": claim.to_dict(), "reduced": reduced, "directions": directions,
                                   "status": "KNOWN_IMPLICATION" if known else "UNKNOWN"}
         return known
 
     def report(self):
-        _, manifest, sha = fact_bank()
+        _, manifest, sha = fact_bank(self.profile)
         result = {"manifest": manifest, "manifest_sha256": sha, "solver": self.solver,
                   "decisions": self.records}
         if self.replay is not None and stable(result) != stable(self.replay):

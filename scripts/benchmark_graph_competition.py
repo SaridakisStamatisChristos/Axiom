@@ -1,6 +1,7 @@
 """Replay the frozen v7 proof suite or compare exact implication with CPU controls."""
 import argparse
 from collections import Counter
+from functools import partial
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -9,7 +10,7 @@ import sys
 from time import perf_counter
 
 from axiom.graph_lemma_retrieval import CLIQUE_INDEPENDENCE_INDEX
-from axiom.graph_novelty import NoveltyFilter, entails, fact_bank
+from axiom.graph_novelty import PROFILE, PROFILES, NoveltyFilter, entails, fact_bank
 from axiom.graph_proof import audit, prove
 from axiom.graph_relations import AffineRelation, _vector
 
@@ -63,11 +64,11 @@ def load_upstream(path):
     return classify
 
 
-def lp_control(claim):
+def lp_control(claim, *, profile=PROFILE):
     from scipy.optimize import linprog
 
     for side in claim.inequalities():
-        rows = [row for row in fact_bank()[0].values() if entails(side.assumption, row.premise)]
+        rows = [row for row in fact_bank(profile)[0].values() if entails(side.assumption, row.premise)]
         result = linprog([0] * len(rows), A_eq=list(zip(*(row.vector for row in rows))),
                          b_eq=_vector(side.terms), A_ub=[[row.rhs for row in rows]], b_ub=[side.upper],
                          method="highs-ds", options={"maxiter": 1000})
@@ -76,15 +77,16 @@ def lp_control(claim):
     return "NUMERICALLY_FEASIBLE"
 
 
-def controls(output, upstream):
+def controls(output, upstream, profile=PROFILE):
     agf = load_upstream(upstream)
-    axiom = NoveltyFilter()
+    axiom = NoveltyFilter(profile=profile)
+    raw_lp = partial(lp_control, profile=profile)
     cases = []
     for ident, assumption, weights, rhs, op in read("implication-v1.json")["cases"]:
         claim = AffineRelation.normalized(weights, rhs, assumption, op)
         timings = {}
         result = {"id": ident, "claim_id": claim.id}
-        for name, engine in (("axiom", axiom.classify), ("raw_lp", lp_control), ("autographforge", agf)):
+        for name, engine in (("axiom", axiom.classify), ("raw_lp", raw_lp), ("autographforge", agf)):
             start = perf_counter()
             result[name] = engine(claim)
             timings[name] = perf_counter() - start
@@ -133,9 +135,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--autographforge", type=Path)
+    parser.add_argument("--novelty-profile", choices=PROFILES, default=PROFILE)
     args = parser.parse_args()
     if args.autographforge:
-        controls(args.output, args.autographforge.resolve())
+        controls(args.output, args.autographforge.resolve(), args.novelty_profile)
     else:
         proofs(args.output)
 
