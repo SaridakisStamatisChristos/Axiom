@@ -380,9 +380,12 @@ def main() -> None:
     witness.add_argument("graph_file")
     witness.add_argument("--origin", required=True)
     witness.add_argument("--minimize", action="store_true")
-    active = sub.add_parser("graph-active-refute", help="search typed affine counterexamples by graph mutation")
+    from .graph_active_refute import PROFILES as REFUTATION_PROFILES
+
+    active = sub.add_parser("graph-active-refute", help="search for typed affine counterexamples")
     active.add_argument("statement_file")
-    active.add_argument("seed_graphs_file", help="JSON array of explicit-order graphs")
+    active.add_argument("seed_graphs_file", nargs="?", help="optional JSON array of explicit-order graphs")
+    active.add_argument("--profile", choices=REFUTATION_PROFILES, default="portfolio-v2")
     active.add_argument("--seed", type=int, default=42)
     active.add_argument("--budget", type=int, default=1000)
     active.add_argument("--beam", type=int, default=8)
@@ -447,11 +450,11 @@ def main() -> None:
 
         try:
             claim = AffineRelation.from_dict(json.loads(Path(args.statement_file).read_bytes()))
-            candidates = json.loads(Path(args.seed_graphs_file).read_bytes())
+            candidates = json.loads(Path(args.seed_graphs_file).read_bytes()) if args.seed_graphs_file else []
             if type(candidates) is not list:
                 raise ValueError("expected an array of seed graphs")
             report = search(claim, [ExplicitGraph.from_dict(data) for data in candidates],
-                            seed=args.seed, budget=args.budget, beam=args.beam)
+                            seed=args.seed, budget=args.budget, beam=args.beam, profile=args.profile)
             print(json.dumps(report, indent=2, sort_keys=True))
         except (ValueError, OSError, TypeError, KeyError) as error:
             p.exit(2, f"REJECTED: {error}\n")
