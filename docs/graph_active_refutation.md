@@ -43,8 +43,30 @@ hashes. The benchmark confirms each label before timing and passes only
 the statement and common seed panel to the search. A separate regression
 test searches 24 known implications and expects zero witnesses.
 
+## Shared-objective comparison with AutoGraphForge
+
+At AutoGraphForge commit `4d1a8afc99447cacd2328cca20e47b6493e8dbc5`,
+the comparison runs its cross-entropy, variable neighborhood, simulated
+annealing and Monte Carlo tree search through the same exact objective
+and input panel as AXIOM. The order cap is 12, the seed is 1729, and the
+budget is 1,000 distinct labelled evaluations per claim.
+
+| Suite | AutoGraphForge heuristic search | AXIOM portfolio | Evaluations, AutoGraphForge → AXIOM |
+| --- | ---: | ---: | ---: |
+| Frozen historical | 97/100 | 100/100 | 11,476 → 2,619 |
+| Census challenge | 38/48 | 48/48 | 21,724 → 2,612 |
+
+The comparison isolates heuristic search. AutoGraphForge's native corpus,
+SMT, reinforcement learning and production invariant evaluator are outside
+this measurement. Its dispatcher had a five-second limit per claim and
+no observed run reached that limit.
+
 ```bash
 python -m pytest -q tests/test_graph_active_refute.py tests/test_graph_large_witness.py
 PYTHONPATH=src python scripts/benchmark_graph_active_refutation.py --frozen-100 --profile portfolio-v2 --output /tmp/historical.json
 PYTHONPATH=src python scripts/benchmark_graph_active_refutation.py --census-challenge --profile portfolio-v2 --output /tmp/census.json
+PYTHONPATH=src python scripts/benchmark_graph_refutation_searchers.py --autographforge /path/to/AutoGraphForge --output /tmp/searchers.json
 ```
+
+The shared-objective comparison requires AutoGraphForge's search
+dependencies. The run used PuLP 3.3.0 for GraphCalc compatibility.
