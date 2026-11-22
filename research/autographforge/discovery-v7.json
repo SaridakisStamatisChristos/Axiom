@@ -1,0 +1,1224 @@
+{
+  "graph-relation:1b4c02ce77d5fafe16ed367cc4698c71eec43eed5072f9f14786866adc5c7207": {
+    "selections": [
+      {
+        "lane": "OPEN_PROOF_TARGET",
+        "seed": 1729
+      },
+      {
+        "lane": "OPEN_PROOF_TARGET",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "BIPARTITE",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 0
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "="
+    }
+  },
+  "graph-relation:235aeed10ae9343aada9bbfc57a8d7aecbade69e1864e4edd21fba2f34c21403": {
+    "selections": [
+      {
+        "lane": "affine",
+        "seed": 1729
+      },
+      {
+        "lane": "affine",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "BIPARTITE",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "independence"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "matching"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "n"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 0
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "="
+    }
+  },
+  "graph-relation:2f9f892f7044109d2c899d97ec7ec1e977942328be4455199b686861935b0273": {
+    "selections": [
+      {
+        "lane": "KNOWN_OR_DERIVABLE_PROOF_TARGET",
+        "seed": 1729
+      },
+      {
+        "lane": "KNOWN_OR_DERIVABLE_PROOF_TARGET",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "ALL",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 0
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:425866990de9ec8dd0c271d4dae6dc87eabad673c8c986d53ba5e37eb0de7145": {
+    "selections": [
+      {
+        "lane": "KNOWN_OR_DERIVABLE_PROOF_TARGET",
+        "seed": 1729
+      },
+      {
+        "lane": "KNOWN_OR_DERIVABLE_PROOF_TARGET",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "CONNECTED",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "edges"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "matching"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "n"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 1
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:474a76c7c4628dec5ae1de725b1ed99f24293556c7ee715b424ea8acf88544b4": {
+    "selections": [
+      {
+        "lane": "KNOWN_OR_DERIVABLE_PROOF_TARGET",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "TRIANGLE_FREE",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "independence"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "maximum_degree"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 2
+        },
+        "schema": "axiom.graph.proof_affine_bound.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:4bf8510730fb378e3c8b01468bb7dd9dc3ea23cedd480b48738e0821c47b33da": {
+    "selections": [
+      {
+        "lane": "KNOWN_OR_DERIVABLE_PROOF_TARGET",
+        "seed": 1729
+      },
+      {
+        "lane": "KNOWN_OR_DERIVABLE_PROOF_TARGET",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "CONNECTED",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "components"
+          },
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "edges"
+          },
+          {
+            "denominator": 1,
+            "numerator": 2,
+            "symbol": "n"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 1
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:524f1d6eee3a23da52340c60814b020c508ecd6d5187fda4ebc328958d728669": {
+    "selections": [
+      {
+        "lane": "OPEN_PROOF_TARGET",
+        "seed": 1729
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "CONNECTED",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "edges"
+          },
+          {
+            "denominator": 1,
+            "numerator": 2,
+            "symbol": "n"
+          },
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 0
+        },
+        "schema": "axiom.graph.proof_affine_bound.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:67d43cb41be3aad30af65d08b36e396411131276758a790a1587438ddb7fa14f": {
+    "selections": [
+      {
+        "lane": "affine",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "ALL",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "clique"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": -1
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:6e26e7cfb250664374e3720a98dbcab54dbdc7656d653f0578e9be16ec151efa": {
+    "selections": [
+      {
+        "lane": "KNOWN_OR_DERIVABLE_PROOF_TARGET",
+        "seed": 1729
+      },
+      {
+        "lane": "KNOWN_OR_DERIVABLE_PROOF_TARGET",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "CONNECTED",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "components"
+          },
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "edges"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "matching"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "n"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 0
+        },
+        "schema": "axiom.graph.proof_affine_bound.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:6f62bc6f61058365324c079126b333bd52097973cb67ae68ba9ab848700fac6b": {
+    "selections": [
+      {
+        "lane": "affine",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "ALL",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 2,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 6
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:7b999fde890f03136b4e9af8aec195d3c695f9a04db5db575e1198c8071f9d25": {
+    "selections": [
+      {
+        "lane": "KNOWN_OR_DERIVABLE_PROOF_TARGET",
+        "seed": 1729
+      },
+      {
+        "lane": "KNOWN_OR_DERIVABLE_PROOF_TARGET",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "CONNECTED",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "edges"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "n"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 3
+        },
+        "schema": "axiom.graph.proof_affine_bound.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:7eb315726c0327a6c14c4484b95e2359b98b6a20bcef655487eeefacfcc7b260": {
+    "selections": [
+      {
+        "lane": "KNOWN_OR_DERIVABLE_PROOF_TARGET",
+        "seed": 1729
+      },
+      {
+        "lane": "KNOWN_OR_DERIVABLE_PROOF_TARGET",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "CONNECTED",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "edges"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "n"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 1
+        },
+        "schema": "axiom.graph.proof_affine_bound.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:8220e1c804d123e234309a6cb6f54ba97ea54982cca8a0e657bee16becdb0bf6": {
+    "selections": [
+      {
+        "lane": "affine",
+        "seed": 1729
+      },
+      {
+        "lane": "affine",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "ALL",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "clique"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 1
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:84cc121ce8c6337571d5f1b477fd9e53e8d362a6c1b9a0b57603e62022ec04d1": {
+    "selections": [
+      {
+        "lane": "OPEN_PROOF_TARGET",
+        "seed": 1729
+      },
+      {
+        "lane": "OPEN_PROOF_TARGET",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "BIPARTITE",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 2,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 0
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "="
+    }
+  },
+  "graph-relation:8784d4ac2e3aaa4e03bbf5513455e668c8f9c9c5f58582551c971aa6a5e44116": {
+    "selections": [
+      {
+        "lane": "OPEN_PROOF_TARGET",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "ALL",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "components"
+          },
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": -9
+        },
+        "schema": "axiom.graph.proof_affine_bound.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:89e527d29852f98850678f236e2b732dbdadd56784a29cbed18ad8a6b01b9bc5": {
+    "selections": [
+      {
+        "lane": "OPEN_PROOF_TARGET",
+        "seed": 1729
+      },
+      {
+        "lane": "OPEN_PROOF_TARGET",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "BIPARTITE",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 2,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 0
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "="
+    }
+  },
+  "graph-relation:a87487917576afe7ed5b6dde2c1c3af06c8212dc4e203fdf26a1c13439387857": {
+    "selections": [
+      {
+        "lane": "OPEN_PROOF_TARGET",
+        "seed": 1729
+      },
+      {
+        "lane": "OPEN_PROOF_TARGET",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "BIPARTITE",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": 2,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 0
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "="
+    }
+  },
+  "graph-relation:b4dda9476aec77c5b94f44996c6335c341932d18c2830fa98155e992a47926e0": {
+    "selections": [
+      {
+        "lane": "affine",
+        "seed": 1729
+      },
+      {
+        "lane": "affine",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "ALL",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 2,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 5
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:b8fa04f81037397d8340461c578d54d822911dba36afc9dc6bbdef1a69b6ceab": {
+    "selections": [
+      {
+        "lane": "KNOWN_OR_DERIVABLE_PROOF_TARGET",
+        "seed": 1729
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "CONNECTED",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "edges"
+          },
+          {
+            "denominator": 1,
+            "numerator": 2,
+            "symbol": "n"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 2
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:bcc93319fe670b1efa635de6924a494447978791d0fa0e34ee796a582c5486e2": {
+    "selections": [
+      {
+        "lane": "OPEN_PROOF_TARGET",
+        "seed": 1729
+      },
+      {
+        "lane": "OPEN_PROOF_TARGET",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "BIPARTITE",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 0
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "="
+    }
+  },
+  "graph-relation:cdab7ab9c5e2f3dccb1499022bd634205c13e41c8ae305ab27daea378b5b6ca5": {
+    "selections": [
+      {
+        "lane": "affine",
+        "seed": 1729
+      },
+      {
+        "lane": "affine",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "ALL",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "components"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "maximum_degree"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "n"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 0
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:d116021df983d0bc9213247c2d29b5475f36de639df83826f795d99cd042d879": {
+    "selections": [
+      {
+        "lane": "OPEN_PROOF_TARGET",
+        "seed": 1729
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "CONNECTED",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "edges"
+          },
+          {
+            "denominator": 1,
+            "numerator": 2,
+            "symbol": "n"
+          },
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 0
+        },
+        "schema": "axiom.graph.proof_affine_bound.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:d46c22eb56fe284324efa1820f421bb4a133b09c9364d7a060d51be8ddd013d9": {
+    "selections": [
+      {
+        "lane": "affine",
+        "seed": 1729
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "ALL",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "independence"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "maximum_degree"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "n"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": -1
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:d7fbd9b17f6a0eeea734501a7251e163e7dfb54505f09689f96ded9d06e26141": {
+    "selections": [
+      {
+        "lane": "OPEN_PROOF_TARGET",
+        "seed": 1729
+      },
+      {
+        "lane": "OPEN_PROOF_TARGET",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "BIPARTITE",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": -2,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 0
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "="
+    }
+  },
+  "graph-relation:dc387bba9f8ca01b037832b0d047c90370124c1458a65b1ebee9e0ad527f5ab9": {
+    "selections": [
+      {
+        "lane": "OPEN_PROOF_TARGET",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "CONNECTED",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "components"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": -3
+        },
+        "schema": "axiom.graph.proof_affine_bound.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:e1f42e7a7a385bbc935924d8e6f6df408a9702ef63976a8d1ca2554338a2956c": {
+    "selections": [
+      {
+        "lane": "affine",
+        "seed": 1729
+      },
+      {
+        "lane": "affine",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "CONNECTED",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 2,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "edges"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "n"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 6
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:ecd8742ba53e216558ad34791bbe6afdbb56915fd3d10c457c61479dca3c3fac": {
+    "selections": [
+      {
+        "lane": "affine",
+        "seed": 1729
+      },
+      {
+        "lane": "affine",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "ALL",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 2
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:ef9d306b1d70ecf2d6c9271b8b7eefd5c1d544a4956e140a9f4be3bd4aa82dbc": {
+    "selections": [
+      {
+        "lane": "KNOWN_OR_DERIVABLE_PROOF_TARGET",
+        "seed": 1729
+      },
+      {
+        "lane": "KNOWN_OR_DERIVABLE_PROOF_TARGET",
+        "seed": 2718
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "ALL",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "chromatic"
+          },
+          {
+            "denominator": 1,
+            "numerator": 2,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "triangles"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 2
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "<="
+    }
+  },
+  "graph-relation:f40811605afb7434c311f1666f225719fbe09f5d9053122bb5761feae9fe8fa9": {
+    "selections": [
+      {
+        "lane": "affine",
+        "seed": 1729
+      }
+    ],
+    "statement": {
+      "bound": {
+        "assumption": "CONNECTED",
+        "lhs": [
+          {
+            "denominator": 1,
+            "numerator": 2,
+            "symbol": "clique"
+          },
+          {
+            "denominator": 1,
+            "numerator": -1,
+            "symbol": "edges"
+          },
+          {
+            "denominator": 1,
+            "numerator": 1,
+            "symbol": "n"
+          }
+        ],
+        "mathematical_novelty": "NOT_ASSESSED",
+        "quantifier": "forall_finite_simple_graphs_all_orders",
+        "relation": "<=",
+        "rhs": {
+          "denominator": 1,
+          "numerator": 6
+        },
+        "schema": "axiom.graph.affine_conjecture.v1"
+      },
+      "relation": "<="
+    }
+  }
+}

@@ -25,7 +25,7 @@ def _weights(vector):
     return {name: value for name, value in zip(VARIABLES, vector) if value}
 
 
-def candidate_beam(training, width):
+def candidate_beam(training, width, *, novelty=None):
     """Rank training-only bounds; also retain certified proof opportunities.
 
     Beam width limits retained expressions at every depth, per premise.
@@ -61,7 +61,16 @@ def candidate_beam(training, width):
                 claim = AffineRelation.normalized(_weights(vector), high, assumption,
                                                   "=" if score[0] else "<=")
                 derivable = search(claim, BANK, SearchLimits())["derived"]
-                (known if derivable or known_fact(claim) else opened)[claim] = score
+                legacy_known = derivable or known_fact(claim)
+                if novelty is None:
+                    (known if legacy_known else opened)[claim] = score
+                elif novelty.classify(claim):
+                    if legacy_known:
+                        known[claim] = score
+                    else:
+                        counts["certified_known_implications"] = counts.get("certified_known_implications", 0) + 1
+                else:
+                    opened[claim] = score
 
         usable = [lemma for lemma in BANK if lemma.premise in ("ALL", assumption)]
         for left, right in combinations(usable, 2):

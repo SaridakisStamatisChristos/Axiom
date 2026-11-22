@@ -1,0 +1,14 @@
+{
+  "schema": "axiom.graph_literature_transfer.v1",
+  "role": "public transfer only; exclude from fitting and discovery scoring",
+  "evaluated_universe": "finite simple undirected graphs",
+  "targets": [
+    {"id": "AGF-1", "source": "https://arxiv.org/abs/2609.03478", "locator": "Section 4.2, (1) and its proof", "source_status": "proved in source", "premise": ["bipartite", "no isolated vertices"], "goal": "edge_cover <= annihilation", "native_v7": "UNSUPPORTED"},
+    {"id": "AGF-2", "source": "https://arxiv.org/abs/2609.03478", "locator": "Section 4.2, (2) and its proof", "source_status": "proved in source", "premise": ["positive-degree regular"], "goal": "annihilation <= edge_cover", "definedness": "finite edge cover requires no isolated vertices; the proof divides by the regular degree", "native_v7": "UNSUPPORTED"},
+    {"id": "TXG-1", "source": "https://arxiv.org/html/2507.17780v1#S2.SS1", "locator": "Conjecture 1, main text", "source_status": "open in source", "premise": ["connected", "order >= 2"], "goal": "independence >= (annihilation + residue) / maximum_degree", "division": "rational; maximum degree is positive", "native_v7": "UNSUPPORTED"},
+    {"id": "TXG-2", "source": "https://arxiv.org/html/2507.17780v1#S2.SS2", "locator": "Conjecture 2, main text", "source_status": "open in source", "premise": ["connected", "maximum_degree <= 3", "not isomorphic to K4"], "goal": "zero_forcing <= independence + 1", "native_v7": "UNSUPPORTED"},
+    {"id": "TXG-3", "source": "https://arxiv.org/html/2507.17780v1#S2.SS3", "locator": "Conjecture 3, main text", "source_status": "open in source", "premise": ["positive-degree regular"], "goal": "independent_domination <= minimum_maximal_matching", "native_v7": "UNSUPPORTED"},
+    {"id": "TXG-4", "source": "https://arxiv.org/html/2507.17780v1#S2.SS4", "locator": "Conjecture 4, main text", "source_status": "open in source", "premise": ["connected", "order >= 2"], "goal": "minimum_maximal_matching <= harmonic_index", "native_v7": "UNSUPPORTED"}
+  ],
+  "source_notes": "TxGraffiti's main-text predicates control scope. Its Lean appendix differs on some hypotheses. These records carry no proof scripts."
+}

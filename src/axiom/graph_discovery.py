@@ -13,16 +13,18 @@ from .graph_campaign import _discovery_properties
 from .graph_checker import reference_properties
 from .graph_claims import digest, stable
 from .graph_guided import audit_guided
+from .graph_novelty import PROFILE, NoveltyFilter, dominates
 from .graph_relations import AffineRelation, implies, known_fact
 from .graph_research_cycle import _tasks
 from .graph_stratified import audit_followup, sample_stratum
 from .graph_synthesis import _bounded_masks, _choose_historical, _config, _data, _witness, audit_synthesis
 
 SCHEMA = "axiom.graph_affine_discovery.v2"
+CERTIFIED_SCHEMA = "axiom.graph_affine_discovery.v3"
 HOLDOUT_ORDER = 7
 
 
-def _discover(training):
+def _discover(training, novelty=None):
     bank = {}
     counts = Counter()
     for assumption in ASSUMPTIONS:
@@ -47,7 +49,11 @@ def _discover(training):
                 counts["EQUALITY_PROPOSED" if relation == "=" else "INEQUALITY_PROPOSED"] += 1
                 claim = AffineRelation.normalized({x: a, y: b, "n": c}, high,
                                                   assumption, relation)
-                if known_fact(claim):
+                if novelty is not None:
+                    if novelty.classify(claim):
+                        counts["CERTIFIED_KNOWN_IMPLICATION"] += 1
+                        continue
+                elif known_fact(claim):
                     counts["SYMBOLIC_REDUNDANCY"] += 1
                     continue
                 margin = max(max(a * p[x] for p in group) + max(b * p[y] for p in group)
@@ -69,14 +75,40 @@ def _failed_side(claim, properties):
     return None
 
 
-def _select(bank, historical, limit):
+def _coverage_rank(selected, training, limit):
+    examples = {}
+    for claim, _, _ in selected:
+        side = claim.bound
+        examples[claim] = {(order, index) for order, group in training.items()
+                           for index, values in enumerate(group)
+                           if applicable(side.assumption, values)
+                           and sum(weight * values[name] for name, weight in side.terms) == side.upper}
+    remaining, picks, covered = list(selected), [], set()
+    while len(picks) < limit:
+        def key(entry):
+            claim, score, count = entry
+            added = examples[claim] - covered
+            return score, len({order for order, _ in added}), len(added), count, claim.id
+
+        pick = max(remaining, key=key)
+        remaining.remove(pick)
+        picks.append(pick)
+        covered.update(examples[pick[0]])
+    return picks
+
+
+def _select(bank, historical, limit, *, training=None):
     selected = []
     refutations = []
     counts = Counter()
+    compare = implies if training is None else dominates
+    measure = "SYMBOLIC_DOMINATION" if training is None else "CERTIFIED_DOMINATION"
     # The finite historical preflight is isolated from all new observations.
     for claim, score in bank:
-        if any(implies(prior, claim) for prior, _, _ in selected):
-            counts["SYMBOLIC_DOMINATION"] += 1
+        parent = next((prior for prior, _, _ in selected if compare(prior, claim)), None)
+        if parent is not None:
+            counts["CERTIFIED_EQUIVALENCE" if training is not None and compare(claim, parent)
+                   else measure] += 1
             continue
         coverage = 0
         for mask, props in historical:
@@ -94,10 +126,13 @@ def _select(bank, historical, limit):
                 counts["NO_HISTORICAL_PREMISE_COVERAGE"] += 1
                 continue
             # A later, stronger survivor can subsume an earlier candidate.
-            survivors = [entry for entry in selected if not implies(claim, entry[0])]
-            counts["SYMBOLIC_DOMINATION"] += len(selected) - len(survivors)
+            survivors = [entry for entry in selected if not compare(claim, entry[0])]
+            counts[measure] += len(selected) - len(survivors)
             selected = survivors
             selected.append((claim, score, coverage))
+    if training is not None and len(selected) > limit:
+        counts["COVERAGE_RANK_BUDGET_SUPPRESSED"] += len(selected) - limit
+        selected = _coverage_rank(selected, training, limit)
     return selected[:limit], refutations, counts
 
 
@@ -126,7 +161,7 @@ def _source(db, legacy_reports):
     return fingerprint, masks, histories, parents, legacy
 
 
-def _experiment(source, cfg, prior_pairs):
+def _experiment(source, cfg, prior_pairs, *, replay=None):
     fingerprint, historical, histories, parents, legacy = source
     masks = {5: list(range(1024)),
              6: _bounded_masks(6, cfg["seed"], cfg["n6_training"]),
@@ -136,19 +171,28 @@ def _experiment(source, cfg, prior_pairs):
                 for n, group in masks.items()}
     if training != reference:
         raise ValueError("discovery and reference invariant oracles disagree on training data")
-    bank, discovery_counts = _discover(training)
+    novelty = None
+    if cfg.get("novelty_profile"):
+        if replay is not None and type(replay.get("novelty")) is not dict:
+            raise ValueError("missing certified novelty evidence")
+        novelty = NoveltyFilter(replay["novelty"] if replay is not None else None)
+    bank, discovery_counts = _discover(training) if novelty is None else _discover(training, novelty)
     source_graphs = [(mask, reference_properties(HOLDOUT_ORDER, mask))
                      for mask in sorted(historical, key=lambda mask: (-mask.bit_count(), mask))]
-    selected, refutations, preflight_counts = _select(bank, source_graphs, cfg["max_candidates"])
+    selected, refutations, preflight_counts = _select(
+        bank, source_graphs, cfg["max_candidates"], training=training if novelty else None)
 
     proof_beam = cfg.get("proof_beam", 0)
     if proof_beam:
-        from .graph_proof_beam import candidate_beam
-        proof_banks, beam_counts = candidate_beam(training, proof_beam)
+        from .graph_proof_beam import OPEN_QUEUE, candidate_beam
+        proof_banks, beam_counts = (candidate_beam(training, proof_beam) if novelty is None
+                                   else candidate_beam(training, proof_beam, novelty=novelty))
         beam_summary = {}
         beam_selected = []
         for queue, candidates in proof_banks.items():
-            picks, rejected, counts = _select(candidates, source_graphs, cfg["max_candidates"])
+            picks, rejected, counts = _select(
+                candidates, source_graphs, cfg["max_candidates"],
+                training=training if novelty and queue == OPEN_QUEUE else None)
             beam_selected.extend((claim, score, count, queue) for claim, score, count in picks)
             beam_summary[queue] = {
                 "candidate_count": len(candidates),
@@ -195,9 +239,11 @@ def _experiment(source, cfg, prior_pairs):
             proof_trials.append({**trial, "queue": queue})
     extra = {"proof_beam": {"search_counts": beam_counts, "queues": beam_summary,
                             "trials": proof_trials}} if proof_beam else {}
+    if novelty is not None:
+        extra["novelty"] = novelty.report()
     return {
         **extra,
-        "schema": SCHEMA, "configuration": cfg, "source_fingerprint": fingerprint,
+        "schema": CERTIFIED_SCHEMA if novelty else SCHEMA, "configuration": cfg, "source_fingerprint": fingerprint,
         "historical_source_histories": histories,
         "historical_masks_sha256": digest(sorted(historical)),
         "legacy_report_sha256": parents,
@@ -237,7 +283,8 @@ def _pairs(report):
 def _stored(db, row):
     seq, name, payload, sha = row
     report = json.loads(payload)
-    if type(report) is not dict or report.get("schema") != SCHEMA or digest(report) != sha:
+    if (type(report) is not dict or report.get("schema") not in (SCHEMA, CERTIFIED_SCHEMA)
+            or digest(report) != sha):
         raise ValueError(f"invalid campaign digest or schema: {name}")
     index = set(db.execute(
         "SELECT graph_order, mask FROM checked_masks WHERE campaign = ?", (seq,)))
@@ -246,18 +293,25 @@ def _stored(db, row):
     return report
 
 
-def _campaign_config(seed, n6_training, n7_training, holdout_budget, max_candidates, proof_beam=0):
+def _campaign_config(seed, n6_training, n7_training, holdout_budget, max_candidates, proof_beam=0,
+                     novelty_profile=None):
     cfg = _config(seed, n6_training, n7_training, holdout_budget, max_candidates)
     if type(proof_beam) is not int or not 0 <= proof_beam <= 64:
         raise ValueError("proof beam width must be 0..64")
     if proof_beam:
         cfg["proof_beam"] = proof_beam
+    if novelty_profile is not None:
+        if novelty_profile != PROFILE:
+            raise ValueError("unknown graph novelty profile")
+        cfg["novelty_profile"] = novelty_profile
     return cfg
 
 
 def run_campaign(db_path, ledger, name, *, seed=42, n6_training=64, n7_training=64,
-                 holdout_budget=24, max_candidates=4, legacy_reports=None, proof_beam=0):
-    cfg = _campaign_config(seed, n6_training, n7_training, holdout_budget, max_candidates, proof_beam)
+                 holdout_budget=24, max_candidates=4, legacy_reports=None, proof_beam=0,
+                 novelty_profile=None):
+    cfg = _campaign_config(seed, n6_training, n7_training, holdout_budget, max_candidates,
+                           proof_beam, novelty_profile)
     if type(name) is not str or not name.strip() or len(name) > 128:
         raise ValueError("campaign name must have 1..128 characters")
     source_path, ledger_path = Path(db_path).resolve(), Path(ledger).resolve()
@@ -293,7 +347,7 @@ def _history(db, source, through=None):
         if report["prior_holdout_pairs_sha256"] != digest(sorted(prior)):
             raise ValueError("campaign history digest is inconsistent")
         if through is not None:
-            expected = _experiment(source, _campaign_config(**report["configuration"]), prior)
+            expected = _experiment(source, _campaign_config(**report["configuration"]), prior, replay=report)
             if stable(expected) != stable(report):
                 raise ValueError(f"campaign differs from deterministic replay: {row[1]}")
             if row[1] == through:

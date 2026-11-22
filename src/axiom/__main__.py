@@ -395,6 +395,8 @@ def main() -> None:
             discovery.add_argument("--n7-training", type=int, default=64)
             discovery.add_argument("--holdout-budget", type=int, default=24)
             discovery.add_argument("--max-candidates", type=int, default=4)
+            discovery.add_argument("--novelty-profile", choices=("certified-v1",),
+                                   help="check implications against the complete v7 fact bank")
             discovery.add_argument("--proof-beam", type=int, default=0,
                                    help="opt in to the four-term candidate lane at this beam width")
         elif command == "graph-discover-audit":
@@ -488,7 +490,8 @@ def main() -> None:
                 result = run_graph_discovery(
                     *params, seed=args.seed, n6_training=args.n6_training,
                     n7_training=args.n7_training, holdout_budget=args.holdout_budget,
-                    max_candidates=args.max_candidates, legacy_reports=legacy, proof_beam=args.proof_beam)
+                    max_candidates=args.max_candidates, legacy_reports=legacy, proof_beam=args.proof_beam,
+                    novelty_profile=args.novelty_profile)
             elif args.command == "graph-discover-audit":
                 result = audit_campaign(*params, legacy_reports=legacy, artifact=args.artifact)
             elif args.command == "graph-discover-lean":
