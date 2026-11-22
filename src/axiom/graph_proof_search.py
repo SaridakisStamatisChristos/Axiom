@@ -25,7 +25,8 @@ class SearchLimits:
                 raise ValueError("invalid proof search budget")
 
 
-def search(claim: AffineRelation, bank: tuple[LemmaSpec, ...], limits: SearchLimits) -> dict:
+def search(claim: AffineRelation, bank: tuple[LemmaSpec, ...], limits: SearchLimits, *,
+           integer_rounding=False) -> dict:
     """Return each direction's shortest certificate and a shared node count.
 
     A node budget, rather than a wall-clock cutoff, makes truncation replayable.
@@ -37,6 +38,7 @@ def search(claim: AffineRelation, bank: tuple[LemmaSpec, ...], limits: SearchLim
     cap = limits.max_coefficient
     total_nodes = 0
     truncated = False
+    scales = range(1, cap + 1) if integer_rounding else (1,)
     directions = []
 
     for side in claim.inequalities():
@@ -73,12 +75,17 @@ def search(claim: AffineRelation, bank: tuple[LemmaSpec, ...], limits: SearchLim
             failed.add(state)
             return None
 
+        proof, target_scale = None, 1
         for size in range(1, min(limits.max_lemmas, len(usable)) + 1):
-            proof = visit(0, size, target, side.upper)
+            for target_scale in scales:
+                scaled = tuple(target_scale * value for value in target)
+                # Integer LHS: scaled lhs < scale * (upper + 1) implies lhs ≤ upper.
+                slack = target_scale * (side.upper + 1) - 1
+                proof = visit(0, size, scaled, slack)
+                if proof is not None or truncated:
+                    break
             if proof is not None or truncated:
                 break
-        else:
-            proof = None
         directions.append({
             "target_vector": list(target), "target_rhs": side.upper,
             "lemmas": [{"theorem": lemma.theorem, "premise": lemma.premise,
@@ -86,6 +93,7 @@ def search(claim: AffineRelation, bank: tuple[LemmaSpec, ...], limits: SearchLim
                        for lemma, value in proof] if proof is not None else None,
             "combined_rhs": sum(lemma.rhs * value for lemma, value in proof)
             if proof is not None else None,
+            **({"target_scale": target_scale} if proof is not None and target_scale > 1 else {}),
         })
         if truncated:
             break

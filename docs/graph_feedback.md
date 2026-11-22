@@ -134,3 +134,33 @@ connected scopes. The disconnected witness resolved one more statement.
 Three remained unresolved at the original 25-second Lean budget.
 
 Historical profiles retain their recorded novelty and search settings.
+
+## Decomposition proofs and integer rounding
+
+Use `--profile frontier-v4` to include the two decomposition bounds in
+the certified novelty bank during feedback campaigns. This profile keeps
+the component seeds, witness replay, and final order separation of
+`frontier-v3`.
+
+- For triangle-free graphs, `chromatic - matching <= 1`. The proof removes
+  a vertex with its neighborhood, adds a disjoint matching edge, and uses
+  one additional color for the independent neighbors.
+- For connected graphs, `2 * chromatic - edges + n <= 6`. The proof uses
+  the minimum degree of a smallest induced subgraph requiring the full
+  chromatic number. Its excess edges are bounded by those beyond an
+  ambient spanning tree. Composition with `clique <= chromatic` gives
+  `2 * clique - edges + n <= 6` under the same premise.
+
+Use `graph-prove STATEMENT --retrieve-lemmas 5 --retrieval-index v9` or
+`graph-discover-universal --proof-profile decomposition`. The `v9` index
+can combine integer bounds to prove a positive multiple of a target
+strictly below the next integer. For example, in a connected graph the
+bounds on `2 * clique - edges + n` and `n - edges` sum to
+`2 * (clique - edges + n) <= 7`. The unscaled conclusion is
+`clique - edges + n <= 3`. The proof record includes the multiplier.
+Composition, retrieval, and rounding share the configured search-node
+limit, and Lean checks the original unscaled theorem.
+
+Run the same frozen 32-case proof and refutation regression for either
+index with `scripts/benchmark_graph_competition.py --proof-index v7` or
+`--proof-index v9`, supplying a fresh output directory for each.
