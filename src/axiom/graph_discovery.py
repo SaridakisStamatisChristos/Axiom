@@ -29,10 +29,12 @@ def _discover(training, novelty=None):
     bank = {}
     counts = Counter()
     for assumption in ASSUMPTIONS:
-        groups = [[p for p in training[n] if applicable(assumption, p)] for n in (5, 6, 7)]
-        if not all(groups):
+        by_order = {n: [p for p in rows if applicable(assumption, p)]
+                    for n, rows in sorted(training.items())}
+        if not all(by_order.get(n) for n in (5, 6, 7)):
             counts["MISSING_PREMISE_COVERAGE"] += 1
             continue
+        groups = [group for group in by_order.values() if group]
         for x, y in combinations(INVARIANTS, 2):
             for a, b, c in product((-2, -1, 1, 2), (-2, -1, 1, 2), (-1, 0, 1)):
                 values = [[a * p[x] + b * p[y] + c * p["n"] for p in group]

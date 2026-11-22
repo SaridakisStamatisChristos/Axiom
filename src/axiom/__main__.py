@@ -397,6 +397,26 @@ def main() -> None:
     corpus.add_argument("--db", required=True)
     corpus.add_argument("--split", choices=("development", "validation", "final"), default="development")
     corpus.add_argument("--exact-budget", type=int, default=1000)
+    for stage, help_text in (
+        ("graph-discover-feedback", "fit and refute graph conjectures over development rounds"),
+        ("graph-discover-feedback-audit", "replay all rounds of a graph feedback campaign"),
+        ("graph-discover-feedback-final", "evaluate frozen graph candidates on the sealed final corpus"),
+    ):
+        feedback = sub.add_parser(stage, help=help_text)
+        feedback.add_argument("--corpus", required=True,
+                              help="dedicated final SQLite corpus for final evaluation; development otherwise")
+        feedback.add_argument("--ledger", required=True)
+        feedback.add_argument("--campaign", required=True)
+        if stage == "graph-discover-feedback":
+            feedback.add_argument("--seed", type=int, default=42)
+            feedback.add_argument("--rounds", type=int, default=2)
+            feedback.add_argument("--candidates", type=int, default=8)
+            feedback.add_argument("--corpus-scan", type=int, default=256)
+            feedback.add_argument("--corpus-exact", type=int, default=64)
+            feedback.add_argument("--active-budget", type=int, default=64)
+            feedback.add_argument("--development-order", type=int, default=10)
+            feedback.add_argument("--no-feedback", action="store_true", help="run a budget-matched control")
+            feedback.add_argument("--final-sha256", help="commit to a checkpointed final corpus before fitting")
     for command, help_text in (
         ("graph-discover", "synthesize and test affine graph relations in a persistent campaign"),
         ("graph-discover-audit", "replay a campaign and its predecessor history"),
@@ -442,6 +462,26 @@ def main() -> None:
             discovery.add_argument("--compose", action="store_true",
                                    help="use the bounded multi-lemma proof engine")
     args = p.parse_args()
+    if args.command.startswith("graph-discover-feedback"):
+        import sqlite3
+        from . import graph_feedback
+
+        params = (args.corpus, args.ledger, args.campaign)
+        try:
+            if args.command == "graph-discover-feedback":
+                report = graph_feedback.run_campaign(
+                    *params, seed=args.seed, rounds=args.rounds, candidates=args.candidates,
+                    corpus_scan=args.corpus_scan, corpus_exact=args.corpus_exact,
+                    active_budget=args.active_budget, development_order=args.development_order,
+                    feedback=not args.no_feedback, final_sha256=args.final_sha256)
+            elif args.command == "graph-discover-feedback-audit":
+                report = graph_feedback.audit_campaign(*params)
+            else:
+                report = graph_feedback.evaluate_final(*params)
+        except (ValueError, TypeError, KeyError, IndexError, OSError, sqlite3.DatabaseError) as exc:
+            p.exit(2, f"REJECTED: {exc}\n")
+        print(json.dumps(report, indent=2, sort_keys=True))
+        return
     if args.command == "graph-active-refute":
         from pathlib import Path
         from .graph_active_refute import search
