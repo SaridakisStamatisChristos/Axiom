@@ -1,4 +1,5 @@
 """Deterministic bounded search for exact nonnegative integer combinations."""
+from collections import defaultdict
 from dataclasses import dataclass
 
 from .graph_relations import AffineRelation, _vector
@@ -26,7 +27,7 @@ class SearchLimits:
 
 
 def search(claim: AffineRelation, bank: tuple[LemmaSpec, ...], limits: SearchLimits, *,
-           integer_rounding=False) -> dict:
+           integer_rounding=False, index_leaves=False) -> dict:
     """Return each direction's shortest certificate and a shared node count.
 
     A node budget, rather than a wall-clock cutoff, makes truncation replayable.
@@ -40,9 +41,16 @@ def search(claim: AffineRelation, bank: tuple[LemmaSpec, ...], limits: SearchLim
     truncated = False
     scales = range(1, cap + 1) if integer_rounding else (1,)
     directions = []
+    leaves = defaultdict(list)
+    if index_leaves:
+        for index, lemma in enumerate(usable):
+            for coefficient in range(1, cap + 1):
+                vector = tuple(coefficient * value for value in lemma.vector)
+                leaves[vector].append((index, coefficient))
 
     for side in claim.inequalities():
         target = _vector(side.terms)
+        zero = (0,) * len(target)
         failed = set()
 
         def visit(start, slots, residual, slack):
@@ -55,6 +63,20 @@ def search(claim: AffineRelation, bank: tuple[LemmaSpec, ...], limits: SearchLim
                 return () if not any(residual) and slack >= 0 else None
             state = (start, slots, residual, slack)
             if state in failed or len(usable) - start < slots:
+                return None
+            if index_leaves and slots == 1:
+                # Only these children can cancel the residual. Keep the legacy visit
+                # order among matches and charge each child against the node limit.
+                for index, coefficient in leaves.get(residual, ()):
+                    if index < start:
+                        continue
+                    lemma = usable[index]
+                    proof = visit(index + 1, 0, zero, slack - coefficient * lemma.rhs)
+                    if proof is not None:
+                        return ((lemma, coefficient),)
+                    if truncated:
+                        return None
+                failed.add(state)
                 return None
             suffix = usable[start:]
             for coordinate, required in enumerate(residual):

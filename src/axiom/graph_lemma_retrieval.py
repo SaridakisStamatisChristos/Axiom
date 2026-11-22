@@ -400,10 +400,12 @@ MATCHING_CARDINALITY_INDEX = "axiom.mathlib_affine_graph_index.v6"
 CLIQUE_INDEPENDENCE_INDEX = "axiom.mathlib_affine_graph_index.v7"
 CLIQUE_BOUNDS_INDEX = "axiom.mathlib_affine_graph_index.v8"
 DECOMPOSITION_INDEX = "axiom.mathlib_affine_graph_index.v9"
+SCHEDULED_INDEX = "axiom.mathlib_affine_graph_index.v10"
+ROUNDING_BUDGET_DIVISOR = 5
 _INDEXES = {INDEX_VERSION: _INDEX_V1, STRUCTURAL_INDEX: _INDEX_V2, MATCHING_INDEX: _INDEX_V3,
             COMPONENT_INDEX: _INDEX_V4, COMPONENT_INDEPENDENCE_INDEX: _INDEX_V5,
             MATCHING_CARDINALITY_INDEX: _INDEX_V6, CLIQUE_INDEPENDENCE_INDEX: _INDEX_V7,
-            CLIQUE_BOUNDS_INDEX: _INDEX_V8, DECOMPOSITION_INDEX: _INDEX_V9}
+            CLIQUE_BOUNDS_INDEX: _INDEX_V8, DECOMPOSITION_INDEX: _INDEX_V9, SCHEDULED_INDEX: _INDEX_V9}
 _MATCHING_CARDINALITY_ADAPTER = "retrieved_twice_matching_le_order"
 _MATCHING_CARDINALITY_POLICY = "offer_cardinality_adapter_for_matching_coefficient_at_least_two"
 _CLIQUE_INDEPENDENCE_ADAPTER = "retrieved_clique_add_independence_le_order_add_one"
@@ -430,8 +432,11 @@ INDEX_DIGESTS = {version: digest({
     **({"selection": [_MATCHING_CARDINALITY_POLICY, _CLIQUE_INDEPENDENCE_POLICY,
                        _CLIQUE_TRIANGLE_POLICY, _COLOR_CLIQUE_POLICY, _COLOR_MATCHING_POLICY,
                        _COLOR_EDGES_POLICY]}
-       if version == DECOMPOSITION_INDEX else {}),
+       if version in (DECOMPOSITION_INDEX, SCHEDULED_INDEX) else {}),
     **({"composition": "bounded_integer_rounding"} if version == DECOMPOSITION_INDEX else {}),
+    **({"composition": {"schedule": "direct_then_rounding_then_plans", "index_leaves": True,
+                        "rounding_budget_divisor": ROUNDING_BUDGET_DIVISOR,
+                        "reserve_plan_slots": True}} if version == SCHEDULED_INDEX else {}),
 }) for version, entries in _INDEXES.items()}
 INDEX_SHA256 = INDEX_DIGESTS[INDEX_VERSION]
 MAX_RETRIEVED_LEMMAS = 32
