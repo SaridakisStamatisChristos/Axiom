@@ -1,0 +1,163 @@
+{
+  "census_generator": "nauty geng 2.9.3",
+  "census_streams": [
+    {
+      "argv": [
+        "-q",
+        "7",
+        "7/8"
+      ],
+      "sha256": "5543316fb2afe7a7ae533784c63faf808c755825e6781b5a2ad3e0bf0be536f9"
+    },
+    {
+      "argv": [
+        "-q",
+        "-c",
+        "7",
+        "4/8"
+      ],
+      "sha256": "458021897ab1f5131be39db2d8ce44157a6bc9b85ae37c62e884a7085c0512f1"
+    },
+    {
+      "argv": [
+        "-q",
+        "-b",
+        "7",
+        "2/8"
+      ],
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "-q",
+        "-t",
+        "7",
+        "6/8"
+      ],
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "-q",
+        "8",
+        "2/8"
+      ],
+      "sha256": "739f488d2848c2230df0cba6f74b1f023b45fa8fd7a12f32d7d457670d1af51b"
+    },
+    {
+      "argv": [
+        "-q",
+        "-c",
+        "8",
+        "0/8"
+      ],
+      "sha256": "d222c8b11d9c64f06a192d44226f270ec24dd1e1d604eaa586aed824052e1bf5"
+    },
+    {
+      "argv": [
+        "-q",
+        "-b",
+        "8",
+        "0/8"
+      ],
+      "sha256": "465e54c07f754e0b50776056267445b656ae3f3045549e654e28ee803bbacff3"
+    },
+    {
+      "argv": [
+        "-q",
+        "-t",
+        "8",
+        "4/8"
+      ],
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "-q",
+        "9",
+        "4/8"
+      ],
+      "sha256": "14b9e9be5dfd283893a1b2e075e9ce49330d1d7da12f97eb3128a1baa3dfd53e"
+    },
+    {
+      "argv": [
+        "-q",
+        "-c",
+        "9",
+        "1/8"
+      ],
+      "sha256": "7587d774620f8a58aa5d2cb3e67e2ffd42d00ffa6deb587ab24924fce4e81a1f"
+    },
+    {
+      "argv": [
+        "-q",
+        "-b",
+        "9",
+        "5/8"
+      ],
+      "sha256": "8ea23f5c76837a1a6b31c5948c778a32f77d296093917927c22249ddaf89fc1c"
+    },
+    {
+      "argv": [
+        "-q",
+        "-t",
+        "9",
+        "1/8"
+      ],
+      "sha256": "3fc306fe3ec8a25b74b94349999b34f5ca85d3c2b4abcd8e0ef5f4f05e82cdce"
+    }
+  ],
+  "schema": "axiom.graph.refutation_census_challenge.v1",
+  "seed": 202611221,
+  "passes_seed_panel_and_all_graphs_through_order_five": true,
+  "cases": [
+    {"id":"graph-relation:83a34e07c1e7df9d1aa6e2ed979fd428fc19c4e3514d9c82d8b148a12d686457","statement":{"bound":{"assumption":"ALL","lhs":[{"denominator":1,"numerator":3,"symbol":"chromatic"},{"denominator":1,"numerator":1,"symbol":"components"},{"denominator":1,"numerator":-2,"symbol":"edges"},{"denominator":1,"numerator":2,"symbol":"independence"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":18},"schema":"axiom.graph.proof_affine_bound.v1"},"relation":"<="},"witness_graph6":"G??CA?"},
+    {"id":"graph-relation:e8e3914c9523234cdab3ab1c8b48d9c4c9a69925f3eac3e4b0d599a01d548926","statement":{"bound":{"assumption":"ALL","lhs":[{"denominator":1,"numerator":1,"symbol":"edges"},{"denominator":1,"numerator":-2,"symbol":"independence"},{"denominator":1,"numerator":1,"symbol":"matching"},{"denominator":1,"numerator":3,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":47},"schema":"axiom.graph.proof_affine_bound.v1"},"relation":"<="},"witness_graph6":"H?zefq|"},
+    {"id":"graph-relation:f2dd38f69871801b7429039f824e9866468e455aafcf55599dc617990ddd752c","statement":{"bound":{"assumption":"ALL","lhs":[{"denominator":1,"numerator":3,"symbol":"components"},{"denominator":1,"numerator":-1,"symbol":"independence"},{"denominator":1,"numerator":-2,"symbol":"maximum_degree"},{"denominator":1,"numerator":3,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":24},"schema":"axiom.graph.proof_affine_bound.v1"},"relation":"<="},"witness_graph6":"GCe]~{"},
+    {"id":"graph-relation:90757f29234d7a72a29caf75a5b09601b3d1270394d8b31132d43e436967738d","statement":{"bound":{"assumption":"ALL","lhs":[{"denominator":1,"numerator":-1,"symbol":"components"},{"denominator":1,"numerator":-3,"symbol":"edges"},{"denominator":1,"numerator":3,"symbol":"independence"},{"denominator":1,"numerator":2,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":10},"schema":"axiom.graph.proof_affine_bound.v1"},"relation":"<="},"witness_graph6":"G???C?"},
+    {"id":"graph-relation:259f1f3baced98ff91e58618e1159793f53db0463a6acea86b7b723511c766ef","statement":{"bound":{"assumption":"ALL","lhs":[{"denominator":1,"numerator":2,"symbol":"matching"},{"denominator":1,"numerator":1,"symbol":"n"},{"denominator":1,"numerator":1,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":31},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"H?zefv~"},
+    {"id":"graph-relation:6ff6826c048371dc85e6cfe61747427bec0c278638ec41fcf4bc19e4daaa1d96","statement":{"bound":{"assumption":"ALL","lhs":[{"denominator":1,"numerator":2,"symbol":"clique"},{"denominator":1,"numerator":1,"symbol":"components"},{"denominator":1,"numerator":3,"symbol":"matching"},{"denominator":1,"numerator":-2,"symbol":"n"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":7},"schema":"axiom.graph.proof_affine_bound.v1"},"relation":"<="},"witness_graph6":"GCe]~{"},
+    {"id":"graph-relation:9a795d2bfa246208d7cc9dad21c363b4f4e86087fd651519e91c8e95bd0eb20a","statement":{"bound":{"assumption":"ALL","lhs":[{"denominator":1,"numerator":1,"symbol":"edges"},{"denominator":1,"numerator":2,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":40},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"FQ~~w"},
+    {"id":"graph-relation:c1aa0a9e0038bf74804cd87070b96c0237cc270b0599fd5691ae548aa43cdc05","statement":{"bound":{"assumption":"ALL","lhs":[{"denominator":1,"numerator":3,"symbol":"independence"},{"denominator":1,"numerator":-2,"symbol":"matching"},{"denominator":1,"numerator":2,"symbol":"n"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":30},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???C?"},
+    {"id":"graph-relation:e5ee21cbb340bea39e62746f52c6a721ac31a44f331dd431bfb5836c10c905e8","statement":{"bound":{"assumption":"ALL","lhs":[{"denominator":1,"numerator":-1,"symbol":"chromatic"},{"denominator":1,"numerator":-2,"symbol":"edges"},{"denominator":1,"numerator":1,"symbol":"independence"},{"denominator":1,"numerator":2,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":4},"schema":"axiom.graph.proof_affine_bound.v1"},"relation":"<="},"witness_graph6":"HQzVr~~"},
+    {"id":"graph-relation:61de330554dcf9d84869e6839cf30d36d42589a8576766c6744aef0c88f4151f","statement":{"bound":{"assumption":"ALL","lhs":[{"denominator":1,"numerator":-1,"symbol":"independence"},{"denominator":1,"numerator":1,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":9},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"H?qffZ^"},
+    {"id":"graph-relation:eea803f9f704ae9afefd2d18d85dc18f63f8c3ee72d3dfa5a9a914d32be61e16","statement":{"bound":{"assumption":"ALL","lhs":[{"denominator":1,"numerator":1,"symbol":"clique"},{"denominator":1,"numerator":2,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":25},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G?rvn{"},
+    {"id":"graph-relation:5cbda568808f49b4ed3d4f42c7e10b557f003f98783a3dbe619da747352cae8f","statement":{"bound":{"assumption":"ALL","lhs":[{"denominator":1,"numerator":1,"symbol":"chromatic"},{"denominator":1,"numerator":3,"symbol":"components"},{"denominator":1,"numerator":3,"symbol":"independence"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":31},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???F?"},
+    {"id":"graph-relation:0c520a3bcde09227e456482113a51a06d081a994141b0e6e754760b191eb2e19","statement":{"bound":{"assumption":"CONNECTED","lhs":[{"denominator":1,"numerator":-3,"symbol":"chromatic"},{"denominator":1,"numerator":-2,"symbol":"independence"},{"denominator":1,"numerator":-2,"symbol":"maximum_degree"},{"denominator":1,"numerator":2,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":-5},"schema":"axiom.graph.proof_affine_bound.v1"},"relation":"<="},"witness_graph6":"FQznW"},
+    {"id":"graph-relation:20da661198160a72491b878e49ba828940ad8241fee742fb392f34a9bfab67a1","statement":{"bound":{"assumption":"CONNECTED","lhs":[{"denominator":1,"numerator":-1,"symbol":"edges"},{"denominator":1,"numerator":-1,"symbol":"independence"},{"denominator":1,"numerator":3,"symbol":"matching"},{"denominator":1,"numerator":2,"symbol":"maximum_degree"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":7},"schema":"axiom.graph.proof_affine_bound.v1"},"relation":"<="},"witness_graph6":"G?AAFw"},
+    {"id":"graph-relation:476baf89358a6c674dac0f1f6dc2a78e06f647b96814f3cb02726d3e31f000b0","statement":{"bound":{"assumption":"CONNECTED","lhs":[{"denominator":1,"numerator":-2,"symbol":"chromatic"},{"denominator":1,"numerator":3,"symbol":"matching"},{"denominator":1,"numerator":2,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":27},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"H?qfVV}"},
+    {"id":"graph-relation:0b09a260ed881ffadd5bbfe4b0b0987c08ab2ac3edc1b918392224c63ff16c31","statement":{"bound":{"assumption":"CONNECTED","lhs":[{"denominator":1,"numerator":-1,"symbol":"chromatic"},{"denominator":1,"numerator":1,"symbol":"independence"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":4},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???F{"},
+    {"id":"graph-relation:bc164847f4329c9e902f7777291edd9302379e9a39306014e43f2825c0cef387","statement":{"bound":{"assumption":"CONNECTED","lhs":[{"denominator":1,"numerator":-3,"symbol":"matching"},{"denominator":1,"numerator":1,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":4},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"GUZvvs"},
+    {"id":"graph-relation:35e1763511327edd4399767d191b626bc226ce0993e40c5b12ff6507154d3f3a","statement":{"bound":{"assumption":"CONNECTED","lhs":[{"denominator":1,"numerator":1,"symbol":"matching"},{"denominator":1,"numerator":3,"symbol":"maximum_degree"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":26},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"HQzVr~~"},
+    {"id":"graph-relation:ff90cacd184b332f2098d34b2e53b94c6119c43fbe469e778f65d09fde1fc0ee","statement":{"bound":{"assumption":"CONNECTED","lhs":[{"denominator":1,"numerator":-2,"symbol":"chromatic"},{"denominator":1,"numerator":1,"symbol":"independence"},{"denominator":1,"numerator":-2,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":2},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???F{"},
+    {"id":"graph-relation:dda267df9ad0ee6c7f091930cac5c6c5c2790f63248f6768ef359de9f239ccad","statement":{"bound":{"assumption":"CONNECTED","lhs":[{"denominator":1,"numerator":-1,"symbol":"clique"},{"denominator":1,"numerator":-3,"symbol":"matching"},{"denominator":1,"numerator":-2,"symbol":"maximum_degree"},{"denominator":1,"numerator":2,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":1},"schema":"axiom.graph.proof_affine_bound.v1"},"relation":"<="},"witness_graph6":"H?bNfv~"},
+    {"id":"graph-relation:45979b02f43609408ba5825d4995f22897eb944120a070a72294a7fcea022e32","statement":{"bound":{"assumption":"CONNECTED","lhs":[{"denominator":1,"numerator":1,"symbol":"independence"},{"denominator":1,"numerator":-1,"symbol":"maximum_degree"},{"denominator":1,"numerator":1,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":7},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"HCY^Rz|"},
+    {"id":"graph-relation:7542e3d5f19e3b4cf9ace5b6b8285eba5c7940dc14b3be4cfa01c37904296a6c","statement":{"bound":{"assumption":"CONNECTED","lhs":[{"denominator":1,"numerator":-1,"symbol":"chromatic"},{"denominator":1,"numerator":-3,"symbol":"n"},{"denominator":1,"numerator":2,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":0},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"FQznw"},
+    {"id":"graph-relation:e03be4cf87d6c391c0f27108de26668778e27fcffd7b01a22671e58413466069","statement":{"bound":{"assumption":"CONNECTED","lhs":[{"denominator":1,"numerator":-3,"symbol":"matching"},{"denominator":1,"numerator":2,"symbol":"maximum_degree"},{"denominator":1,"numerator":-1,"symbol":"n"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":0},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???F{"},
+    {"id":"graph-relation:4b023b51a0721adc5f59371971e1724571f0a85290f2730bffc5af049b9a8807","statement":{"bound":{"assumption":"CONNECTED","lhs":[{"denominator":1,"numerator":-1,"symbol":"clique"},{"denominator":1,"numerator":-3,"symbol":"independence"},{"denominator":1,"numerator":-1,"symbol":"maximum_degree"},{"denominator":1,"numerator":2,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":8},"schema":"axiom.graph.proof_affine_bound.v1"},"relation":"<="},"witness_graph6":"GCe]|{"},
+    {"id":"graph-relation:e626a2171346d2aef9c15af9c11d3864346bfab0d977f9b47a08210f0a8192f7","statement":{"bound":{"assumption":"BIPARTITE","lhs":[{"denominator":1,"numerator":1,"symbol":"clique"},{"denominator":1,"numerator":1,"symbol":"independence"},{"denominator":1,"numerator":-2,"symbol":"maximum_degree"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":6},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???C?"},
+    {"id":"graph-relation:eeccbddbf9ac9ef10b3c11532411d0aa0ce9ef8d5cd248fd752479e796b15630","statement":{"bound":{"assumption":"BIPARTITE","lhs":[{"denominator":1,"numerator":2,"symbol":"independence"},{"denominator":1,"numerator":-1,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":12},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???F{"},
+    {"id":"graph-relation:8b842b3edf652280d705ce11ab632a3808e7b19255d6046891dd1ef5cc5dc959","statement":{"bound":{"assumption":"BIPARTITE","lhs":[{"denominator":1,"numerator":1,"symbol":"clique"},{"denominator":1,"numerator":3,"symbol":"maximum_degree"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":20},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???F{"},
+    {"id":"graph-relation:a8c5d6537ca48e12a7ee4dd09dc6cda549da389efeb3484e5be01d37e2453dc7","statement":{"bound":{"assumption":"BIPARTITE","lhs":[{"denominator":1,"numerator":-3,"symbol":"clique"},{"denominator":1,"numerator":2,"symbol":"independence"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":7},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???C?"},
+    {"id":"graph-relation:fe93df13ba815a49584473bba6d1b33cf4db1e5207ea01603f03f7da827ec6d7","statement":{"bound":{"assumption":"BIPARTITE","lhs":[{"denominator":1,"numerator":3,"symbol":"chromatic"},{"denominator":1,"numerator":3,"symbol":"clique"},{"denominator":1,"numerator":2,"symbol":"components"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":20},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G??CB?"},
+    {"id":"graph-relation:cb9f3f68a421bf770070888b6006d10ecb15aaede3fe6d626b70fd50653b4675","statement":{"bound":{"assumption":"BIPARTITE","lhs":[{"denominator":1,"numerator":3,"symbol":"chromatic"},{"denominator":1,"numerator":2,"symbol":"maximum_degree"},{"denominator":1,"numerator":-2,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":18},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???F{"},
+    {"id":"graph-relation:348fd956db38ad54ae1a76e5335431b591468fa55e52dec2e7c6dc7b340ba0bf","statement":{"bound":{"assumption":"BIPARTITE","lhs":[{"denominator":1,"numerator":1,"symbol":"chromatic"},{"denominator":1,"numerator":1,"symbol":"components"},{"denominator":1,"numerator":3,"symbol":"maximum_degree"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":21},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???F{"},
+    {"id":"graph-relation:83a37a61e2187020575fe71cb70b3b849e96a11a0d5a05ceddba0a76b57fd0e7","statement":{"bound":{"assumption":"BIPARTITE","lhs":[{"denominator":1,"numerator":2,"symbol":"chromatic"},{"denominator":1,"numerator":1,"symbol":"components"},{"denominator":1,"numerator":1,"symbol":"independence"},{"denominator":1,"numerator":2,"symbol":"maximum_degree"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":23},"schema":"axiom.graph.proof_affine_bound.v1"},"relation":"<="},"witness_graph6":"G???Fw"},
+    {"id":"graph-relation:65679188f04714b7cff5d1de8f9b020b05b9ba90024abc1e72005bae87f62172","statement":{"bound":{"assumption":"BIPARTITE","lhs":[{"denominator":1,"numerator":-1,"symbol":"clique"},{"denominator":1,"numerator":-2,"symbol":"edges"},{"denominator":1,"numerator":3,"symbol":"n"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":14},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"H?AA@?W"},
+    {"id":"graph-relation:f2ff2db83abc1e7226a6ff6f73d2d1d751c869e4f18936776856fce2e832310a","statement":{"bound":{"assumption":"BIPARTITE","lhs":[{"denominator":1,"numerator":2,"symbol":"chromatic"},{"denominator":1,"numerator":2,"symbol":"components"},{"denominator":1,"numerator":-1,"symbol":"edges"},{"denominator":1,"numerator":-3,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":12},"schema":"axiom.graph.proof_affine_bound.v1"},"relation":"<="},"witness_graph6":"G??CA?"},
+    {"id":"graph-relation:1a22b24346ff30a99d0f244e5649b53401e37148f660fbb11d154a11f06633d1","statement":{"bound":{"assumption":"BIPARTITE","lhs":[{"denominator":1,"numerator":2,"symbol":"components"},{"denominator":1,"numerator":-3,"symbol":"independence"},{"denominator":1,"numerator":2,"symbol":"n"},{"denominator":1,"numerator":-2,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":8},"schema":"axiom.graph.proof_affine_bound.v1"},"relation":"<="},"witness_graph6":"H?ABB`o"},
+    {"id":"graph-relation:3eb85d5433da2fc444626a9cc5833ec68a7bbb1acd15b17bc9fcc53e7e12803f","statement":{"bound":{"assumption":"BIPARTITE","lhs":[{"denominator":1,"numerator":1,"symbol":"components"},{"denominator":1,"numerator":-2,"symbol":"edges"},{"denominator":1,"numerator":1,"symbol":"independence"},{"denominator":1,"numerator":3,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":10},"schema":"axiom.graph.proof_affine_bound.v1"},"relation":"<="},"witness_graph6":"G???C?"},
+    {"id":"graph-relation:be5423db0feaefda27c51d97f781df90c7b621d4260b647107d95e883ca30867","statement":{"bound":{"assumption":"TRIANGLE_FREE","lhs":[{"denominator":1,"numerator":-3,"symbol":"matching"},{"denominator":1,"numerator":3,"symbol":"maximum_degree"},{"denominator":1,"numerator":-1,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":9},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G??Fvw"},
+    {"id":"graph-relation:a5df48e6f0c0ca3d8726ac066ae40a8f408517ce6d326a16410f37c3d08d51a5","statement":{"bound":{"assumption":"TRIANGLE_FREE","lhs":[{"denominator":1,"numerator":1,"symbol":"independence"},{"denominator":1,"numerator":-1,"symbol":"maximum_degree"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":5},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???C?"},
+    {"id":"graph-relation:3b0db239af24fc2176a7241b192579bf993f898fbf6a68af3c25cafca7565dec","statement":{"bound":{"assumption":"TRIANGLE_FREE","lhs":[{"denominator":1,"numerator":-1,"symbol":"chromatic"},{"denominator":1,"numerator":2,"symbol":"components"},{"denominator":1,"numerator":1,"symbol":"matching"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":9},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G??CB?"},
+    {"id":"graph-relation:9094d523ec11749ca5f5919df5e2f76b19da01e4c674c340efcc71fc52103a3b","statement":{"bound":{"assumption":"TRIANGLE_FREE","lhs":[{"denominator":1,"numerator":3,"symbol":"chromatic"},{"denominator":1,"numerator":2,"symbol":"maximum_degree"},{"denominator":1,"numerator":-3,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":18},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"H?AFbZw"},
+    {"id":"graph-relation:c188788bf07013361235b509f7b84b2330ac232e1901dab560247d5cd04e6926","statement":{"bound":{"assumption":"TRIANGLE_FREE","lhs":[{"denominator":1,"numerator":-3,"symbol":"clique"},{"denominator":1,"numerator":3,"symbol":"components"},{"denominator":1,"numerator":1,"symbol":"n"},{"denominator":1,"numerator":3,"symbol":"triangles"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":17},"schema":"axiom.graph.proof_affine_bound.v1"},"relation":"<="},"witness_graph6":"G???C?"},
+    {"id":"graph-relation:ccbe1fdb075464d50aaa47069c6d864794ee7036c5483e872fa82e5327aa393f","statement":{"bound":{"assumption":"TRIANGLE_FREE","lhs":[{"denominator":1,"numerator":-1,"symbol":"edges"},{"denominator":1,"numerator":2,"symbol":"maximum_degree"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":4},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???Fw"},
+    {"id":"graph-relation:991cc75cab9142744f5fab0df1849c00aa95678cb076691f3c1cd78eedec0284","statement":{"bound":{"assumption":"TRIANGLE_FREE","lhs":[{"denominator":1,"numerator":1,"symbol":"chromatic"},{"denominator":1,"numerator":1,"symbol":"clique"},{"denominator":1,"numerator":2,"symbol":"maximum_degree"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":16},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???F{"},
+    {"id":"graph-relation:db83bed5b9b8543fd3bb0342322c7ce4433daf11d06a531677edc47341ee0783","statement":{"bound":{"assumption":"TRIANGLE_FREE","lhs":[{"denominator":1,"numerator":1,"symbol":"components"},{"denominator":1,"numerator":-1,"symbol":"edges"},{"denominator":1,"numerator":1,"symbol":"n"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":10},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G??CA?"},
+    {"id":"graph-relation:71b69345eb06f991faa11195fdeeccb0556e3725fb7793627d4c6491cd3c4f3f","statement":{"bound":{"assumption":"TRIANGLE_FREE","lhs":[{"denominator":1,"numerator":-1,"symbol":"chromatic"},{"denominator":1,"numerator":-3,"symbol":"clique"},{"denominator":1,"numerator":3,"symbol":"independence"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":11},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???Fw"},
+    {"id":"graph-relation:cc3278b3d177faedc6b72b2b02f784b350eb1c2a4850bc957963e82df2868332","statement":{"bound":{"assumption":"TRIANGLE_FREE","lhs":[{"denominator":1,"numerator":-3,"symbol":"chromatic"},{"denominator":1,"numerator":3,"symbol":"independence"},{"denominator":1,"numerator":1,"symbol":"maximum_degree"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":18},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???F{"},
+    {"id":"graph-relation:7623227f7e48efe1f71e526ee5c0c4ab5617d176ebe086a01ae77bf20582596f","statement":{"bound":{"assumption":"TRIANGLE_FREE","lhs":[{"denominator":1,"numerator":-2,"symbol":"edges"},{"denominator":1,"numerator":2,"symbol":"matching"},{"denominator":1,"numerator":3,"symbol":"maximum_degree"},{"denominator":1,"numerator":2,"symbol":"n"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":20},"schema":"axiom.graph.proof_affine_bound.v1"},"relation":"<="},"witness_graph6":"H?AADBO"},
+    {"id":"graph-relation:96015d742715bd35b31608ed608cdc6b28291325e8060402bf3626dbd208573a","statement":{"bound":{"assumption":"TRIANGLE_FREE","lhs":[{"denominator":1,"numerator":3,"symbol":"clique"},{"denominator":1,"numerator":-2,"symbol":"components"},{"denominator":1,"numerator":3,"symbol":"independence"}],"mathematical_novelty":"NOT_ASSESSED","quantifier":"forall_finite_simple_graphs_all_orders","relation":"<=","rhs":{"denominator":1,"numerator":22},"schema":"axiom.graph.affine_conjecture.v1"},"relation":"<="},"witness_graph6":"G???F{"}
+  ]
+}

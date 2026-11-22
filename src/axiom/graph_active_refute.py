@@ -1,13 +1,16 @@
-"""Bounded deterministic mutation search over typed affine graph claims."""
+"""Bounded deterministic counterexample search over typed affine graph claims."""
 from collections import Counter
-from itertools import combinations
+from itertools import combinations, islice, zip_longest
 import random
 
 from .graph_explicit import ExplicitGraph
 from .graph_invariants import _max_subset, bipartite, components, matching_number, triangles
 from .graph_large_witness import MAX_EXACT_ORDER, certify_witness, replay_witness
+from .graph_refutation_portfolio import structured_graphs
 
 SCHEMA = "axiom.graph.active_refutation.v1"
+PORTFOLIO_SCHEMA = "axiom.graph.active_refutation.v2"
+PROFILES = ("mutation-v1", "portfolio-v2")
 
 
 def _chromatic(graph):
@@ -85,17 +88,71 @@ def _mutations(graph, assumption):
         yield "mycielski", ExplicitGraph(2 * n + 1, tuple(sorted(edges)))
 
 
-def search(claim, initial, *, seed=42, budget=1000, beam=8):
+def _structural_mutations(graph, assumption):
+    n = graph.n
+    if assumption in ("ALL", "CONNECTED") and graph.edges:
+        edges = set(graph.edges)
+        yield "complement", ExplicitGraph(n, tuple(edge for edge in combinations(range(n), 2)
+                                                   if edge not in edges))
+    if n >= MAX_EXACT_ORDER:
+        return
+    if assumption != "CONNECTED":
+        yield "add_isolate", ExplicitGraph(n + 1, graph.edges)
+    if assumption in ("ALL", "CONNECTED") and n:
+        edges = (*graph.edges, *((v, n) for v in range(n)))
+        yield "add_universal", ExplicitGraph(n + 1, tuple(sorted(edges)))
+    for neighbors in sorted(set(graph.adjacency()) - {0}):
+        edges = (*graph.edges, *((v, n) for v in range(n) if neighbors & (1 << v)))
+        yield "clone_neighbors", ExplicitGraph(n + 1, tuple(sorted(edges)))
+
+
+def _portfolio_frontier(winners, assumption, visited, rng):
+    buckets = {}
+    planned = set(visited)
+    for _, graph in winners:
+        for moves in (_structural_mutations(graph, assumption), _mutations(graph, assumption)):
+            for operator, candidate in moves:
+                if candidate in planned:
+                    continue
+                planned.add(candidate)
+                buckets.setdefault(operator, []).append((operator, candidate))
+    for bucket in buckets.values():
+        rng.shuffle(bucket)
+    return (move for batch in zip_longest(*buckets.values()) for move in batch if move is not None)
+
+
+def _seed_frontier(initial, assumption, budget, portfolio):
+    yield from (("input", graph) for graph in initial)
+    if portfolio:
+        seen = set(initial)
+
+        def additional():
+            for family, graph in structured_graphs(MAX_EXACT_ORDER, assumption):
+                if graph not in seen:
+                    seen.add(graph)
+                    yield f"family_{family}", graph
+
+        yield from islice(additional(), min(96, max(1, budget // 4)))
+
+
+def search(claim, initial, *, seed=42, budget=1000, beam=8, profile="portfolio-v2"):
     """Spend a fixed number of deterministic, unique labelled graph evaluations."""
+    if profile not in PROFILES:
+        raise ValueError("unknown active refutation profile")
+    portfolio = profile == "portfolio-v2"
     if (type(seed) is not int or type(budget) is not int or not 1 <= budget <= 100_000
             or type(beam) is not int or not 1 <= beam <= 64
-            or not initial or any(type(g) is not ExplicitGraph or g.n > MAX_EXACT_ORDER for g in initial)):
+            or (not initial and not portfolio)
+            or any(type(g) is not ExplicitGraph or g.n > MAX_EXACT_ORDER for g in initial)):
         raise ValueError("invalid active refutation graph inputs or budget")
+    initial = sorted(set(initial), key=lambda graph: (graph.n, graph.edges))
+    schema = PORTFOLIO_SCHEMA if portfolio else SCHEMA
+    assumption = claim.bound.assumption
     rng = random.Random(seed)
     visited = set()
     counts = Counter()
     levels = []
-    frontier = [("input", graph) for graph in sorted(set(initial), key=lambda g: (g.n, g.edges))]
+    frontier = _seed_frontier(initial, assumption, budget, portfolio)
     while frontier and len(visited) < budget:
         ranked = []
         for operator, graph in frontier:
@@ -109,9 +166,9 @@ def search(claim, initial, *, seed=42, budget=1000, beam=8):
             else:
                 ranked.append((score, graph))
                 if score > 0:
-                    witness = certify_witness(claim, graph, origin=f"{SCHEMA} seed={seed}, operator={operator}")
+                    witness = certify_witness(claim, graph, origin=f"{schema} seed={seed}, operator={operator}")
                     replay_witness(claim, witness)
-                    return _report(claim, initial, seed, beam, budget, counts, len(visited), levels, witness)
+                    return _report(schema, claim, initial, seed, beam, budget, counts, len(visited), levels, witness)
             if len(visited) == budget:
                 break
         if not ranked:
@@ -125,15 +182,18 @@ def search(claim, initial, *, seed=42, budget=1000, beam=8):
             used = {graph for _, graph in winners}
             winners.extend([row for row in ranked if row[1] not in used][:beam - len(winners)])
         levels.append({"applicable": len(ranked), "best_violation": ranked[0][0]})
-        frontier = [mutation for _, graph in winners for mutation in _mutations(graph, claim.bound.assumption)]
-        rng.shuffle(frontier)
-    return _report(claim, initial, seed, beam, budget, counts, len(visited), levels, None)
+        if portfolio:
+            frontier = _portfolio_frontier(winners, assumption, visited, rng)
+        else:
+            frontier = [mutation for _, graph in winners for mutation in _mutations(graph, assumption)]
+            rng.shuffle(frontier)
+    return _report(schema, claim, initial, seed, beam, budget, counts, len(visited), levels, None)
 
 
-def _report(claim, initial, seed, beam, budget, counts, evaluations, levels, witness):
+def _report(schema, claim, initial, seed, beam, budget, counts, evaluations, levels, witness):
     from .graph_claims import digest
 
-    return {"schema": SCHEMA, "candidate_id": claim.id, "seed": seed, "budget": budget, "beam": beam,
-            "initial_sha256": digest([g.to_dict() for g in sorted(set(initial), key=lambda g: (g.n, g.edges))]),
+    return {"schema": schema, "candidate_id": claim.id, "seed": seed, "budget": budget, "beam": beam,
+            "initial_sha256": digest([g.to_dict() for g in initial]),
             "evaluations": evaluations, "counts": dict(counts), "levels": levels,
             "status": "REFUTED" if witness else "NO_REFUTATION_OBSERVED", "witness": witness}
