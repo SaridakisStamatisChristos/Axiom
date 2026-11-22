@@ -13,7 +13,7 @@ from .graph_discovery import _failed_side
 from .graph_edge_induction import (EDGE_INDUCTION_PROOF, EDGE_INDUCTION_RULE,
                                    EDGE_INDUCTION_VERSION)
 from .graph_lemma_retrieval import (
-    INDEX_DIGESTS, INDEX_VERSION, MAX_RETRIEVED_LEMMAS, describe, retrieve,
+    DECOMPOSITION_INDEX, INDEX_DIGESTS, INDEX_VERSION, MAX_RETRIEVED_LEMMAS, describe, retrieve,
 )
 from .graph_large_witness import SCHEMA as LARGE_WITNESS_SCHEMA, replay_witness
 from .graph_lemma_synthesis import MAX_SYNTHESIZED_LEMMAS, SYNTHESIS_VERSION, synthesize
@@ -99,8 +99,9 @@ def _render_adapters(selected, projections, matches):
     return imports, ("\n".join(wrappers) + "\n" if wrappers else "")
 
 
-def _retry(claim, bank, limits, previous_nodes):
-    result = search(claim, bank, replace(limits, max_nodes=limits.max_nodes - previous_nodes))
+def _retry(claim, bank, limits, previous_nodes, *, integer_rounding=False):
+    result = search(claim, bank, replace(limits, max_nodes=limits.max_nodes - previous_nodes),
+                    integer_rounding=integer_rounding)
     return {**result, "nodes": previous_nodes + result["nodes"]}
 
 
@@ -188,6 +189,7 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
     bank = BANK
     derivation = search(claim, bank, limits)
     selected, projections = (), ()
+    integer_rounding = retrieval_index == DECOMPOSITION_INDEX
     if retrieval_limit:
         info = base["retrieval"]
         primary_nodes = derivation["nodes"]
@@ -198,14 +200,16 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
             info.update(selected=[describe(entry) for entry in selected],
                         initial_derivation=derivation, attempted=True)
             bank = BANK + tuple(entry.lemma for entry in selected)
-            derivation = _retry(claim, bank, limits, primary_nodes)
+            derivation = _retry(claim, bank, limits, primary_nodes,
+                                integer_rounding=integer_rounding)
     if synthesis_limit and not derivation["derived"] and derivation["nodes"] < limits.max_nodes:
         projections = synthesize(claim, bank, synthesis_limit)
         base["synthesis"].update(attempted=True, initial_derivation=derivation,
                                  selected=[step.evidence() for step in projections])
         if projections:
             bank += tuple(step.lemma for step in projections)
-            derivation = _retry(claim, bank, limits, derivation["nodes"])
+            derivation = _retry(claim, bank, limits, derivation["nodes"],
+                                integer_rounding=integer_rounding)
     split_used = split_order and not derivation["derived"] and derivation["nodes"] < limits.max_nodes
     if split_used:
         base["order_split"].update(
@@ -213,11 +217,13 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
             zero_branch="CONNECTED_IMPOSSIBLE" if claim.bound.assumption == "CONNECTED" else "ZERO_INVARIANTS",
         )
         bank += POSITIVE_BANK
-        derivation = _retry(claim, bank, limits, derivation["nodes"])
+        derivation = _retry(claim, bank, limits, derivation["nodes"],
+                            integer_rounding=integer_rounding)
     if induct_edges and not derivation["derived"] and derivation["nodes"] < limits.max_nodes:
         base["edge_induction"].update(attempted=True, initial_derivation=derivation)
         bank += (EDGE_INDUCTION_RULE,)
-        derivation = _retry(claim, bank, limits, derivation["nodes"])
+        derivation = _retry(claim, bank, limits, derivation["nodes"],
+                            integer_rounding=integer_rounding)
     base["derivation"] = derivation
     plans = ()
     remaining = limits.max_nodes - derivation["nodes"]

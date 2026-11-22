@@ -185,3 +185,36 @@ def test_component_frontier_keeps_the_mycielski_seed_for_chromatic_claim():
     seeds = feedback.frontier_seeds(11, claim.bound.assumption, component_claim=claim)
     report = feedback.search(claim, seeds, budget=1, profile="guided-v3", max_order=11)
     assert report["witness"]["graph"]["n"] == 11
+
+
+
+def test_decomposition_frontier_skips_newly_proved_bounds_and_keeps_witness_feedback(tmp_path, monkeypatch):
+    development = _corpus(tmp_path / "dev.sqlite", "development", "dev-edgeless", 8, complete=False)
+    ledger = tmp_path / "ledger.sqlite"
+    matching = AffineRelation.normalized({"chromatic": 1, "matching": -1}, 1, "TRIANGLE_FREE")
+    clique = AffineRelation.normalized({"clique": 2, "edges": -1, "n": 1}, 6, "CONNECTED")
+    coloring = AffineRelation.normalized({"chromatic": 2, "edges": -1, "n": 1}, 6, "CONNECTED")
+    false = AffineRelation.normalized({"n": 1, "independence": -1, "matching": -1}, 1, "TRIANGLE_FREE")
+    proposals = matching, clique, coloring, false
+    monkeypatch.setattr(feedback, "_discover", lambda _, novelty: (
+        [(claim, ()) for claim in proposals if not novelty.classify(claim)], {},
+    ))
+    monkeypatch.setattr(feedback, "_base_training", lambda _: ({}, {}))
+    options = dict(rounds=2, candidates=4, development_order=10, active_budget=1)
+    previous = feedback.run_campaign(development, ledger, "previous",
+                                     profile=feedback.COMPONENT_FRONTIER_PROFILE, **options)
+    assert previous["frozen_candidates"] == [matching.to_dict(), clique.to_dict(), coloring.to_dict()]
+    assert feedback.audit_campaign(development, ledger, "previous") == previous
+
+    current = feedback.run_campaign(development, ledger, "current",
+                                    profile=feedback.DECOMPOSITION_FRONTIER_PROFILE, **options)
+    first, second = current["rounds"]
+    decisions = first["novelty"]["decisions"]
+    for claim in (matching, clique, coloring):
+        assert decisions[claim.id]["status"] == "KNOWN_IMPLICATION"
+        assert decisions[claim.id]["directions"][0]["method"] == "EXACT_CLOSURE"
+    trial, = first["trials"]
+    assert trial["outcome"] == "REFUTED" and trial["candidate_id"] == false.id
+    assert second["training_counts"]["10"] == 1
+    assert current["frozen_candidates"] == []
+    assert feedback.audit_campaign(development, ledger, "current") == current

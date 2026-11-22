@@ -17,7 +17,8 @@ PROFILE = "certified-v1"
 STRUCTURAL_PROFILE = "certified-v2"
 INTEGER_PROFILE = "certified-v3"
 CLIQUE_BOUNDS_PROFILE = "certified-v4"
-_INTEGER_PROFILES = (INTEGER_PROFILE, CLIQUE_BOUNDS_PROFILE)
+DECOMPOSITION_PROFILE = "certified-v5"
+_INTEGER_PROFILES = (INTEGER_PROFILE, CLIQUE_BOUNDS_PROFILE, DECOMPOSITION_PROFILE)
 PROFILES = (PROFILE, STRUCTURAL_PROFILE, *_INTEGER_PROFILES)
 LP_ITERATIONS = 1000
 MAX_DENOMINATOR = 4096
@@ -36,7 +37,7 @@ def fact_bank(profile=PROFILE):
     if profile not in PROFILES:
         raise ValueError("unknown graph novelty profile")
     from .graph_lemma_retrieval import (
-        CLIQUE_BOUNDS_INDEX, CLIQUE_INDEPENDENCE_INDEX, INDEX_DIGESTS, describe, indexed_facts,
+        CLIQUE_BOUNDS_INDEX, CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX, INDEX_DIGESTS, describe, indexed_facts,
     )
     from .graph_proof import BANK
 
@@ -49,7 +50,10 @@ def fact_bank(profile=PROFILE):
 
     for row in BANK:
         add(row, {"kind": "lean_base_bank", "declaration": row.theorem})
-    fact_index = CLIQUE_BOUNDS_INDEX if profile == CLIQUE_BOUNDS_PROFILE else CLIQUE_INDEPENDENCE_INDEX
+    fact_index = {
+        CLIQUE_BOUNDS_PROFILE: CLIQUE_BOUNDS_INDEX,
+        DECOMPOSITION_PROFILE: DECOMPOSITION_INDEX,
+    }.get(profile, CLIQUE_INDEPENDENCE_INDEX)
     for entry in indexed_facts(fact_index):
         add(entry.lemma, {"kind": "lean_adapter", **describe(entry)})
     for premise, facts in _FACTS.items():

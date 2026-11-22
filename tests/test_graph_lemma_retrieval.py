@@ -7,7 +7,9 @@ from pathlib import Path
 import pytest
 
 from axiom.graph_claims import digest
-from axiom.graph_lemma_retrieval import CLIQUE_INDEPENDENCE_INDEX, CLIQUE_BOUNDS_INDEX, retrieve
+from axiom.graph_lemma_retrieval import (
+    CLIQUE_BOUNDS_INDEX, CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX, retrieve,
+)
 from axiom.graph_proof import RETRIEVAL_SCHEMA, SCHEMA, audit, prove
 from axiom.graph_proof_search import SearchLimits
 from axiom.graph_relations import AffineRelation
@@ -97,3 +99,48 @@ def test_clique_bounds_close_both_scopes(tmp_path, premise, terms, rhs, adapter)
     selected = result["derivation"]["directions"][0]["lemmas"]
     assert [term["theorem"] for term in selected] == ["retrieved_" + adapter]
     assert audit(result)
+
+
+@pytest.mark.parametrize("premise,terms,rhs,scale,adapter", [
+    ("TRIANGLE_FREE", {"chromatic": 1, "matching": -1}, 1, None,
+     "triangle_free_chromatic_le_matching_add_one"),
+    ("TRIANGLE_FREE", {"chromatic": 1, "matching": -1, "clique": 1, "n": -1}, 2, None,
+     "triangle_free_chromatic_le_matching_add_one"),
+    ("CONNECTED", {"chromatic": 2, "edges": -1, "n": 1}, 6, None,
+     "connected_twice_chromatic_le_edges_sub_order_add_six"),
+    ("CONNECTED", {"clique": 2, "edges": -1, "n": 1}, 6, None,
+     "connected_twice_chromatic_le_edges_sub_order_add_six"),
+    ("CONNECTED", {"clique": 1, "edges": -1, "n": 1}, 3, 2,
+     "connected_twice_chromatic_le_edges_sub_order_add_six"),
+])
+def test_decomposition_retrieval_and_integer_rounding(tmp_path, premise, terms, rhs, scale, adapter):
+    claim = AffineRelation.normalized(terms, rhs, premise)
+    baseline = prove(claim.to_dict(), retrieval_limit=5, retrieval_index=CLIQUE_BOUNDS_INDEX,
+                     project_root=tmp_path)
+    assert baseline["status"] == "SEARCH_EXHAUSTED"
+
+    project_root = PROJECT if os.environ.get("AXIOM_REAL_LEAN") == "1" else tmp_path
+    result = prove(claim.to_dict(), retrieval_limit=5, retrieval_index=DECOMPOSITION_INDEX,
+                   project_root=project_root, timeout=25)
+    expected = "FORMALLY_VERIFIED" if project_root == PROJECT else "LEAN_UNAVAILABLE"
+    assert result["status"] == expected, result["kernel"]
+    direction, = result["derivation"]["directions"]
+    assert direction.get("target_scale") == scale
+    assert any(row["theorem"] == "retrieved_" + adapter for row in direction["lemmas"])
+    assert audit(result)
+    if scale:
+        damaged = deepcopy(result)
+        damaged["derivation"]["directions"][0]["target_scale"] += 1
+        damaged["record_sha256"] = digest({k: v for k, v in damaged.items() if k != "record_sha256"})
+        with pytest.raises(ValueError, match="deterministic replay"):
+            audit(damaged)
+
+
+@pytest.mark.parametrize("premise,terms,rhs,adapter", [
+    ("ALL", {"chromatic": 1, "matching": -1}, 1, "triangle_free_chromatic_le_matching_add_one"),
+    ("ALL", {"chromatic": 2, "edges": -1, "n": 1}, 6, "connected_twice_chromatic_le_edges_sub_order_add_six"),
+])
+def test_decomposition_retrieval_keeps_lemmas_in_scope(premise, terms, rhs, adapter):
+    claim = AffineRelation.normalized(terms, rhs, premise)
+    assert all(item.lemma.theorem != "retrieved_" + adapter
+               for item in retrieve(claim, 32, index=DECOMPOSITION_INDEX))

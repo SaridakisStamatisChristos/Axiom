@@ -16,7 +16,7 @@ from .graph_discovery import _connection, _discover, _failed_side
 from .graph_explicit import ExplicitGraph
 from .graph_large_witness import MAX_EXACT_ORDER, certify_witness, replay_witness
 from .graph_model import edge_positions
-from .graph_novelty import CLIQUE_BOUNDS_PROFILE, INTEGER_PROFILE, NoveltyFilter
+from .graph_novelty import CLIQUE_BOUNDS_PROFILE, DECOMPOSITION_PROFILE, INTEGER_PROFILE, NoveltyFilter
 from .graph_refutation_portfolio import frontier_seeds, structured_graphs
 from .graph_relations import AffineRelation
 from .graph_synthesis import _bounded_masks, _data
@@ -25,7 +25,9 @@ SCHEMA = "axiom.graph.feedback_campaign.v1"
 FINAL_SCHEMA = "axiom.graph.feedback_final.v1"
 FRONTIER_PROFILE = "frontier-v2"
 COMPONENT_FRONTIER_PROFILE = "frontier-v3"
-FRONTIER_PROFILES = (FRONTIER_PROFILE, COMPONENT_FRONTIER_PROFILE)
+DECOMPOSITION_FRONTIER_PROFILE = "frontier-v4"
+FRONTIER_PROFILES = (FRONTIER_PROFILE, COMPONENT_FRONTIER_PROFILE, DECOMPOSITION_FRONTIER_PROFILE)
+_COMPONENT_SEED_PROFILES = (COMPONENT_FRONTIER_PROFILE, DECOMPOSITION_FRONTIER_PROFILE)
 
 
 def _configuration(seed=42, rounds=2, candidates=8, corpus_scan=256, corpus_exact=64,
@@ -99,7 +101,10 @@ def _screen(panel, claim, config, split):
 
 def _round(training, panel, config, replay, tested):
     profile = config.get("profile")
-    novelty_profile = CLIQUE_BOUNDS_PROFILE if profile == COMPONENT_FRONTIER_PROFILE else INTEGER_PROFILE
+    novelty_profile = {
+        COMPONENT_FRONTIER_PROFILE: CLIQUE_BOUNDS_PROFILE,
+        DECOMPOSITION_FRONTIER_PROFILE: DECOMPOSITION_PROFILE,
+    }.get(profile, INTEGER_PROFILE)
     novelty = NoveltyFilter(replay["novelty"] if replay is not None else None, profile=novelty_profile)
     bank, counts = _discover(training, novelty)
     trials = []
@@ -110,7 +115,7 @@ def _round(training, panel, config, replay, tested):
         if corpus["witness"] is None:
             seeds = frontier_seeds(
                 config["development_order"], claim.bound.assumption,
-                component_claim=claim if profile == COMPONENT_FRONTIER_PROFILE else None,
+                component_claim=claim if profile in _COMPONENT_SEED_PROFILES else None,
             ) if profile else ()
             active = search(claim, seeds, seed=config["seed"], budget=config["active_budget"],
                             profile="guided-v3", max_order=config["development_order"])

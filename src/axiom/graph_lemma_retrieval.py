@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass
 from .graph_bipartite_matching import BIPARTITE_MATCHING_PROOF
 from .graph_claims import digest
 from .graph_component_coloring import COMPONENT_COLORING_PROOF
+from .graph_decomposition_bounds import CONNECTED_CHROMATIC_EDGES_PROOF, TRIANGLE_FREE_MATCHING_PROOF
 from .graph_matching_cardinality import MATCHING_CARDINALITY_PROOF
 from .graph_proof_search import LemmaSpec
 from .graph_relations import AffineRelation, _vector
@@ -369,6 +370,27 @@ classical
     ),
 )
 
+_INDEX_V9 = _INDEX_V8 + (
+    _adapter(
+        "triangle_free_chromatic_le_matching_add_one", "TRIANGLE_FREE",
+        {"chromatic": 1, "matching": -1}, 1,
+        ("SimpleGraph.CliqueFree.comap", "SimpleGraph.Subgraph.IsMatching.map",
+         "SimpleGraph.Subgraph.IsMatching.sup", "SimpleGraph.Subgraph.IsMatching.subgraphOfAdj",
+         "SimpleGraph.Coloring.mk"),
+        TRIANGLE_FREE_MATCHING_PROOF,
+    ),
+    _adapter(
+        "connected_twice_chromatic_le_edges_sub_order_add_six", "CONNECTED",
+        {"chromatic": 2, "edges": -1, "n": 1}, 6,
+        ("SimpleGraph.Coloring.mk", "SimpleGraph.sum_degrees_eq_twice_card_edges",
+         "SimpleGraph.Connected.exists_isTree_le",
+         "SimpleGraph.Connected.exists_isTree_le_of_le_of_isAcyclic",
+         "SimpleGraph.IsTree.card_edgeFinset"),
+        CONNECTED_CHROMATIC_EDGES_PROOF,
+        imports=("Mathlib.Combinatorics.SimpleGraph.DegreeSum",),
+    ),
+)
+
 INDEX_VERSION = "axiom.mathlib_affine_graph_index.v1"
 STRUCTURAL_INDEX = "axiom.mathlib_affine_graph_index.v2"
 MATCHING_INDEX = "axiom.mathlib_affine_graph_index.v3"
@@ -377,10 +399,11 @@ COMPONENT_INDEPENDENCE_INDEX = "axiom.mathlib_affine_graph_index.v5"
 MATCHING_CARDINALITY_INDEX = "axiom.mathlib_affine_graph_index.v6"
 CLIQUE_INDEPENDENCE_INDEX = "axiom.mathlib_affine_graph_index.v7"
 CLIQUE_BOUNDS_INDEX = "axiom.mathlib_affine_graph_index.v8"
+DECOMPOSITION_INDEX = "axiom.mathlib_affine_graph_index.v9"
 _INDEXES = {INDEX_VERSION: _INDEX_V1, STRUCTURAL_INDEX: _INDEX_V2, MATCHING_INDEX: _INDEX_V3,
             COMPONENT_INDEX: _INDEX_V4, COMPONENT_INDEPENDENCE_INDEX: _INDEX_V5,
             MATCHING_CARDINALITY_INDEX: _INDEX_V6, CLIQUE_INDEPENDENCE_INDEX: _INDEX_V7,
-            CLIQUE_BOUNDS_INDEX: _INDEX_V8}
+            CLIQUE_BOUNDS_INDEX: _INDEX_V8, DECOMPOSITION_INDEX: _INDEX_V9}
 _MATCHING_CARDINALITY_ADAPTER = "retrieved_twice_matching_le_order"
 _MATCHING_CARDINALITY_POLICY = "offer_cardinality_adapter_for_matching_coefficient_at_least_two"
 _CLIQUE_INDEPENDENCE_ADAPTER = "retrieved_clique_add_independence_le_order_add_one"
@@ -389,6 +412,10 @@ _CLIQUE_TRIANGLE_ADAPTER = "retrieved_twice_clique_le_triangles_add_five"
 _CLIQUE_TRIANGLE_POLICY = "offer_clique_triangle_bound_for_positive_clique_and_negative_triangles"
 _COLOR_CLIQUE_ADAPTER = "retrieved_twice_chromatic_le_clique_add_order"
 _COLOR_CLIQUE_POLICY = "offer_chromatic_bound_for_positive_chromatic_negative_clique_and_order"
+_COLOR_MATCHING_ADAPTER = "retrieved_triangle_free_chromatic_le_matching_add_one"
+_COLOR_MATCHING_POLICY = "offer_triangle_free_matching_bound_for_positive_chromatic"
+_COLOR_EDGES_ADAPTER = "retrieved_connected_twice_chromatic_le_edges_sub_order_add_six"
+_COLOR_EDGES_POLICY = "offer_connected_coloring_bound_for_positive_chromatic_or_clique_and_negative_edges"
 INDEX_DIGESTS = {version: digest({
     "schema": version,
     "mathlib_revision": PINNED_MATHLIB_SHA,
@@ -400,6 +427,11 @@ INDEX_DIGESTS = {version: digest({
     **({"selection": [_MATCHING_CARDINALITY_POLICY, _CLIQUE_INDEPENDENCE_POLICY,
                        _CLIQUE_TRIANGLE_POLICY, _COLOR_CLIQUE_POLICY]}
        if version == CLIQUE_BOUNDS_INDEX else {}),
+    **({"selection": [_MATCHING_CARDINALITY_POLICY, _CLIQUE_INDEPENDENCE_POLICY,
+                       _CLIQUE_TRIANGLE_POLICY, _COLOR_CLIQUE_POLICY, _COLOR_MATCHING_POLICY,
+                       _COLOR_EDGES_POLICY]}
+       if version == DECOMPOSITION_INDEX else {}),
+    **({"composition": "bounded_integer_rounding"} if version == DECOMPOSITION_INDEX else {}),
 }) for version, entries in _INDEXES.items()}
 INDEX_SHA256 = INDEX_DIGESTS[INDEX_VERSION]
 MAX_RETRIEVED_LEMMAS = 32
@@ -409,17 +441,17 @@ def retrieve(claim: AffineRelation, limit: int, *, index=INDEX_VERSION) -> tuple
     """Rank exact directions first, then signed overlaps and sparse supports."""
     directions = claim.inequalities()
     targets = [_vector(side.terms) for side in directions]
-    needs_cardinality = any(dict(side.terms).get("matching", 0) >= 2 for side in directions)
-
-    needs_joint_bound = any(dict(side.terms).get("clique", 0) > 0
-                            and dict(side.terms).get("independence", 0) > 0 for side in directions)
-
-    needs_clique_triangle_bound = any(dict(side.terms).get("clique", 0) > 0
-                                      and dict(side.terms).get("triangles", 0) < 0 for side in directions)
-
-    needs_color_clique_bound = any(dict(side.terms).get("chromatic", 0) > 0
-                                   and dict(side.terms).get("clique", 0) < 0
-                                   and dict(side.terms).get("n", 0) < 0 for side in directions)
+    weights = [dict(side.terms) for side in directions]
+    needs_cardinality = any(row.get("matching", 0) >= 2 for row in weights)
+    needs_joint_bound = any(row.get("clique", 0) > 0 and row.get("independence", 0) > 0 for row in weights)
+    needs_clique_triangle_bound = any(row.get("clique", 0) > 0 and row.get("triangles", 0) < 0
+                                      for row in weights)
+    needs_color_clique_bound = any(row.get("chromatic", 0) > 0 and row.get("clique", 0) < 0
+                                  and row.get("n", 0) < 0 for row in weights)
+    needs_color_matching_bound = any(row.get("chromatic", 0) > 0 for row in weights)
+    needs_color_edges_bound = any(row.get("edges", 0) < 0
+                                  and (row.get("chromatic", 0) > 0 or row.get("clique", 0) > 0)
+                                  for row in weights)
 
     def rank(entry):
         vector = entry.lemma.vector
@@ -431,7 +463,9 @@ def retrieve(claim: AffineRelation, limit: int, *, index=INDEX_VERSION) -> tuple
                   and (entry.lemma.theorem != _MATCHING_CARDINALITY_ADAPTER or needs_cardinality)
                   and (entry.lemma.theorem != _CLIQUE_INDEPENDENCE_ADAPTER or needs_joint_bound)
                   and (entry.lemma.theorem != _CLIQUE_TRIANGLE_ADAPTER or needs_clique_triangle_bound)
-                  and (entry.lemma.theorem != _COLOR_CLIQUE_ADAPTER or needs_color_clique_bound))
+                  and (entry.lemma.theorem != _COLOR_CLIQUE_ADAPTER or needs_color_clique_bound)
+                  and (entry.lemma.theorem != _COLOR_MATCHING_ADAPTER or needs_color_matching_bound)
+                  and (entry.lemma.theorem != _COLOR_EDGES_ADAPTER or needs_color_edges_bound))
     return tuple(sorted(applicable, key=rank)[:limit])
 
 

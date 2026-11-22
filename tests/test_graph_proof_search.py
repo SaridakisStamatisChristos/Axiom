@@ -140,3 +140,20 @@ def test_offline_replay_rejects_tampering_after_rehash(field):
     damaged["record_sha256"] = digest({k: v for k, v in damaged.items() if k != "record_sha256"})
     with pytest.raises(ValueError):
         audit(damaged)
+
+
+
+def test_scaled_search_checks_the_strict_rounding_boundary_and_shared_node_budget():
+    claim = relation({"n": -1}, -3)
+    target = _vector(claim.bound.terms)
+    doubled = tuple(2 * value for value in target)
+    valid = (LemmaSpec("strictly_below_next_integer", "ALL", doubled, -5),)
+    boundary = (LemmaSpec("at_next_integer", "ALL", doubled, -4),)
+    limits = SearchLimits(max_lemmas=1, max_coefficient=2, max_nodes=16)
+    assert not search(claim, valid, limits)["derived"]
+    result = search(claim, valid, limits, integer_rounding=True)
+    assert result["derived"] and result["directions"][0]["target_scale"] == 2
+    assert not search(claim, boundary, limits, integer_rounding=True)["derived"]
+    one_node = SearchLimits(max_lemmas=1, max_coefficient=2, max_nodes=1)
+    exhausted = search(claim, valid, one_node, integer_rounding=True)
+    assert exhausted["node_budget_exhausted"] and exhausted["nodes"] == 1

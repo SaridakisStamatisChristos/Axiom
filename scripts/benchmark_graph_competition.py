@@ -9,7 +9,7 @@ import subprocess
 import sys
 from time import perf_counter
 
-from axiom.graph_lemma_retrieval import CLIQUE_INDEPENDENCE_INDEX
+from axiom.graph_lemma_retrieval import CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX
 from axiom.graph_novelty import PROFILE, PROFILES, NoveltyFilter, entails, fact_bank
 from axiom.graph_proof import audit, prove
 from axiom.graph_relations import AffineRelation, _vector
@@ -103,7 +103,7 @@ def controls(output, upstream, profile=PROFILE):
     print(stats)
 
 
-def proofs(output):
+def proofs(output, *, retrieval_index=CLIQUE_INDEPENDENCE_INDEX):
     path = SUITES / "heldout-proof-v1.json"
     frozen = read("baseline-v7.json")["frozen_holdouts"][path.name]["sha256"]
     if sha256(path.read_bytes()).hexdigest() != frozen:
@@ -113,7 +113,7 @@ def proofs(output):
     for case, premise, weights, rhs, op, _ in read(path.name):
         claim = AffineRelation.normalized(weights, rhs, premise, op)
         attempt = prove(claim.to_dict(), timeout=45, witness_order=5, project_root=ROOT,
-                        retrieval_index=CLIQUE_INDEPENDENCE_INDEX, retrieval_limit=5,
+                        retrieval_index=retrieval_index, retrieval_limit=5,
                         synthesis_limit=3, split_order=True, induct_edges=True, plan_limit=16)
         verified = audit(attempt)
         violations = check_small_graphs(claim)
@@ -128,19 +128,22 @@ def proofs(output):
         print(case, status, flush=True)
     write_json(output / "summary.json", dict(outcomes))
     if outcomes != {"FORMALLY_VERIFIED": 22, "COUNTEREXAMPLE": 10}:
-        raise ValueError("outcome differs from the v7 preserved proof count")
+        raise ValueError("outcome differs from the preserved proof regression count")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--autographforge", type=Path)
+    proof_indexes = {"v7": CLIQUE_INDEPENDENCE_INDEX, "v9": DECOMPOSITION_INDEX}
+    parser.add_argument("--proof-index", choices=proof_indexes, default="v7",
+                        help="retrieval index for the same frozen 32-case proof regression")
     parser.add_argument("--novelty-profile", choices=PROFILES, default=PROFILE)
     args = parser.parse_args()
     if args.autographforge:
         controls(args.output, args.autographforge.resolve(), args.novelty_profile)
     else:
-        proofs(args.output)
+        proofs(args.output, retrieval_index=proof_indexes[args.proof_index])
 
 
 if __name__ == "__main__":
