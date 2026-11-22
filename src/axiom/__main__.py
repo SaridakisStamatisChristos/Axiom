@@ -415,6 +415,8 @@ def main() -> None:
             feedback.add_argument("--corpus-exact", type=int, default=64)
             feedback.add_argument("--active-budget", type=int, default=64)
             feedback.add_argument("--development-order", type=int, default=10)
+            feedback.add_argument("--profile", choices=("frontier-v2",),
+                                  help="retain surviving candidates and spend each round on fresh claims")
             feedback.add_argument("--no-feedback", action="store_true", help="run a budget-matched control")
             feedback.add_argument("--final-sha256", help="commit to a checkpointed final corpus before fitting")
     for command, help_text in (
@@ -473,7 +475,7 @@ def main() -> None:
                     *params, seed=args.seed, rounds=args.rounds, candidates=args.candidates,
                     corpus_scan=args.corpus_scan, corpus_exact=args.corpus_exact,
                     active_budget=args.active_budget, development_order=args.development_order,
-                    feedback=not args.no_feedback, final_sha256=args.final_sha256)
+                    feedback=not args.no_feedback, final_sha256=args.final_sha256, profile=args.profile)
             elif args.command == "graph-discover-feedback-audit":
                 report = graph_feedback.audit_campaign(*params)
             else:

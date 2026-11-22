@@ -6,7 +6,7 @@ import random
 from .graph_explicit import ExplicitGraph
 from .graph_invariants import _max_subset, bipartite, components, matching_number, triangles
 from .graph_large_witness import MAX_EXACT_ORDER, certify_witness, replay_witness
-from .graph_refutation_portfolio import structured_graphs
+from .graph_refutation_portfolio import mycielski, structured_graphs
 from .graph_refutation_priority import violation_interval
 
 SCHEMA = "axiom.graph.active_refutation.v1"
@@ -85,10 +85,7 @@ def _mutations(graph, assumption, max_order):
             yield "attach_leaf", ExplicitGraph(graph.n + 1, tuple(sorted((*graph.edges, (a, graph.n)))))
     n = graph.n
     if assumption != "BIPARTITE" and graph.edges and 2 * n + 1 <= max_order:
-        edges = graph.edges + tuple((a, n + b) for a, b in graph.edges)
-        edges += tuple((b, n + a) for a, b in graph.edges)
-        edges += tuple((n + a, 2 * n) for a in range(n))
-        yield "mycielski", ExplicitGraph(2 * n + 1, tuple(sorted(edges)))
+        yield "mycielski", mycielski(graph)
 
 
 def _structural_mutations(graph, assumption, max_order):

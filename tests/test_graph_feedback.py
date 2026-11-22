@@ -108,3 +108,46 @@ def test_final_requires_disjoint_families_orders_and_a_precommitted_file(
         feedback.evaluate_final(final, ledger, "sealed")
     with sqlite3.connect(ledger) as db:
         assert db.execute("SELECT final_report FROM feedback_campaigns").fetchone() == (None,)
+
+
+def test_frontier_tests_fresh_claims_and_retains_survivors(tmp_path, monkeypatch):
+    development = _corpus(tmp_path / "dev.sqlite", "development", "dev-cliques", 8)
+    ledger = tmp_path / "ledger.sqlite"
+    claims = [
+        AffineRelation.normalized({"chromatic": 1}, 3, "TRIANGLE_FREE"),
+        AffineRelation.normalized({"clique": 1}, 11),
+        AffineRelation.normalized({"chromatic": 1}, 11),
+    ]
+    monkeypatch.setattr(feedback, "_discover", lambda *_: ([(c, ()) for c in claims], {}))
+    monkeypatch.setattr(feedback, "_base_training", lambda _: ({}, {}))
+    report = feedback.run_campaign(development, ledger, "frontier", rounds=3, candidates=1,
+                                   profile=feedback.FRONTIER_PROFILE, feedback=False,
+                                   development_order=11, active_budget=4)
+    assert [r["trials"][0]["candidate_id"] for r in report["rounds"]] == [c.id for c in claims]
+    witness = report["rounds"][0]["trials"][0]["active"]["witness"]
+    assert witness["graph"]["n"] == 11
+    assert witness["checked_properties"]["triangle_free"]
+    assert witness["checked_properties"]["chromatic"] == 4
+    assert report["frozen_candidates"] == [c.to_dict() for c in claims[1:]]
+    assert feedback.audit_campaign(development, ledger, "frontier") == report
+
+
+def test_frontier_removes_an_earlier_survivor_if_a_later_graph_refutes_it(
+        tmp_path, monkeypatch):
+    development = _corpus(tmp_path / "dev.sqlite", "development", "dev-edgeless", 8, complete=False)
+    ledger = tmp_path / "ledger.sqlite"
+    second = AffineRelation.normalized({"chromatic": 1}, 3, "TRIANGLE_FREE")
+    first = AffineRelation.normalized({"chromatic": 1}, 3, "CONNECTED")
+    monkeypatch.setattr(feedback, "_discover", lambda *_: ([(first, ()), (second, ())], {}))
+    monkeypatch.setattr(feedback, "_base_training", lambda _: ({}, {}))
+    search = feedback.search
+    monkeypatch.setattr(feedback, "search",
+                        lambda claim, *args, **kwargs: {"witness": None} if claim == first
+                        else search(claim, *args, **kwargs))
+    report = feedback.run_campaign(development, ledger, "cross", candidates=1,
+                                   profile=feedback.FRONTIER_PROFILE, development_order=11)
+    assert report["rounds"][0]["carried_survivors"] == 1
+    cross, = report["rounds"][1]["cross_refutations"]
+    assert cross["candidate_id"] == first.id and cross["source_candidate_id"] == second.id
+    assert feedback.replay_witness(first, cross["witness"])
+    assert report["frozen_candidates"] == []

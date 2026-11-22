@@ -27,6 +27,19 @@ def _circulant(n, distances):
                                   if min(b - a, n - b + a) in distances))
 
 
+def mycielski(graph):
+    n = graph.n
+    edges = (*graph.edges, *((a, n + b) for a, b in graph.edges),
+             *((b, n + a) for a, b in graph.edges), *((n + a, 2 * n) for a in range(n)))
+    return ExplicitGraph(2 * n + 1, tuple(sorted(edges)))
+
+
+def frontier_seeds(max_order, premise):
+    if max_order >= 11 and premise != "BIPARTITE":
+        return (mycielski(_circulant(5, {1})),)
+    return ()
+
+
 def structured_graphs(max_order, premise):
     """Interleave orders and constructions independently of the coefficients."""
     if premise != "CONNECTED":
