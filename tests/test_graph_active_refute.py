@@ -6,10 +6,11 @@ import pytest
 from axiom.graph_active_refute import search
 from axiom.graph_explicit import ExplicitGraph
 from axiom.graph_large_witness import replay_witness
+from axiom.graph_refutation_priority import violation_interval
 from axiom.graph_relations import AffineRelation
 
 
-@pytest.mark.parametrize("profile", ["mutation-v1", "portfolio-v2"])
+@pytest.mark.parametrize("profile", ["mutation-v1", "portfolio-v2", "guided-v3"])
 def test_mutation_finds_triangle_from_a_satisfying_path_and_replays(profile):
     path = ExplicitGraph(3, ((0, 1), (1, 2)))
     no_triangles = AffineRelation.normalized({"triangles": 1}, 0, "CONNECTED")
@@ -58,12 +59,43 @@ def test_active_refutation_cli_can_find_and_replay_a_seedless_equality_witness(t
     assert replay_witness(claim, report["witness"])
 
 
-def test_portfolio_reports_no_witness_for_known_implications():
+@pytest.mark.parametrize("profile", ["portfolio-v2", "guided-v3"])
+def test_portfolio_reports_no_witness_for_known_implications(profile):
     directory = Path(__file__).resolve().parents[1] / "research" / "autographforge"
     controls = json.loads((directory / "implication-v1.json").read_bytes())["cases"]
     known = set(json.loads((directory / "implication-v1-expected.json").read_bytes())["known"])
     for name, premise, weights, rhs, relation in controls:
         if name in known:
             claim = AffineRelation.normalized(weights, rhs, premise, relation)
-            result = search(claim, [], seed=2718, budget=128)
+            result = search(claim, [], seed=2718, budget=128, profile=profile)
             assert result["status"] == "NO_REFUTATION_OBSERVED", name
+
+
+def test_guidance_finds_smallest_structured_clique_with_one_exact_evaluation():
+    claim = AffineRelation.normalized({"clique": 1}, 5, "CONNECTED")
+    assert search(claim, [], budget=1)["status"] == "NO_REFUTATION_OBSERVED"
+    result = search(claim, [], budget=1, profile="guided-v3")
+    assert result == search(claim, [], budget=1, profile="guided-v3")
+    assert result["priority_evaluations"] > result["evaluations"] == 1
+    assert result["witness"]["graph"]["n"] == 6
+    assert replay_witness(claim, result["witness"])
+
+
+def test_priority_bounds_contain_independent_exact_scores():
+    from axiom.graph_checker import reference_properties
+    from axiom.graph_model import edge_positions
+
+    claims = [
+        AffineRelation.normalized({"clique": 1, "chromatic": -1, "matching": 2, "independence": -1}, 2),
+        AffineRelation.normalized({"chromatic": 2, "independence": -1, "matching": 1}, 4, relation="="),
+        AffineRelation.normalized({"n": 1, "edges": -1, "components": -1, "triangles": 2, "maximum_degree": 1}, 0),
+    ]
+    for n in range(6):
+        positions = edge_positions(n)
+        for mask in range(1 << len(positions)):
+            graph = ExplicitGraph(n, tuple(edge for i, edge in enumerate(positions) if mask & (1 << i)))
+            properties = reference_properties(n, mask)
+            for claim in claims:
+                lower, upper = violation_interval(claim, graph)
+                exact = sum(properties[name] * weight for name, weight in claim.bound.terms) - claim.bound.upper
+                assert lower <= (abs(exact) if claim.relation == "=" else exact) <= upper

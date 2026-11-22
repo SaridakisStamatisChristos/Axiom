@@ -70,3 +70,38 @@ PYTHONPATH=src python scripts/benchmark_graph_refutation_searchers.py --autograp
 
 The shared-objective comparison requires AutoGraphForge's search
 dependencies. The run used PuLP 3.3.0 for GraphCalc compatibility.
+
+## Claim-guided search
+
+`axiom graph-active-refute statement.json --profile guided-v3 --budget 64`
+uses inexpensive invariant bounds to decide which proposals to evaluate first.
+Greedy cliques and proper colorings bound clique and chromatic numbers. The
+complement gives independence bounds, and a greedy matching gives a lower
+bound for matching number. The search prefers the first structured proposal
+whose lower bound guarantees a violation. If none qualifies, it ranks the
+structured proposals by their optimistic bound. A limited lookahead can also
+bring a promising mutation forward while preserving the original mutation
+order if no such candidate is found. Every returned graph still passes the
+exact scorer and independent witness checker.
+
+At 64 exact evaluations per claim, both profiles used the same seed panel
+and beam. The ranking checks add work and are counted separately in the
+`priority_evaluations` report field.
+
+| Suite | Seed | Portfolio v2 | Guided v3 | Exact evaluations, v2 → v3 | v3 ranking checks |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Frozen historical | 1729 | 96/100 | 100/100 | 2,568 → 2,127 | 672 |
+| Frozen historical | 2718 | 97/100 | 99/100 | 2,583 → 2,127 | 672 |
+| Census challenge | 1729 | 42/48 | 48/48 | 2,616 → 1,600 | 1,130 |
+| Census challenge | 2718 | 41/48 | 48/48 | 2,668 → 1,600 | 1,118 |
+
+At 1,000 exact evaluations per claim, both profiles found every witness.
+On the census challenge v3 used 1,639 exact evaluations per seed across
+all 48 cases. In these runs it took about 0.62–0.69 seconds across a seed,
+compared with 0.52–0.54 seconds for v2. The extra ranking work pays off
+most at tighter exact-evaluation budgets. The default remains `portfolio-v2`.
+
+For seed 2718 at the higher budget, v3's 148 witnesses came from 78 input
+graphs, 67 structured proposals, two Mycielski mutations and one
+universal-vertex addition. These counts describe where this search stopped
+on these suites.
