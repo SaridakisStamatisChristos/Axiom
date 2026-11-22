@@ -4,8 +4,8 @@ from dataclasses import asdict
 from .graph_claims import digest, stable
 from .graph_discovery import audit_campaign
 from .graph_lemma_retrieval import (
-    CLIQUE_INDEPENDENCE_INDEX, COMPONENT_INDEX, COMPONENT_INDEPENDENCE_INDEX, INDEX_VERSION, MATCHING_CARDINALITY_INDEX,
-    MATCHING_INDEX, STRUCTURAL_INDEX,
+    CLIQUE_INDEPENDENCE_INDEX, CLIQUE_BOUNDS_INDEX, COMPONENT_INDEX, COMPONENT_INDEPENDENCE_INDEX,
+    INDEX_VERSION, MATCHING_CARDINALITY_INDEX, MATCHING_INDEX, STRUCTURAL_INDEX,
 )
 from .graph_proof import BANK, SCHEMA as ATTEMPT_SCHEMA, audit, prove
 from .graph_proof_hints import validate as validate_hints
@@ -23,6 +23,7 @@ MATCHING_PROFILE = "matching"
 COMPONENT_PROFILE = "components"
 COMPONENT_INDEPENDENCE_PROFILE = "component-independence"
 CLIQUE_INDEPENDENCE_PROFILE = "clique-independence"
+CLIQUE_BOUNDS_PROFILE = "clique-bounds"
 MATCHING_CARDINALITY_PROFILE = "matching-cardinality"
 _ENGINES = {
     FIXED_PROFILE: {},
@@ -41,6 +42,10 @@ _ENGINES[MATCHING_CARDINALITY_PROFILE] = {
 
 _ENGINES[CLIQUE_INDEPENDENCE_PROFILE] = {
     **_ENGINES[EXTENDED_PROFILE], "retrieval_index": CLIQUE_INDEPENDENCE_INDEX,
+}
+
+_ENGINES[CLIQUE_BOUNDS_PROFILE] = {
+    **_ENGINES[EXTENDED_PROFILE], "retrieval_index": CLIQUE_BOUNDS_INDEX,
 }
 
 

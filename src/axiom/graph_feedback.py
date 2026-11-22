@@ -16,7 +16,7 @@ from .graph_discovery import _connection, _discover, _failed_side
 from .graph_explicit import ExplicitGraph
 from .graph_large_witness import MAX_EXACT_ORDER, certify_witness, replay_witness
 from .graph_model import edge_positions
-from .graph_novelty import INTEGER_PROFILE, NoveltyFilter
+from .graph_novelty import CLIQUE_BOUNDS_PROFILE, INTEGER_PROFILE, NoveltyFilter
 from .graph_refutation_portfolio import frontier_seeds, structured_graphs
 from .graph_relations import AffineRelation
 from .graph_synthesis import _bounded_masks, _data
@@ -24,6 +24,8 @@ from .graph_synthesis import _bounded_masks, _data
 SCHEMA = "axiom.graph.feedback_campaign.v1"
 FINAL_SCHEMA = "axiom.graph.feedback_final.v1"
 FRONTIER_PROFILE = "frontier-v2"
+COMPONENT_FRONTIER_PROFILE = "frontier-v3"
+FRONTIER_PROFILES = (FRONTIER_PROFILE, COMPONENT_FRONTIER_PROFILE)
 
 
 def _configuration(seed=42, rounds=2, candidates=8, corpus_scan=256, corpus_exact=64,
@@ -32,7 +34,7 @@ def _configuration(seed=42, rounds=2, candidates=8, corpus_scan=256, corpus_exac
     bounds = ((rounds, 1, 16), (candidates, 1, 128), (corpus_scan, 1, 100_000),
               (corpus_exact, 1, corpus_scan if type(corpus_scan) is int else 0),
               (active_budget, 1, 100_000), (development_order, 7, MAX_EXACT_ORDER - 1))
-    if (type(seed) is not int or type(feedback) is not bool or profile not in (None, FRONTIER_PROFILE)
+    if (type(seed) is not int or type(feedback) is not bool or profile not in (None, *FRONTIER_PROFILES)
             or any(type(x) is not int or not low <= x <= high for x, low, high in bounds)
             or (final_sha256 is not None and (type(final_sha256) is not str
                                              or not re.fullmatch(r"[0-9a-f]{64}", final_sha256)))):
@@ -96,7 +98,9 @@ def _screen(panel, claim, config, split):
 
 
 def _round(training, panel, config, replay, tested):
-    novelty = NoveltyFilter(replay["novelty"] if replay is not None else None, profile=INTEGER_PROFILE)
+    profile = config.get("profile")
+    novelty_profile = CLIQUE_BOUNDS_PROFILE if profile == COMPONENT_FRONTIER_PROFILE else INTEGER_PROFILE
+    novelty = NoveltyFilter(replay["novelty"] if replay is not None else None, profile=novelty_profile)
     bank, counts = _discover(training, novelty)
     trials = []
     eligible = [claim for claim, _ in bank if claim.id not in tested]
@@ -104,7 +108,10 @@ def _round(training, panel, config, replay, tested):
         corpus = _screen(panel, claim, config, "development")
         active = None
         if corpus["witness"] is None:
-            seeds = frontier_seeds(config["development_order"], claim.bound.assumption) if config.get("profile") else ()
+            seeds = frontier_seeds(
+                config["development_order"], claim.bound.assumption,
+                component_claim=claim if profile == COMPONENT_FRONTIER_PROFILE else None,
+            ) if profile else ()
             active = search(claim, seeds, seed=config["seed"], budget=config["active_budget"],
                             profile="guided-v3", max_order=config["development_order"])
         witness = corpus["witness"] if active is None else active["witness"]

@@ -151,3 +151,37 @@ def test_frontier_removes_an_earlier_survivor_if_a_later_graph_refutes_it(
     assert cross["candidate_id"] == first.id and cross["source_candidate_id"] == second.id
     assert feedback.replay_witness(first, cross["witness"])
     assert report["frozen_candidates"] == []
+
+
+def test_component_frontier_refutes_and_replays_odd_cycle_union(tmp_path, monkeypatch):
+    development = _corpus(tmp_path / "dev.sqlite", "development", "dev-edgeless", 8, complete=False)
+    ledger = tmp_path / "ledger.sqlite"
+    claim = AffineRelation.normalized({"n": 1, "independence": -1, "matching": -1}, 1, "TRIANGLE_FREE")
+    monkeypatch.setattr(feedback, "_discover", lambda *_: ([(claim, ())], {}))
+    monkeypatch.setattr(feedback, "_base_training", lambda _: ({}, {}))
+    options = dict(rounds=2, candidates=1, development_order=10, active_budget=1)
+    legacy = feedback.run_campaign(development, ledger, "legacy", profile=feedback.FRONTIER_PROFILE, **options)
+    assert legacy["frozen_candidates"] == [claim.to_dict()]
+    assert feedback.audit_campaign(development, ledger, "legacy") == legacy
+    report = feedback.run_campaign(development, ledger, "components",
+                                   profile=feedback.COMPONENT_FRONTIER_PROFILE, **options)
+    first, second = report["rounds"]
+    trial, = first["trials"]
+    assert trial["corpus"]["witness"] is None
+    assert trial["outcome"] == "REFUTED"
+    witness = trial["active"]["witness"]
+    assert feedback.replay_witness(claim, witness)
+    props = witness["checked_properties"]
+    assert (props["n"], props["components"], props["independence"], props["matching"]) == (10, 2, 4, 4)
+    assert len(first["feedback_added"]) == 1
+    assert "10" not in first["training_counts"] and second["training_counts"]["10"] == 1
+    assert report["frozen_candidates"] == []
+    assert feedback.audit_campaign(development, ledger, "components") == report
+
+
+
+def test_component_frontier_keeps_the_mycielski_seed_for_chromatic_claim():
+    claim = AffineRelation.normalized({"chromatic": 1}, 3, "TRIANGLE_FREE")
+    seeds = feedback.frontier_seeds(11, claim.bound.assumption, component_claim=claim)
+    report = feedback.search(claim, seeds, budget=1, profile="guided-v3", max_order=11)
+    assert report["witness"]["graph"]["n"] == 11
