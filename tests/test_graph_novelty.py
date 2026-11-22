@@ -37,7 +37,7 @@ def test_certified_filter_catches_all_six_bipartite_variants_and_replays(monkeyp
         NoveltyFilter(bad).classify(claims[0])
 
 
-@pytest.mark.parametrize("profile", ["certified-v1", "certified-v2"])
+@pytest.mark.parametrize("profile", ["certified-v1", "certified-v2", "certified-v3"])
 def test_cross_premise_implications_and_seeded_false_controls(profile):
     cases = read("implication-v1.json")["cases"]
     labels = read("implication-v1-expected.json")
@@ -128,3 +128,64 @@ def test_structural_fact_rows_agree_with_all_small_labelled_graphs():
                 assert set(weights) <= set(VARIABLES)
                 if applicable(premise, graph):
                     assert sum(coefficient * graph[var] for var, coefficient in weights.items()) <= rhs, name
+
+
+def test_integer_and_case_certificates_close_rediscoveries_and_replay(monkeypatch):
+    pytest.importorskip("scipy")
+    old = NoveltyFilter(profile="certified-v2")
+    new = NoveltyFilter(profile="certified-v3")
+    cases = [
+        ("TRIANGLE_FREE", {"clique": 1, "matching": -1}, 1, "LP_INTEGER_ROUNDING"),
+        ("TRIANGLE_FREE", {"clique": 2, "matching": -1}, 3, "LP_INTEGER_ROUNDING"),
+        ("BIPARTITE", {"chromatic": 1, "components": -2}, 0, "LP_EDGE_CASES"),
+    ]
+    claims = []
+    for premise, weights, rhs, method in cases:
+        claim = AffineRelation.normalized(weights, rhs, premise)
+        claims.append(claim)
+        assert not old.classify(claim)
+        assert new.classify(claim)
+        direction, = new.report()["decisions"][claim.id]["directions"]
+        assert direction["method"] == method
+        assert not verify_direction(claim.bound, direction["support"], profile="certified-v2")
+
+    report = json.loads(json.dumps(new.report()))
+    monkeypatch.setattr("axiom.graph_novelty._propose", lambda *_: pytest.fail("solver ran in audit"))
+    replay = NoveltyFilter(report, profile="certified-v3")
+    assert all(replay.classify(claim) for claim in claims)
+    assert json.loads(json.dumps(replay.report())) == report
+
+    corrupt = deepcopy(report)
+    corrupt["decisions"][claims[-1].id]["directions"][0]["support"]["has_edge"][0][1] += 1
+    with pytest.raises(ValueError, match="novelty"):
+        NoveltyFilter(corrupt, profile="certified-v3").classify(claims[-1])
+
+
+def test_integer_and_case_split_reject_invalid_strengthening():
+    new = NoveltyFilter(profile="certified-v3")
+    cases = [
+        ("TRIANGLE_FREE", {"clique": 1, "matching": -1}, 0, 2, 1),
+        ("BIPARTITE", {"chromatic": 1, "components": -2}, -1, 2, 1),
+        ("ALL", {"chromatic": 1, "components": -2}, 0, 3, 7),
+        ("ALL", {"n": -1}, -2, 1, 0),
+    ]
+    for premise, weights, rhs, n, mask in cases:
+        claim = AffineRelation.normalized(weights, rhs, premise)
+        applies, valid, _ = check_conjecture(claim.bound, reference_properties(n, mask))
+        assert applies and not valid
+        assert not new.classify(claim)
+
+    edge_only = AffineRelation.normalized({"n": -1}, -2)
+    support = [["has_edge_order", 1, 1]]
+    assert not verify_direction(edge_only.bound, support, profile="certified-v3")
+    assert not verify_direction(edge_only.bound, {"has_edge": support}, profile="certified-v3")
+
+
+def test_edge_case_rows_agree_with_all_small_graphs_with_an_edge():
+    from axiom.graph_novelty_facts import EDGE_FACTS
+
+    for n in range(2, 6):
+        for mask in range(1, 1 << len(edge_positions(n))):
+            graph = reference_properties(n, mask)
+            for name, weights, rhs in EDGE_FACTS:
+                assert sum(coefficient * graph[var] for var, coefficient in weights.items()) <= rhs, name
