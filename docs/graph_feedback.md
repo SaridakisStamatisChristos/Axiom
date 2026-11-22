@@ -67,3 +67,43 @@ All four development exports matched their replay byte for byte. The
 five-graph final panel refuted zero frozen candidates in either lane.
 This run verifies feedback and split isolation. The final sample is too
 small to establish a survivor-quality advantage.
+
+## Fresh candidates and a carried frontier
+
+Use `--profile frontier-v2 --development-order 11` to spend each round's
+candidate slots on distinct claims. The profile retains survivors across
+rounds. It also checks them against previously verified development
+witnesses and stores a new independent certificate for any cross-refutation.
+With order 11 enabled, the active refuter starts from the Mycielski graph
+of the five-cycle where applicable. This uses the same per-claim search
+budget and makes the triangle-free four-chromatic case available to fitting.
+
+Use a separate, precommitted order-12 final corpus for that campaign.
+With `--profile frontier-v2 --no-feedback`, the control uses the same
+search, candidate cache, frontier and cross-refutations. Its fitting data
+stay fixed, allowing the study to isolate witness-driven refitting.
+Existing reports without a profile continue to use their recorded
+behavior.
+
+### Matched order-12 check
+
+Eight fresh seeds each received two rounds of 16 candidate slots. The
+precommitted panel contained 108 order-12 graphs from nine families,
+including 12 triangle-free four-chromatic extensions and no graphs from
+the earlier study. Both frontier lanes shared order-11 development,
+identical per-claim budgets, and the same cache and cross-refutation rules.
+The legacy lane used order-10 development and its original round policy.
+
+| Measure | Legacy | Frontier, fixed fitting data | Frontier, witness feedback |
+| --- | ---: | ---: | ---: |
+| Distinct attempts summed across seeds | 128/256 | 256/256 | 256/256 |
+| Candidates refuted on final panel | 30/62 | 0/51 | 0/50 |
+| Final survivors summed across seeds | 32 | 51 | 50 |
+| Distinct final survivors across seeds | 5 | 7 | 8 |
+| Distinct final survivors after implication deduplication | 4 | 5 | 6 |
+
+All 24 development reports replayed identically. The order-11 seed
+refuted all nine previously missed statements in one active evaluation
+each. The frontier comparison measures the combined order and round-policy
+changes. Within the two new lanes, witness refitting increased cross-seed
+diversity and yielded nearly the same per-slot survivor count.

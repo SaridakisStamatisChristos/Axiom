@@ -12,32 +12,35 @@ from .graph_affine import VARIABLES
 from .graph_campaign import _discovery_properties
 from .graph_claims import digest, stable
 from .graph_corpus import file_digest, screen_rows, screening_rows
-from .graph_discovery import _connection, _discover
+from .graph_discovery import _connection, _discover, _failed_side
 from .graph_explicit import ExplicitGraph
-from .graph_large_witness import MAX_EXACT_ORDER, replay_witness
+from .graph_large_witness import MAX_EXACT_ORDER, certify_witness, replay_witness
 from .graph_model import edge_positions
 from .graph_novelty import INTEGER_PROFILE, NoveltyFilter
-from .graph_refutation_portfolio import structured_graphs
+from .graph_refutation_portfolio import frontier_seeds, structured_graphs
 from .graph_relations import AffineRelation
 from .graph_synthesis import _bounded_masks, _data
 
 SCHEMA = "axiom.graph.feedback_campaign.v1"
 FINAL_SCHEMA = "axiom.graph.feedback_final.v1"
+FRONTIER_PROFILE = "frontier-v2"
 
 
 def _configuration(seed=42, rounds=2, candidates=8, corpus_scan=256, corpus_exact=64,
-                   active_budget=64, development_order=10, feedback=True, final_sha256=None):
+                   active_budget=64, development_order=10, feedback=True, final_sha256=None,
+                   profile=None):
     bounds = ((rounds, 1, 16), (candidates, 1, 128), (corpus_scan, 1, 100_000),
               (corpus_exact, 1, corpus_scan if type(corpus_scan) is int else 0),
               (active_budget, 1, 100_000), (development_order, 7, MAX_EXACT_ORDER - 1))
-    if (type(seed) is not int or type(feedback) is not bool
+    if (type(seed) is not int or type(feedback) is not bool or profile not in (None, FRONTIER_PROFILE)
             or any(type(x) is not int or not low <= x <= high for x, low, high in bounds)
             or (final_sha256 is not None and (type(final_sha256) is not str
                                              or not re.fullmatch(r"[0-9a-f]{64}", final_sha256)))):
         raise ValueError("invalid graph feedback campaign configuration")
     return {"seed": seed, "rounds": rounds, "candidates": candidates, "corpus_scan": corpus_scan,
             "corpus_exact": corpus_exact, "active_budget": active_budget,
-            "development_order": development_order, "feedback": feedback, "final_sha256": final_sha256}
+            "development_order": development_order, "feedback": feedback, "final_sha256": final_sha256,
+            **({"profile": profile} if profile else {})}
 
 
 def _panel(path, split, config):
@@ -92,15 +95,17 @@ def _screen(panel, claim, config, split):
     return result
 
 
-def _round(training, panel, config, replay):
+def _round(training, panel, config, replay, tested):
     novelty = NoveltyFilter(replay["novelty"] if replay is not None else None, profile=INTEGER_PROFILE)
     bank, counts = _discover(training, novelty)
     trials = []
-    for claim, _ in bank[:config["candidates"]]:
+    eligible = [claim for claim, _ in bank if claim.id not in tested]
+    for claim in eligible[:config["candidates"]]:
         corpus = _screen(panel, claim, config, "development")
         active = None
         if corpus["witness"] is None:
-            active = search(claim, [], seed=config["seed"], budget=config["active_budget"],
+            seeds = frontier_seeds(config["development_order"], claim.bound.assumption) if config.get("profile") else ()
+            active = search(claim, seeds, seed=config["seed"], budget=config["active_budget"],
                             profile="guided-v3", max_order=config["development_order"])
         witness = corpus["witness"] if active is None else active["witness"]
         if witness:
@@ -110,30 +115,60 @@ def _round(training, panel, config, replay):
         trials.append({"candidate_id": claim.id, "statement": claim.to_dict(), "corpus": corpus,
                        "active": active, "outcome": "REFUTED" if witness else "SURVIVED_DEVELOPMENT"})
     return {"generated_candidates": len(bank), "candidate_bank_sha256": digest([c.id for c, _ in bank]),
-            "discovery_counts": dict(counts), "novelty": novelty.report(), "trials": trials}
+            "discovery_counts": dict(counts), "novelty": novelty.report(), "trials": trials,
+            **({"previously_tested_skipped": len(bank) - len(eligible)} if config.get("profile") else {})}
+
+
+def _witnesses(trials):
+    for trial in trials:
+        stage = "active" if trial["active"] is not None else "corpus"
+        witness = trial[stage]["witness"]
+        if witness is not None:
+            yield trial["candidate_id"], stage, witness
+
+
+def _update_frontier(survivors, trials, witnesses):
+    for trial in trials:
+        if trial["outcome"] == "SURVIVED_DEVELOPMENT":
+            survivors[trial["candidate_id"]] = AffineRelation.from_dict(trial["statement"])
+    refutations = []
+    for claim in tuple(survivors.values()):
+        for source, _, witness in witnesses.values():
+            if _failed_side(claim, witness["checked_properties"]) is None:
+                continue
+            graph = ExplicitGraph.from_dict(witness["graph"])
+            certificate = certify_witness(claim, graph, origin=f"cross-refutation from {source}")
+            replay_witness(claim, certificate)
+            refutations.append({"candidate_id": claim.id, "source_candidate_id": source, "witness": certificate})
+            del survivors[claim.id]
+            break
+    return {"carried_survivors": len(survivors), "cross_refutations": refutations}
 
 
 def _experiment(config, panel, manifest, replay=None):
     training, base = _base_training(config["seed"])
     features = {_feature_key(p) for rows in training.values() for p in rows}
     rounds = []
+    tested, survivors, witnesses = set(), {}, {}
     for i in range(config["rounds"]):
         before = {str(n): len(rows) for n, rows in sorted(training.items())}
         training_sha = digest({str(n): rows for n, rows in training.items()})
-        result = _round(training, panel, config, None if replay is None else replay["rounds"][i])
+        result = _round(training, panel, config, None if replay is None else replay["rounds"][i], tested)
+        current_witnesses = tuple(_witnesses(result["trials"]))
+        if config.get("profile"):
+            tested.update(trial["candidate_id"] for trial in result["trials"])
+            for source, stage, witness in current_witnesses:
+                witnesses.setdefault(witness["graph_sha256"], (source, stage, witness))
+            result.update(_update_frontier(survivors, result["trials"], witnesses))
         additions = []
         if config["feedback"] and i + 1 < config["rounds"]:
-            for trial in result["trials"]:
-                stage = "active" if trial["active"] is not None else "corpus"
-                witness = trial[stage]["witness"]
-                if witness is None:
-                    continue
+            for source, stage, witness in current_witnesses:
                 props = witness["checked_properties"]
                 key = _feature_key(props)
                 if key not in features:
                     features.add(key)
                     training.setdefault(props["n"], []).append(props)
-                    additions.append({"candidate_id": trial["candidate_id"], "stage": stage,
+                    additions.append({"candidate_id": source, "stage": stage,
                                       "graph_sha256": witness["graph_sha256"], "order": props["n"]})
         rounds.append({**result, "round": i + 1, "training_counts": before,
                        "training_sha256": training_sha,
@@ -141,6 +176,8 @@ def _experiment(config, panel, manifest, replay=None):
                        "feedback_added": additions})
     eligible = [trial["statement"] for trial in rounds[-1]["trials"]
                 if trial["outcome"] == "SURVIVED_DEVELOPMENT"]
+    if config.get("profile"):
+        eligible = [claim.to_dict() for claim in survivors.values()]
     return {"schema": SCHEMA, "configuration": config, "development_panel": manifest, "base_training": base,
             "rounds": rounds, "frozen_candidates": eligible, "frozen_candidates_sha256": digest(eligible)}
 
