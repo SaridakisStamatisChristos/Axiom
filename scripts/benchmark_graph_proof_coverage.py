@@ -55,7 +55,7 @@ def write(path, payload):
 
 
 def frozen_suite(protocol):
-    raw = MANIFEST.read_bytes()
+    raw = (DATA / protocol["manifest"] if "manifest" in protocol else MANIFEST).read_bytes()
     if sha256(raw).hexdigest() != protocol["manifest_sha256"]:
         raise ValueError("proof-coverage manifest differs from the frozen protocol")
     suite = json.loads(raw)
@@ -159,7 +159,7 @@ def check_oracles(cases, order_limit):
 def run_case(case, protocol, competitor, output):
     claim = AffineRelation.from_dict(case["statement"])
     budget = protocol["budget"]
-    missing = native_vocabulary(claim, competitor)
+    missing = native_vocabulary(claim, competitor) if competitor is not None else None
     report = {"case": case, "missing_native_vocabulary": missing, "lanes": {}}
     order = protocol["lanes"]
     offset = (int(case["id"][1:]) - 1) % len(order)
@@ -229,38 +229,48 @@ def summarize(rows, protocol):
         return {lane: dict(Counter(row["lanes"][lane]["attempt"]["status"] for row in cohort))
                 for lane in protocol["lanes"]}
 
-    common = [row for row in rows if not row["missing_native_vocabulary"]]
+    common = [row for row in rows if row["missing_native_vocabulary"] == []]
     contender = protocol["contender"] if "contender" in protocol else "v9"
     pairs = [(baseline, contender) for baseline in protocol["lanes"] if baseline != contender]
     by_scope = defaultdict(list)
     for row in rows:
         by_scope[row["case"]["statement"]["bound"]["assumption"]].append(row)
-    delta = paired(rows, "v7", contender, protocol)["delta_points"]
-    return {"all": totals(rows), "native_vocabulary_overlap": totals(common),
-            "by_scope": {scope: totals(group) for scope, group in by_scope.items()},
-            "paired_all": [paired(rows, a, b, protocol) for a, b in pairs],
-            "paired_native_vocabulary_overlap": [paired(common, a, b, protocol) for a, b in pairs],
-            "coverage_gate_passed": delta >= protocol["coverage_gate_points"]}
+    summary = {"all": totals(rows),
+               "by_scope": {scope: totals(group) for scope, group in by_scope.items()},
+               "paired_all": [paired(rows, a, b, protocol) for a, b in pairs]}
+    if any(row["missing_native_vocabulary"] is not None for row in rows):
+        summary.update(native_vocabulary_overlap=totals(common),
+                       paired_native_vocabulary_overlap=[paired(common, a, b, protocol) for a, b in pairs])
+    if "coverage_gate_points" in protocol:
+        delta = paired(rows, "v7", contender, protocol)["delta_points"]
+        summary["coverage_gate_passed"] = delta >= protocol["coverage_gate_points"]
+    return summary
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--autographforge", required=True, type=Path)
+    parser.add_argument("--autographforge", type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--workers", type=int, choices=range(1, 9), default=4)
-    parser.add_argument("--protocol", choices=("v1", "v2", "v3"), default="v1")
+    parser.add_argument("--protocol", choices=("v1", "v2", "v3", "v4"), default="v1")
     args = parser.parse_args()
     protocol = read(DATA / f"proof_coverage_protocol_{args.protocol}.json")
     cases = frozen_suite(protocol)
     paths = ("src", "lake-manifest.json", "lakefile.toml", "lean-toolchain")
-    if args.protocol in ("v2", "v3"):
+    if "axiom_git_objects" in protocol:
         pin = protocol["axiom_git_objects"]
         if (any(git(ROOT, "rev-parse", f"HEAD:{path}") != pin[path] for path in paths)
                 or git(ROOT, "status", "--porcelain", "--", *paths)):
             raise ValueError("AXIOM engine or dependencies differ from the frozen protocol")
     elif git(ROOT, "diff", "--name-only", protocol["axiom_commit"], "--", *paths):
         raise ValueError("AXIOM engine or dependencies differ from the frozen protocol")
-    competitor = competitor_config(args.autographforge.resolve(), protocol)
+    competitor = None
+    if "autographforge_commit" in protocol:
+        if args.autographforge is None:
+            parser.error("--autographforge is required for this protocol")
+        competitor = competitor_config(args.autographforge.resolve(), protocol)
+    elif args.autographforge is not None:
+        parser.error("--autographforge is unavailable for this protocol")
     args.output.mkdir()
     output = args.output.resolve()
     write(output / "run.json", {"protocol": protocol, "competitor": competitor,
