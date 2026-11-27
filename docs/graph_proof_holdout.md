@@ -62,3 +62,26 @@ cmp /tmp/proof_holdout_100_v1.json research/proof_engine/proof_holdout_100_v1.js
 python scripts/benchmark_graph_proof_coverage.py --protocol v4 --workers 8 \
   --output /path/to/new/holdout-results
 ```
+
+## Results
+
+| Premise | Statements | v10 Lean proofs | v11 Lean proofs |
+| --- | ---: | ---: | ---: |
+| All graphs | 25 | 17 | 18 |
+| Connected | 25 | 20 | 21 |
+| Triangle-free | 25 | 21 | 24 |
+| Bipartite | 25 | 20 | 24 |
+| Total | 100 | 78 | 87 |
+
+v11 gained nine proofs and retained all 78 v10 proofs. The paired family
+bootstrap interval was +3 to +17 percentage points. The gains span six
+anchor families. Restoring the v10 inventory in the v11 fallback reproduced
+the identical accepted Lean source for all nine gains, isolating the gain to
+the full-inventory search on this workload.
+
+Thirteen statements remain unresolved. Eleven come from three families
+based on the maximum-matching vertex cover, connected-component uniqueness,
+and coloring a maximum independent set. All 200 attempts passed offline
+evidence replay, and the graph oracles checked 1,100 labelled graphs. The
+[aggregate results](../research/proof_engine/proof_holdout_results_v1.json)
+are stored with the protocol.
