@@ -8,7 +8,7 @@ from .graph_decomposition_bounds import CONNECTED_CHROMATIC_EDGES_PROOF, TRIANGL
 from .graph_matching_cardinality import MATCHING_CARDINALITY_PROOF
 from .graph_proof_search import LemmaSpec
 from .graph_relations import AffineRelation, _vector
-from .graph_universal_lean import PINNED_MATHLIB_SHA
+from .graph_universal_lean import PINNED_MATHLIB_SHA, _lemma_facts
 
 
 @dataclass(frozen=True)
@@ -17,6 +17,7 @@ class MathlibAdapter:
     declarations: tuple[str, ...]
     proof: str
     imports: tuple[str, ...] = ()
+    parents: tuple["MathlibAdapter", ...] = ()
 
 
 def _adapter(name, premise, weights, rhs, declarations, proof, *, imports=()):
@@ -391,6 +392,33 @@ _INDEX_V9 = _INDEX_V8 + (
     ),
 )
 
+
+def _combined_adapter(name, weights, rhs, *parents):
+    facts = _lemma_facts((entry.lemma.theorem, entry.lemma.premise) for entry in parents)
+    lemma = LemmaSpec("retrieved_" + name, "ALL", _vector(weights.items()), rhs)
+    return MathlibAdapter(
+        lemma, tuple(dict.fromkeys(declaration for entry in parents for declaration in entry.declarations)),
+        facts.strip() + "\n  omega", parents=parents,
+    )
+
+
+_V9_BY_NAME = {entry.lemma.theorem: entry for entry in _INDEX_V9}
+_INDEX_V11 = _INDEX_V9 + (
+    _adapter("triangle_free_clique_le_two", "TRIANGLE_FREE", {"clique": 1}, 2,
+             ("SimpleGraph.cliqueFinset_eq_empty_iff",), """\
+have hz := SimpleGraph.cliqueFinset_eq_empty_iff.mpr premise
+  have ht : triangles G = 0 := by simp [triangles, hz]
+  have hc := clique_le_triangles_add_two G
+  omega"""),
+    _adapter("triangles_nonnegative", "ALL", {"triangles": -1}, 0, (), "omega"),
+    _combined_adapter(
+        "matching_add_components_le_order", {"matching": 1, "components": 1, "n": -1}, 0,
+        _V9_BY_NAME["retrieved_matching_add_independence_le_order"],
+        _V9_BY_NAME["retrieved_components_le_independence"],
+    ),
+)
+
+
 INDEX_VERSION = "axiom.mathlib_affine_graph_index.v1"
 STRUCTURAL_INDEX = "axiom.mathlib_affine_graph_index.v2"
 MATCHING_INDEX = "axiom.mathlib_affine_graph_index.v3"
@@ -401,11 +429,13 @@ CLIQUE_INDEPENDENCE_INDEX = "axiom.mathlib_affine_graph_index.v7"
 CLIQUE_BOUNDS_INDEX = "axiom.mathlib_affine_graph_index.v8"
 DECOMPOSITION_INDEX = "axiom.mathlib_affine_graph_index.v9"
 SCHEDULED_INDEX = "axiom.mathlib_affine_graph_index.v10"
+CERTIFICATE_INDEX = "axiom.mathlib_affine_graph_index.v11"
 ROUNDING_BUDGET_DIVISOR = 5
 _INDEXES = {INDEX_VERSION: _INDEX_V1, STRUCTURAL_INDEX: _INDEX_V2, MATCHING_INDEX: _INDEX_V3,
             COMPONENT_INDEX: _INDEX_V4, COMPONENT_INDEPENDENCE_INDEX: _INDEX_V5,
             MATCHING_CARDINALITY_INDEX: _INDEX_V6, CLIQUE_INDEPENDENCE_INDEX: _INDEX_V7,
-            CLIQUE_BOUNDS_INDEX: _INDEX_V8, DECOMPOSITION_INDEX: _INDEX_V9, SCHEDULED_INDEX: _INDEX_V9}
+            CLIQUE_BOUNDS_INDEX: _INDEX_V8, DECOMPOSITION_INDEX: _INDEX_V9, SCHEDULED_INDEX: _INDEX_V9,
+            CERTIFICATE_INDEX: _INDEX_V11}
 _MATCHING_CARDINALITY_ADAPTER = "retrieved_twice_matching_le_order"
 _MATCHING_CARDINALITY_POLICY = "offer_cardinality_adapter_for_matching_coefficient_at_least_two"
 _CLIQUE_INDEPENDENCE_ADAPTER = "retrieved_clique_add_independence_le_order_add_one"
@@ -422,7 +452,9 @@ INDEX_DIGESTS = {version: digest({
     "schema": version,
     "mathlib_revision": PINNED_MATHLIB_SHA,
     "entries": [{"lemma": asdict(a.lemma), "declarations": a.declarations, "proof": a.proof,
-                 **({"imports": a.imports} if a.imports else {})} for a in entries],
+                 **({"imports": a.imports} if a.imports else {}),
+                 **({"parents": [parent.lemma.theorem for parent in a.parents]} if a.parents else {})}
+                for a in entries],
     **({"selection": _MATCHING_CARDINALITY_POLICY} if version == MATCHING_CARDINALITY_INDEX else {}),
     **({"selection": [_MATCHING_CARDINALITY_POLICY, _CLIQUE_INDEPENDENCE_POLICY]}
        if version == CLIQUE_INDEPENDENCE_INDEX else {}),
@@ -437,6 +469,10 @@ INDEX_DIGESTS = {version: digest({
     **({"composition": {"schedule": "direct_then_rounding_then_plans", "index_leaves": True,
                         "rounding_budget_divisor": ROUNDING_BUDGET_DIVISOR,
                         "reserve_plan_slots": True}} if version == SCHEDULED_INDEX else {}),
+    **({"composition": {"schedule": "v10_then_inventory_certificate_then_plans",
+                        "baseline_index": SCHEDULED_INDEX,
+                        "rounding_budget_divisor": ROUNDING_BUDGET_DIVISOR}}
+       if version == CERTIFICATE_INDEX else {}),
 }) for version, entries in _INDEXES.items()}
 INDEX_SHA256 = INDEX_DIGESTS[INDEX_VERSION]
 MAX_RETRIEVED_LEMMAS = 32
@@ -444,6 +480,8 @@ MAX_RETRIEVED_LEMMAS = 32
 
 def retrieve(claim: AffineRelation, limit: int, *, index=INDEX_VERSION) -> tuple[MathlibAdapter, ...]:
     """Rank exact directions first, then signed overlaps and sparse supports."""
+    if index == CERTIFICATE_INDEX:
+        index = SCHEDULED_INDEX
     directions = claim.inequalities()
     targets = [_vector(side.terms) for side in directions]
     weights = [dict(side.terms) for side in directions]
@@ -482,4 +520,6 @@ def indexed_facts(index):
 def describe(entry):
     return {"adapter": entry.lemma.theorem, "premise": entry.lemma.premise,
             "mathlib_declarations": list(entry.declarations),
-            **({"mathlib_imports": list(entry.imports)} if entry.imports else {})}
+            **({"mathlib_imports": list(entry.imports)} if entry.imports else {}),
+            **({"adapter_dependencies": [parent.lemma.theorem for parent in entry.parents]}
+               if entry.parents else {})}

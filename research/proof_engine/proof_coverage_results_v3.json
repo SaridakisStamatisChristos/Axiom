@@ -1,0 +1,196 @@
+{
+  "all": {
+    "v10": {
+      "FORMALLY_VERIFIED": 79,
+      "LEAN_REJECTED": 21
+    },
+    "v11": {
+      "FORMALLY_VERIFIED": 91,
+      "LEAN_REJECTED": 9
+    },
+    "v7": {
+      "FORMALLY_VERIFIED": 67,
+      "LEAN_REJECTED": 33
+    },
+    "v9": {
+      "FORMALLY_VERIFIED": 76,
+      "LEAN_REJECTED": 15,
+      "SEARCH_EXHAUSTED": 9
+    }
+  },
+  "by_scope": {
+    "ALL": {
+      "v10": {
+        "FORMALLY_VERIFIED": 25
+      },
+      "v11": {
+        "FORMALLY_VERIFIED": 25
+      },
+      "v7": {
+        "FORMALLY_VERIFIED": 21,
+        "LEAN_REJECTED": 4
+      },
+      "v9": {
+        "FORMALLY_VERIFIED": 24,
+        "SEARCH_EXHAUSTED": 1
+      }
+    },
+    "BIPARTITE": {
+      "v10": {
+        "FORMALLY_VERIFIED": 14,
+        "LEAN_REJECTED": 11
+      },
+      "v11": {
+        "FORMALLY_VERIFIED": 20,
+        "LEAN_REJECTED": 5
+      },
+      "v7": {
+        "FORMALLY_VERIFIED": 15,
+        "LEAN_REJECTED": 10
+      },
+      "v9": {
+        "FORMALLY_VERIFIED": 14,
+        "LEAN_REJECTED": 8,
+        "SEARCH_EXHAUSTED": 3
+      }
+    },
+    "CONNECTED": {
+      "v10": {
+        "FORMALLY_VERIFIED": 20,
+        "LEAN_REJECTED": 5
+      },
+      "v11": {
+        "FORMALLY_VERIFIED": 21,
+        "LEAN_REJECTED": 4
+      },
+      "v7": {
+        "FORMALLY_VERIFIED": 13,
+        "LEAN_REJECTED": 12
+      },
+      "v9": {
+        "FORMALLY_VERIFIED": 19,
+        "LEAN_REJECTED": 3,
+        "SEARCH_EXHAUSTED": 3
+      }
+    },
+    "TRIANGLE_FREE": {
+      "v10": {
+        "FORMALLY_VERIFIED": 20,
+        "LEAN_REJECTED": 5
+      },
+      "v11": {
+        "FORMALLY_VERIFIED": 25
+      },
+      "v7": {
+        "FORMALLY_VERIFIED": 18,
+        "LEAN_REJECTED": 7
+      },
+      "v9": {
+        "FORMALLY_VERIFIED": 19,
+        "LEAN_REJECTED": 4,
+        "SEARCH_EXHAUSTED": 2
+      }
+    }
+  },
+  "coverage_gate_passed": true,
+  "native_vocabulary_overlap": {
+    "v10": {
+      "FORMALLY_VERIFIED": 7,
+      "LEAN_REJECTED": 3
+    },
+    "v11": {
+      "FORMALLY_VERIFIED": 10
+    },
+    "v7": {
+      "FORMALLY_VERIFIED": 7,
+      "LEAN_REJECTED": 3
+    },
+    "v9": {
+      "FORMALLY_VERIFIED": 7,
+      "LEAN_REJECTED": 2,
+      "SEARCH_EXHAUSTED": 1
+    }
+  },
+  "paired_all": [
+    {
+      "baseline": "v7",
+      "case_count": 100,
+      "contender": "v11",
+      "delta_points": 24.0,
+      "family_count": 20,
+      "losses": 0,
+      "paired_family_bootstrap_95_points": [
+        10.0,
+        40.0
+      ],
+      "wins": 24
+    },
+    {
+      "baseline": "v9",
+      "case_count": 100,
+      "contender": "v11",
+      "delta_points": 15.0,
+      "family_count": 20,
+      "losses": 0,
+      "paired_family_bootstrap_95_points": [
+        6.0,
+        27.0
+      ],
+      "wins": 15
+    },
+    {
+      "baseline": "v10",
+      "case_count": 100,
+      "contender": "v11",
+      "delta_points": 12.0,
+      "family_count": 20,
+      "losses": 0,
+      "paired_family_bootstrap_95_points": [
+        2.0,
+        24.0
+      ],
+      "wins": 12
+    }
+  ],
+  "paired_native_vocabulary_overlap": [
+    {
+      "baseline": "v7",
+      "case_count": 10,
+      "contender": "v11",
+      "delta_points": 30.0,
+      "family_count": 6,
+      "losses": 0,
+      "paired_family_bootstrap_95_points": [
+        0.0,
+        62.5
+      ],
+      "wins": 3
+    },
+    {
+      "baseline": "v9",
+      "case_count": 10,
+      "contender": "v11",
+      "delta_points": 30.0,
+      "family_count": 6,
+      "losses": 0,
+      "paired_family_bootstrap_95_points": [
+        0.0,
+        62.5
+      ],
+      "wins": 3
+    },
+    {
+      "baseline": "v10",
+      "case_count": 10,
+      "contender": "v11",
+      "delta_points": 30.0,
+      "family_count": 6,
+      "losses": 0,
+      "paired_family_bootstrap_95_points": [
+        0.0,
+        62.5
+      ],
+      "wins": 3
+    }
+  ]
+}

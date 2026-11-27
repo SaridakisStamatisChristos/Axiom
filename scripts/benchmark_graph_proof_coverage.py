@@ -16,7 +16,9 @@ from axiom.graph_affine import check_conjecture
 from axiom.graph_affine_lean_n3 import run_affine_kernel
 from axiom.graph_campaign import _discovery_properties
 from axiom.graph_checker import reference_properties
-from axiom.graph_lemma_retrieval import CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX, SCHEDULED_INDEX
+from axiom.graph_lemma_retrieval import (
+    CERTIFICATE_INDEX, CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX, SCHEDULED_INDEX,
+)
 from axiom.graph_model import edge_positions
 from axiom.graph_proof import audit, prove
 from axiom.graph_proof_search import SearchLimits
@@ -27,7 +29,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "research/proof_engine"
 MANIFEST = DATA / "proof_coverage_100_v1.json"
 PROTOCOL = DATA / "proof_coverage_protocol_v1.json"
-INDEXES = {"v7": CLIQUE_INDEPENDENCE_INDEX, "v9": DECOMPOSITION_INDEX, "v10": SCHEDULED_INDEX}
+INDEXES = {"v7": CLIQUE_INDEPENDENCE_INDEX, "v9": DECOMPOSITION_INDEX,
+           "v10": SCHEDULED_INDEX, "v11": CERTIFICATE_INDEX}
 COLUMNS = {"n": "order", "edges": "size", "clique": "clique_number",
            "independence": "independence_number", "maximum_degree": "maximum_degree",
            "chromatic": "chromatic_number", "matching": "matching_number",
@@ -245,12 +248,12 @@ def main():
     parser.add_argument("--autographforge", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--workers", type=int, choices=range(1, 9), default=4)
-    parser.add_argument("--protocol", choices=("v1", "v2"), default="v1")
+    parser.add_argument("--protocol", choices=("v1", "v2", "v3"), default="v1")
     args = parser.parse_args()
     protocol = read(DATA / f"proof_coverage_protocol_{args.protocol}.json")
     cases = frozen_suite(protocol)
     paths = ("src", "lake-manifest.json", "lakefile.toml", "lean-toolchain")
-    if args.protocol == "v2":
+    if args.protocol in ("v2", "v3"):
         pin = protocol["axiom_git_objects"]
         if (any(git(ROOT, "rev-parse", f"HEAD:{path}") != pin[path] for path in paths)
                 or git(ROOT, "status", "--porcelain", "--", *paths)):

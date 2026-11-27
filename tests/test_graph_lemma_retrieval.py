@@ -8,7 +8,8 @@ import pytest
 
 from axiom.graph_claims import digest
 from axiom.graph_lemma_retrieval import (
-    CLIQUE_BOUNDS_INDEX, CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX, SCHEDULED_INDEX, retrieve,
+    CERTIFICATE_INDEX, CLIQUE_BOUNDS_INDEX, CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX,
+    SCHEDULED_INDEX, retrieve,
 )
 from axiom.graph_proof import RETRIEVAL_SCHEMA, SCHEMA, audit, prove
 from axiom.graph_proof_search import SearchLimits
@@ -179,3 +180,37 @@ def test_scheduled_direct_cutoff_leaves_tactic_slots(tmp_path):
     }
     assert 0 < len(record["proof_plans"]["candidates"]) <= 2
     assert audit(record)
+
+
+@pytest.mark.parametrize("premise,terms,rhs,required", [
+    ("TRIANGLE_FREE", {"chromatic": 1, "clique": 1, "maximum_degree": -1}, 3,
+     "retrieved_triangle_free_clique_le_two"),
+    ("BIPARTITE", {"clique": 1, "components": 1, "matching": 1, "n": -2, "triangles": -1}, 0,
+     "retrieved_matching_add_components_le_order"),
+])
+def test_inventory_certificate_recovers_omitted_facts(tmp_path, premise, terms, rhs, required):
+    claim = AffineRelation.normalized(terms, rhs, premise).to_dict()
+    profile = dict(retrieval_limit=5, synthesis_limit=3, split_order=True, induct_edges=True,
+                   plan_limit=16, timeout=45)
+    baseline = prove(claim, **profile, retrieval_index=SCHEDULED_INDEX, project_root=tmp_path)
+    assert not baseline["derivation"]["derived"]
+    project = PROJECT if os.environ.get("AXIOM_REAL_LEAN") == "1" else tmp_path
+    attempt = prove(claim, **profile, retrieval_index=CERTIFICATE_INDEX, project_root=project)
+    expected = "FORMALLY_VERIFIED" if project == PROJECT else "LEAN_UNAVAILABLE"
+    assert attempt["status"] == expected, attempt["kernel"]
+    retrieval = attempt["retrieval"]
+    fallback = retrieval["certificate_fallback"]
+    schedule = retrieval["schedule"]
+    assert retrieval["selected"] == baseline["retrieval"]["selected"]
+    assert attempt["derivation"]["derived"] and not attempt["proof_plans"]["candidates"]
+    assert any(entry["adapter"] == required for entry in fallback["selected"])
+    assert 0 < fallback["nodes"] <= schedule["direct_node_limit"] - schedule["direct_nodes"]
+    assert attempt["derivation"]["nodes"] == (
+        schedule["direct_nodes"] + schedule["rounding_nodes"] + fallback["nodes"]
+    )
+    assert audit(attempt)
+
+    fallback["nodes"] -= 1
+    attempt["record_sha256"] = digest({k: v for k, v in attempt.items() if k != "record_sha256"})
+    with pytest.raises(ValueError, match="deterministic replay"):
+        audit(attempt)
