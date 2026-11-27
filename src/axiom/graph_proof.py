@@ -13,8 +13,8 @@ from .graph_discovery import _failed_side
 from .graph_edge_induction import (EDGE_INDUCTION_PROOF, EDGE_INDUCTION_RULE,
                                    EDGE_INDUCTION_VERSION)
 from .graph_lemma_retrieval import (
-    DECOMPOSITION_INDEX, INDEX_DIGESTS, INDEX_VERSION, MAX_RETRIEVED_LEMMAS,
-    ROUNDING_BUDGET_DIVISOR, SCHEDULED_INDEX, describe, retrieve,
+    CERTIFICATE_INDEX, DECOMPOSITION_INDEX, INDEX_DIGESTS, INDEX_VERSION, MAX_RETRIEVED_LEMMAS,
+    ROUNDING_BUDGET_DIVISOR, SCHEDULED_INDEX, describe, indexed_facts, retrieve,
 )
 from .graph_large_witness import SCHEMA as LARGE_WITNESS_SCHEMA, replay_witness
 from .graph_lemma_synthesis import MAX_SYNTHESIZED_LEMMAS, SYNTHESIS_VERSION, synthesize
@@ -92,6 +92,8 @@ def _render_adapters(selected, projections, matches):
     dependencies = set(matches) | {(parent.theorem, parent.premise)
                                     for step in used for parent, _ in step.parents}
     entries = [entry for entry in selected if (entry.lemma.theorem, entry.lemma.premise) in dependencies]
+    parents = dict.fromkeys(parent for entry in entries for parent in entry.parents)
+    entries = tuple(dict.fromkeys((*parents, *entries)))
     imports = sorted({module for entry in entries for module in entry.imports})
     wrappers = [_render_lemma(entry.lemma, "  " + entry.proof) for entry in entries]
     for step in used:
@@ -187,7 +189,7 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
         return dict(base, status="COUNTEREXAMPLE", reason="INDEPENDENT_GRAPH_WITNESS",
                     counterexample=witness)
 
-    scheduled = retrieval_index == SCHEDULED_INDEX
+    scheduled = retrieval_index in (SCHEDULED_INDEX, CERTIFICATE_INDEX)
     direct_limits = limits
     schedule = None
     if scheduled:
@@ -252,6 +254,35 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
             derivation = _retry(claim, bank, rounding_limits, direct_nodes,
                                 integer_rounding=True, index_leaves=True)
             schedule["rounding_nodes"] = derivation["nodes"] - direct_nodes
+    if retrieval_index == CERTIFICATE_INDEX:
+        fallback = {"attempted": False, "nodes": 0, "selected": []}
+        base["retrieval"]["certificate_fallback"] = fallback
+        unused_direct = direct_limits.max_nodes - schedule["direct_nodes"]
+        if not derivation["derived"] and unused_direct:
+            inventory = tuple(entry for entry in indexed_facts(retrieval_index)
+                              if entry.lemma.premise in ("ALL", claim.bound.assumption))
+            candidate_bank = (*BANK, *(entry.lemma for entry in inventory))
+            if split_used:
+                candidate_bank += POSITIVE_BANK
+            if induct_edges:
+                candidate_bank += (EDGE_INDUCTION_RULE,)
+            previous_nodes = derivation["nodes"]
+            candidate = _retry(claim, candidate_bank,
+                               replace(limits, max_nodes=previous_nodes + unused_direct),
+                               previous_nodes, index_leaves=True)
+            used = {lemma["theorem"] for side in candidate["directions"]
+                    for lemma in side["lemmas"] or ()}
+            recovered = tuple(entry for entry in inventory if entry.lemma.theorem in used)
+            fallback.update(attempted=True, nodes=candidate["nodes"] - previous_nodes,
+                            node_budget_exhausted=candidate["node_budget_exhausted"])
+            if candidate["derived"] and len(recovered) <= retrieval_limit:
+                selected, projections = recovered, ()
+                derivation = candidate
+                fallback["selected"] = [describe(entry) for entry in recovered]
+            else:
+                derivation = {**derivation, "nodes": candidate["nodes"],
+                              "node_budget_exhausted": (derivation["node_budget_exhausted"]
+                                                        or candidate["node_budget_exhausted"])}
     base["derivation"] = derivation
     plans = ()
     remaining = limits.max_nodes - derivation["nodes"]
