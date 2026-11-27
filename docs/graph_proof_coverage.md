@@ -103,3 +103,46 @@ The source transfer checks the theorem in the published AutoGraphForge
 artifact after substituting the minimal required imports and extracting the
 proved declaration. The original artifact is pinned in the transfer evidence.
 [AutoGraphForge source](https://github.com/JanPastorek/AutoGraphForge/blob/4d1a8afc99447cacd2328cca20e47b6493e8dbc5/results/verified_proofs/oprover-32b_61f2701ba25e.lean)
+
+## v10 scheduled proof search
+
+The v10 profile reserves tactic-plan slots before assigning the remaining
+search nodes to direct composition and integer rounding. An exact residual
+index finds the final lemma of a candidate direct certificate. Proof audit
+replays the phase limits and node counts from the recorded attempt.
+
+Select v10 with `graph-prove --retrieval-index v10` or with
+`graph-discover-universal --proof-profile scheduled`.
+
+Protocol v2 reruns v7, v9, and v10 on the same 100 statements with a
+10,000-node cap and a 45-second Lean timeout. The v9 results on these
+statements informed the scheduler design, so v2 measures regression coverage
+on that workload. Generalization requires a new, separately frozen workload.
+
+```bash
+python scripts/benchmark_graph_proof_coverage.py --protocol v2 \
+  --autographforge /path/to/AutoGraphForge --output /path/to/coverage-v2 --workers 8
+python scripts/benchmark_graph_competition.py \
+  --proof-index v10 --output /path/to/regression-v10
+```
+
+| Premise | Statements | v7 Lean proofs | v9 Lean proofs | v10 Lean proofs |
+| --- | ---: | ---: | ---: | ---: |
+| All graphs | 25 | 21 | 24 | 25 |
+| Connected | 25 | 13 | 19 | 20 |
+| Triangle-free | 25 | 18 | 19 | 20 |
+| Bipartite | 25 | 15 | 14 | 14 |
+| Total | 100 | 67 | 76 | 79 |
+
+v10 recovered P022, P046, and P067 and retained every v9 proof. The paired
+family bootstrap interval for the three-point gain was 0 to 6 points.
+The twelve-point gain over v7 fell three points short of the 15-point gate.
+For the 76 statements proved by both v9 and v10, the median recorded
+derivation-node count fell from 135 to 25. This count excludes tactic
+attempts and Lean execution time.
+
+All nine v9 search exhaustions reached Lean in v10. Three yielded accepted
+proofs, and six remained unresolved. The separate frozen regression suite
+returned 22 Lean proofs and 10 independently checked counterexamples.
+The full aggregate is recorded in
+[`proof_coverage_results_v2.json`](../research/proof_engine/proof_coverage_results_v2.json).
