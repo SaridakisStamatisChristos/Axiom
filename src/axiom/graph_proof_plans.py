@@ -2,14 +2,14 @@
 from itertools import combinations
 import re
 
-from .graph_order_split import POSITIVE_BANK, proof_body as order_split_body
+from .graph_order_split import CARDINALITY_POSITIVE_BANK, proof_body as order_split_body
 from .graph_relations import _vector
 from .graph_universal_lean import _lemma_facts
 
 PLAN_VERSION = "axiom.graph_proof_plans.v1"
 MAX_PROOF_PLANS = 16
 _POOL_SIZE = 7
-_ORDER_FACTS = {lemma.theorem for lemma in POSITIVE_BANK}
+_ORDER_FACTS = {lemma.theorem for lemma in CARDINALITY_POSITIVE_BANK}
 _MARKER = "AXIOM_ACCEPTED_PLAN:"
 
 

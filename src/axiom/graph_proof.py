@@ -13,13 +13,13 @@ from .graph_discovery import _failed_side
 from .graph_edge_induction import (EDGE_INDUCTION_PROOF, EDGE_INDUCTION_RULE,
                                    EDGE_INDUCTION_VERSION)
 from .graph_lemma_retrieval import (
-    CERTIFICATE_INDEX, PALETTE_INDEX, DECOMPOSITION_INDEX, INDEX_DIGESTS, INDEX_VERSION, MAX_RETRIEVED_LEMMAS,
+    CARDINALITY_INDEX, CERTIFICATE_INDEX, PALETTE_INDEX, DECOMPOSITION_INDEX, INDEX_DIGESTS, INDEX_VERSION, MAX_RETRIEVED_LEMMAS,
     ROUNDING_BUDGET_DIVISOR, SCHEDULED_INDEX, describe, indexed_facts, retrieve,
 )
 from .graph_large_witness import SCHEMA as LARGE_WITNESS_SCHEMA, replay_witness
 from .graph_lemma_synthesis import MAX_SYNTHESIZED_LEMMAS, SYNTHESIS_VERSION, synthesize
 from .graph_model import edge_positions
-from .graph_order_split import ORDER_SPLIT_VERSION, POSITIVE_BANK, proof_body as order_split_body
+from .graph_order_split import CARDINALITY_POSITIVE_BANK, ORDER_SPLIT_VERSION, POSITIVE_BANK, proof_body as order_split_body
 from .graph_proof_hints import (CONTEXT_SCHEMA, HINT_SCHEMA, eligible_facts,
                                 schedule as schedule_hints, validate as validate_hints)
 from .graph_proof_plans import (MAX_PROOF_PLANS, PLAN_VERSION, accepted_plan,
@@ -189,7 +189,7 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
         return dict(base, status="COUNTEREXAMPLE", reason="INDEPENDENT_GRAPH_WITNESS",
                     counterexample=witness)
 
-    scheduled = retrieval_index in (SCHEDULED_INDEX, CERTIFICATE_INDEX, PALETTE_INDEX)
+    scheduled = retrieval_index in (SCHEDULED_INDEX, CERTIFICATE_INDEX, PALETTE_INDEX, CARDINALITY_INDEX)
     direct_limits = limits
     schedule = None
     if scheduled:
@@ -226,6 +226,7 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
             bank += tuple(step.lemma for step in projections)
             derivation = _retry(claim, bank, direct_limits, derivation["nodes"],
                                 integer_rounding=integer_rounding, index_leaves=scheduled)
+    positive_bank = CARDINALITY_POSITIVE_BANK if retrieval_index == CARDINALITY_INDEX else POSITIVE_BANK
     split_used = (split_order and not derivation["derived"]
                   and (scheduled or derivation["nodes"] < direct_limits.max_nodes))
     if split_used:
@@ -233,7 +234,7 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
             attempted=True, initial_derivation=derivation,
             zero_branch="CONNECTED_IMPOSSIBLE" if claim.bound.assumption == "CONNECTED" else "ZERO_INVARIANTS",
         )
-        bank += POSITIVE_BANK
+        bank += positive_bank
         if derivation["nodes"] < direct_limits.max_nodes:
             derivation = _retry(claim, bank, direct_limits, derivation["nodes"],
                                 integer_rounding=integer_rounding, index_leaves=scheduled)
@@ -254,7 +255,7 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
             derivation = _retry(claim, bank, rounding_limits, direct_nodes,
                                 integer_rounding=True, index_leaves=True)
             schedule["rounding_nodes"] = derivation["nodes"] - direct_nodes
-    if retrieval_index in (CERTIFICATE_INDEX, PALETTE_INDEX):
+    if retrieval_index in (CERTIFICATE_INDEX, PALETTE_INDEX, CARDINALITY_INDEX):
         fallback = {"attempted": False, "nodes": 0, "selected": []}
         base["retrieval"]["certificate_fallback"] = fallback
         unused_direct = direct_limits.max_nodes - schedule["direct_nodes"]
@@ -263,7 +264,7 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
                               if entry.lemma.premise in ("ALL", claim.bound.assumption))
             candidate_bank = (*BANK, *(entry.lemma for entry in inventory))
             if split_used:
-                candidate_bank += POSITIVE_BANK
+                candidate_bank += positive_bank
             if induct_edges:
                 candidate_bank += (EDGE_INDUCTION_RULE,)
             previous_nodes = derivation["nodes"]
@@ -307,7 +308,7 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
     if context_only:
         return dict(base, status="EXACT_DERIVATION_READY", reason="DERIVATION_READY")
     body = None
-    local_bank = {lemma.theorem for lemma in POSITIVE_BANK}
+    local_bank = {lemma.theorem for lemma in CARDINALITY_POSITIVE_BANK}
     if plans:
         matches = sorted({(lemma.theorem, lemma.premise) for plan in plans for lemma in plan
                           if lemma.theorem not in local_bank})
@@ -397,7 +398,7 @@ def hint_context(statement, *, limits=SearchLimits(), witness_order=5,
         "statement_sha256": result["statement_sha256"], "status": result["status"],
         "reason": result["reason"], "invariant_order": result["invariant_order"],
         "plan_slots": result.get("plan_slots", 0), "max_lemmas": limits.max_lemmas,
-        "facts": [{**asdict(lemma), "scope": "POSITIVE_ORDER" if lemma in POSITIVE_BANK else "GLOBAL"}
+        "facts": [{**asdict(lemma), "scope": "POSITIVE_ORDER" if lemma in CARDINALITY_POSITIVE_BANK else "GLOBAL"}
                   for _, lemma in sorted(facts.items())],
         "response_template": {"schema": HINT_SCHEMA,
                               "statement_sha256": result["statement_sha256"], "plans": []},

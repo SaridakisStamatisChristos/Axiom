@@ -27,9 +27,17 @@ _POSITIVE_FACTS = {
         "  rw [← SimpleGraph.cliqueNum_compl]\n"
         "  exact Nat.pos_of_ne_zero Gᶜ.cliqueNum_ne_zero_of_finite",
     ),
+    "order_components_positive": (
+        {"components": -1}, -1,
+        "have order_components_positive : 0 < components G := by\n"
+        "  letI : Nonempty G.ConnectedComponent := Nonempty.map G.connectedComponentMk inferInstance\n"
+        "  exact Nat.card_pos",
+    ),
 }
-POSITIVE_BANK = tuple(LemmaSpec(name, "ALL", _vector(weights.items()), rhs)
-                      for name, (weights, rhs, _) in _POSITIVE_FACTS.items())
+CARDINALITY_POSITIVE_BANK = tuple(LemmaSpec(name, "ALL", _vector(weights.items()), rhs)
+                                  for name, (weights, rhs, _) in _POSITIVE_FACTS.items())
+POSITIVE_BANK = tuple(lemma for lemma in CARDINALITY_POSITIVE_BANK
+                      if lemma.theorem != "order_components_positive")
 
 _EMPTY_FACTS = {
     "edges": "have z_edges : edges G = 0 := by\n"
