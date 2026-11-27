@@ -1,0 +1,34 @@
+{
+  "axiom_git_objects": {
+    "lake-manifest.json": "ace4c8a1ea647b0ad5a8f729acccfd64b6bf6e88",
+    "lakefile.toml": "7328587f52a884a3ea0bbd89b7c1f299951aa1ed",
+    "lean-toolchain": "a6aff065db2882c535684f8c5bcd4f16e9a23915",
+    "src": "2fce7ffaa0c1b1f39b7160cf0125bf1b413dabbd"
+  },
+  "bootstrap_replicates": 20000,
+  "bootstrap_seed": 112712,
+  "budget": {
+    "max_coefficient": 3,
+    "max_lemmas": 3,
+    "max_nodes": 10000,
+    "plan_limit": 16,
+    "retrieval_limit": 5,
+    "synthesis_limit": 3,
+    "timeout": 45,
+    "witness_order": 5
+  },
+  "cases": 100,
+  "contender": "v11",
+  "families": 20,
+  "lanes": [
+    "v10",
+    "v11"
+  ],
+  "lean": "4.35.0",
+  "manifest": "proof_holdout_100_v1.json",
+  "manifest_sha256": "a1e31413ae2714e4ea81c1eed0b85a8ee8ffaaef14d0950277dfe0c9dffa1c6d",
+  "mathlib": "56a005855ea17e0b0958f73ec801ae140b0a1679",
+  "primary": "Paired change in percentage of 100 new statements verified by the pinned Lean kernel",
+  "schema": "axiom.graph_proof_coverage_protocol.v4",
+  "selection_seed": 112711
+}
