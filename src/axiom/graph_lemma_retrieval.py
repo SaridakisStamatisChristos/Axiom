@@ -3,6 +3,7 @@ from dataclasses import asdict, dataclass
 
 from .graph_bipartite_matching import BIPARTITE_MATCHING_PROOF
 from .graph_claims import digest
+from .graph_palette_bounds import INDEPENDENT_PALETTE, MATCHING_PALETTE
 from .graph_component_coloring import COMPONENT_COLORING_PROOF
 from .graph_decomposition_bounds import CONNECTED_CHROMATIC_EDGES_PROOF, TRIANGLE_FREE_MATCHING_PROOF
 from .graph_matching_cardinality import MATCHING_CARDINALITY_PROOF
@@ -419,6 +420,20 @@ have hz := SimpleGraph.cliqueFinset_eq_empty_iff.mpr premise
 )
 
 
+_CONNECTED_UPPER = _V9_BY_NAME["retrieved_connected_components_le_one"]
+_INDEX_V12 = _INDEX_V11 + (
+    _adapter("connected_components_ge_one", "CONNECTED", {"components": -1}, -1,
+             _CONNECTED_UPPER.declarations, _CONNECTED_UPPER.proof),
+    _adapter("independent_palette", "ALL", {"chromatic": 1, "independence": 1, "n": -1}, 1,
+             ("SimpleGraph.exists_isNIndepSet_indepNum", "SimpleGraph.Coloring.mk",
+              "Finset.card_add_card_compl"), INDEPENDENT_PALETTE),
+    _adapter("matching_palette", "ALL", {"chromatic": 1, "matching": -2}, 1,
+             ("SimpleGraph.Subgraph.IsMatching.map", "SimpleGraph.Subgraph.IsMatching.sup",
+              "SimpleGraph.Subgraph.IsMatching.subgraphOfAdj", "SimpleGraph.Coloring.mk"),
+             MATCHING_PALETTE),
+)
+
+
 INDEX_VERSION = "axiom.mathlib_affine_graph_index.v1"
 STRUCTURAL_INDEX = "axiom.mathlib_affine_graph_index.v2"
 MATCHING_INDEX = "axiom.mathlib_affine_graph_index.v3"
@@ -430,12 +445,13 @@ CLIQUE_BOUNDS_INDEX = "axiom.mathlib_affine_graph_index.v8"
 DECOMPOSITION_INDEX = "axiom.mathlib_affine_graph_index.v9"
 SCHEDULED_INDEX = "axiom.mathlib_affine_graph_index.v10"
 CERTIFICATE_INDEX = "axiom.mathlib_affine_graph_index.v11"
+PALETTE_INDEX = "axiom.mathlib_affine_graph_index.v12"
 ROUNDING_BUDGET_DIVISOR = 5
 _INDEXES = {INDEX_VERSION: _INDEX_V1, STRUCTURAL_INDEX: _INDEX_V2, MATCHING_INDEX: _INDEX_V3,
             COMPONENT_INDEX: _INDEX_V4, COMPONENT_INDEPENDENCE_INDEX: _INDEX_V5,
             MATCHING_CARDINALITY_INDEX: _INDEX_V6, CLIQUE_INDEPENDENCE_INDEX: _INDEX_V7,
             CLIQUE_BOUNDS_INDEX: _INDEX_V8, DECOMPOSITION_INDEX: _INDEX_V9, SCHEDULED_INDEX: _INDEX_V9,
-            CERTIFICATE_INDEX: _INDEX_V11}
+            CERTIFICATE_INDEX: _INDEX_V11, PALETTE_INDEX: _INDEX_V12}
 _MATCHING_CARDINALITY_ADAPTER = "retrieved_twice_matching_le_order"
 _MATCHING_CARDINALITY_POLICY = "offer_cardinality_adapter_for_matching_coefficient_at_least_two"
 _CLIQUE_INDEPENDENCE_ADAPTER = "retrieved_clique_add_independence_le_order_add_one"
@@ -472,7 +488,7 @@ INDEX_DIGESTS = {version: digest({
     **({"composition": {"schedule": "v10_then_inventory_certificate_then_plans",
                         "baseline_index": SCHEDULED_INDEX,
                         "rounding_budget_divisor": ROUNDING_BUDGET_DIVISOR}}
-       if version == CERTIFICATE_INDEX else {}),
+       if version in (CERTIFICATE_INDEX, PALETTE_INDEX) else {}),
 }) for version, entries in _INDEXES.items()}
 INDEX_SHA256 = INDEX_DIGESTS[INDEX_VERSION]
 MAX_RETRIEVED_LEMMAS = 32
@@ -480,7 +496,7 @@ MAX_RETRIEVED_LEMMAS = 32
 
 def retrieve(claim: AffineRelation, limit: int, *, index=INDEX_VERSION) -> tuple[MathlibAdapter, ...]:
     """Rank exact directions first, then signed overlaps and sparse supports."""
-    if index == CERTIFICATE_INDEX:
+    if index in (CERTIFICATE_INDEX, PALETTE_INDEX):
         index = SCHEDULED_INDEX
     directions = claim.inequalities()
     targets = [_vector(side.terms) for side in directions]

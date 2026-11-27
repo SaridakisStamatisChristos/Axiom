@@ -9,7 +9,7 @@ import pytest
 from axiom.graph_claims import digest
 from axiom.graph_lemma_retrieval import (
     CERTIFICATE_INDEX, CLIQUE_BOUNDS_INDEX, CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX,
-    SCHEDULED_INDEX, retrieve,
+    PALETTE_INDEX, SCHEDULED_INDEX, retrieve,
 )
 from axiom.graph_proof import RETRIEVAL_SCHEMA, SCHEMA, audit, prove
 from axiom.graph_proof_search import SearchLimits
@@ -214,3 +214,17 @@ def test_inventory_certificate_recovers_omitted_facts(tmp_path, premise, terms, 
     attempt["record_sha256"] = digest({k: v for k, v in attempt.items() if k != "record_sha256"})
     with pytest.raises(ValueError, match="deterministic replay"):
         audit(attempt)
+
+
+@pytest.mark.parametrize("premise,terms,rhs", [
+    ("ALL", {"chromatic": 1, "matching": -2}, 1),
+    ("ALL", {"chromatic": 1, "independence": 1, "n": -1}, 1),
+    ("CONNECTED", {"components": -1}, -1),
+])
+def test_palette_certificates(tmp_path, premise, terms, rhs):
+    claim = AffineRelation.normalized(terms, rhs, premise).to_dict()
+    project = PROJECT if os.environ.get("AXIOM_REAL_LEAN") == "1" else tmp_path
+    attempt = prove(claim, retrieval_index=PALETTE_INDEX, retrieval_limit=5,
+                    project_root=project, timeout=45)
+    assert attempt["status"] == ("FORMALLY_VERIFIED" if project == PROJECT else "LEAN_UNAVAILABLE")
+    assert audit(attempt)
