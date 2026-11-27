@@ -141,7 +141,8 @@ def main():
         "v7": CLIQUE_INDEPENDENCE_INDEX,
         "v9": DECOMPOSITION_INDEX,
         "v10": SCHEDULED_INDEX,
-        "v12": PALETTE_INDEX, "v11": CERTIFICATE_INDEX,
+        "v11": CERTIFICATE_INDEX,
+        "v12": PALETTE_INDEX,
     }
     parser.add_argument("--proof-index", choices=proof_indexes, default="v7",
                         help="retrieval index for the same frozen 32-case proof regression")

@@ -85,3 +85,42 @@ and coloring a maximum independent set. All 200 attempts passed offline
 evidence replay, and the graph oracles checked 1,100 labelled graphs. The
 [aggregate results](../research/proof_engine/proof_holdout_results_v1.json)
 are stored with the protocol.
+
+## v12 palette certificates
+
+The opt-in v12 profile colors an independent set with one color and assigns a
+distinct color to each remaining vertex. A second certificate recursively removes
+the endpoints of an edge, extending a matching and a coloring together. This
+gives a coloring using at most twice the matching number plus one colors.
+Connected graphs also expose both directions of the component-count equality.
+The discovery profile is `palette`. For individual statements use
+`graph-prove --retrieval-index v12 --retrieve-lemmas 5 --synthesize-lemmas 3 --split-order --induct-edges --proof-plans 16`.
+
+| 100-statement suite | v11 | v12 | New proofs | Lost proofs |
+| --- | ---: | ---: | ---: | ---: |
+| Original development suite | 91 | 95 | 4 | 0 |
+| First holdout, used for v12 development | 87 | 97 | 10 | 0 |
+| Second holdout, frozen before scoring | 86 | 99 | 13 | 0 |
+
+Each run used the same 10,000-node cap and 45-second Lean timeout. The first
+two comparisons use archived v11 attempts and newly executed v12 attempts.
+The second holdout ran both engines and replayed all 200 attempts. Its 100
+premise/direction pairs are distinct from both earlier suites. It samples the
+same 20 anchor families. The 13 gains were concentrated in component uniqueness
+(5), independent-set coloring (4), and matching-based coloring (4). The
+descriptive paired family bootstrap interval is 0 to 28 percentage points.
+H092 in this second holdout remains unresolved in the bipartite matching family.
+
+Reproduce the fresh paired evaluation from this revision using the pinned Lean
+toolchain and Mathlib checkout.
+
+```bash
+PYTHONPATH=src python scripts/benchmark_graph_proof_coverage.py \
+  --protocol v5 --workers 8 --output /tmp/axiom-palette-fresh
+```
+
+Protocols v6 and v7 rerun both lanes on the original and first-holdout suites,
+respectively. The [regression results](../research/proof_engine/proof_palette_regression_results.json)
+include each statement's outcome and the v12 attempt digest. The
+[fresh results](../research/proof_engine/proof_holdout_results_v2.json)
+give the paired comparison and breakdown by premise.

@@ -1,0 +1,65 @@
+{
+  "all": {
+    "v11": {
+      "FORMALLY_VERIFIED": 86,
+      "LEAN_REJECTED": 14
+    },
+    "v12": {
+      "FORMALLY_VERIFIED": 99,
+      "LEAN_REJECTED": 1
+    }
+  },
+  "by_scope": {
+    "ALL": {
+      "v11": {
+        "FORMALLY_VERIFIED": 17,
+        "LEAN_REJECTED": 8
+      },
+      "v12": {
+        "FORMALLY_VERIFIED": 25
+      }
+    },
+    "BIPARTITE": {
+      "v11": {
+        "FORMALLY_VERIFIED": 24,
+        "LEAN_REJECTED": 1
+      },
+      "v12": {
+        "FORMALLY_VERIFIED": 24,
+        "LEAN_REJECTED": 1
+      }
+    },
+    "CONNECTED": {
+      "v11": {
+        "FORMALLY_VERIFIED": 20,
+        "LEAN_REJECTED": 5
+      },
+      "v12": {
+        "FORMALLY_VERIFIED": 25
+      }
+    },
+    "TRIANGLE_FREE": {
+      "v11": {
+        "FORMALLY_VERIFIED": 25
+      },
+      "v12": {
+        "FORMALLY_VERIFIED": 25
+      }
+    }
+  },
+  "paired_all": [
+    {
+      "baseline": "v11",
+      "case_count": 100,
+      "contender": "v12",
+      "delta_points": 13.0,
+      "family_count": 20,
+      "losses": 0,
+      "paired_family_bootstrap_95_points": [
+        0.0,
+        28.0
+      ],
+      "wins": 13
+    }
+  ]
+}
