@@ -56,6 +56,9 @@ def test_shortest_search_matches_independent_exhaustive_oracle(premise):
         choices = [row for row in oracle.get(target, ()) if row[2] <= claim.bound.upper]
         result = search(claim, BANK, limits)
         assert result == search(claim, tuple(reversed(BANK)), limits)
+        indexed = search(claim, BANK, limits, index_leaves=True)
+        assert indexed["directions"] == result["directions"]
+        assert indexed["nodes"] <= result["nodes"]
         assert result["derived"] is bool(choices)
         if choices:
             used = result["directions"][0]["lemmas"]

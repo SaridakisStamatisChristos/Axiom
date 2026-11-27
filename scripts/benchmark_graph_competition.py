@@ -9,7 +9,7 @@ import subprocess
 import sys
 from time import perf_counter
 
-from axiom.graph_lemma_retrieval import CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX
+from axiom.graph_lemma_retrieval import CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX, SCHEDULED_INDEX
 from axiom.graph_novelty import PROFILE, PROFILES, NoveltyFilter, entails, fact_bank
 from axiom.graph_proof import audit, prove
 from axiom.graph_relations import AffineRelation, _vector
@@ -135,7 +135,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--autographforge", type=Path)
-    proof_indexes = {"v7": CLIQUE_INDEPENDENCE_INDEX, "v9": DECOMPOSITION_INDEX}
+    proof_indexes = {
+        "v7": CLIQUE_INDEPENDENCE_INDEX,
+        "v9": DECOMPOSITION_INDEX,
+        "v10": SCHEDULED_INDEX,
+    }
     parser.add_argument("--proof-index", choices=proof_indexes, default="v7",
                         help="retrieval index for the same frozen 32-case proof regression")
     parser.add_argument("--novelty-profile", choices=PROFILES, default=PROFILE)

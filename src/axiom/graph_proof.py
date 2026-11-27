@@ -13,7 +13,8 @@ from .graph_discovery import _failed_side
 from .graph_edge_induction import (EDGE_INDUCTION_PROOF, EDGE_INDUCTION_RULE,
                                    EDGE_INDUCTION_VERSION)
 from .graph_lemma_retrieval import (
-    DECOMPOSITION_INDEX, INDEX_DIGESTS, INDEX_VERSION, MAX_RETRIEVED_LEMMAS, describe, retrieve,
+    DECOMPOSITION_INDEX, INDEX_DIGESTS, INDEX_VERSION, MAX_RETRIEVED_LEMMAS,
+    ROUNDING_BUDGET_DIVISOR, SCHEDULED_INDEX, describe, retrieve,
 )
 from .graph_large_witness import SCHEMA as LARGE_WITNESS_SCHEMA, replay_witness
 from .graph_lemma_synthesis import MAX_SYNTHESIZED_LEMMAS, SYNTHESIS_VERSION, synthesize
@@ -99,9 +100,9 @@ def _render_adapters(selected, projections, matches):
     return imports, ("\n".join(wrappers) + "\n" if wrappers else "")
 
 
-def _retry(claim, bank, limits, previous_nodes, *, integer_rounding=False):
+def _retry(claim, bank, limits, previous_nodes, *, integer_rounding=False, index_leaves=False):
     result = search(claim, bank, replace(limits, max_nodes=limits.max_nodes - previous_nodes),
-                    integer_rounding=integer_rounding)
+                    integer_rounding=integer_rounding, index_leaves=index_leaves)
     return {**result, "nodes": previous_nodes + result["nodes"]}
 
 
@@ -186,44 +187,71 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
         return dict(base, status="COUNTEREXAMPLE", reason="INDEPENDENT_GRAPH_WITNESS",
                     counterexample=witness)
 
+    scheduled = retrieval_index == SCHEDULED_INDEX
+    direct_limits = limits
+    schedule = None
+    if scheduled:
+        plan_reserve = min(plan_limit, limits.max_nodes - 1)
+        available = limits.max_nodes - plan_reserve
+        rounding_budget = available // ROUNDING_BUDGET_DIVISOR if limits.max_coefficient > 1 else 0
+        direct_limits = replace(limits, max_nodes=available - rounding_budget)
+        schedule = {"direct_node_limit": direct_limits.max_nodes, "direct_nodes": 0,
+                    "rounding_node_limit": rounding_budget, "rounding_nodes": 0,
+                    "reserved_plan_slots": plan_reserve}
+        base["retrieval"]["schedule"] = schedule
+
     bank = BANK
-    derivation = search(claim, bank, limits)
+    derivation = search(claim, bank, direct_limits, index_leaves=scheduled)
     selected, projections = (), ()
     integer_rounding = retrieval_index == DECOMPOSITION_INDEX
     if retrieval_limit:
         info = base["retrieval"]
         primary_nodes = derivation["nodes"]
         info["primary_nodes"] = primary_nodes
-        remaining = limits.max_nodes - primary_nodes
+        remaining = direct_limits.max_nodes - primary_nodes
         if not derivation["derived"] and remaining > 0:
             selected = retrieve(claim, retrieval_limit, index=retrieval_index)
             info.update(selected=[describe(entry) for entry in selected],
                         initial_derivation=derivation, attempted=True)
             bank = BANK + tuple(entry.lemma for entry in selected)
-            derivation = _retry(claim, bank, limits, primary_nodes,
-                                integer_rounding=integer_rounding)
-    if synthesis_limit and not derivation["derived"] and derivation["nodes"] < limits.max_nodes:
+            derivation = _retry(claim, bank, direct_limits, primary_nodes,
+                                integer_rounding=integer_rounding, index_leaves=scheduled)
+    if synthesis_limit and not derivation["derived"] and derivation["nodes"] < direct_limits.max_nodes:
         projections = synthesize(claim, bank, synthesis_limit)
         base["synthesis"].update(attempted=True, initial_derivation=derivation,
                                  selected=[step.evidence() for step in projections])
         if projections:
             bank += tuple(step.lemma for step in projections)
-            derivation = _retry(claim, bank, limits, derivation["nodes"],
-                                integer_rounding=integer_rounding)
-    split_used = split_order and not derivation["derived"] and derivation["nodes"] < limits.max_nodes
+            derivation = _retry(claim, bank, direct_limits, derivation["nodes"],
+                                integer_rounding=integer_rounding, index_leaves=scheduled)
+    split_used = (split_order and not derivation["derived"]
+                  and (scheduled or derivation["nodes"] < direct_limits.max_nodes))
     if split_used:
         base["order_split"].update(
             attempted=True, initial_derivation=derivation,
             zero_branch="CONNECTED_IMPOSSIBLE" if claim.bound.assumption == "CONNECTED" else "ZERO_INVARIANTS",
         )
         bank += POSITIVE_BANK
-        derivation = _retry(claim, bank, limits, derivation["nodes"],
-                            integer_rounding=integer_rounding)
-    if induct_edges and not derivation["derived"] and derivation["nodes"] < limits.max_nodes:
+        if derivation["nodes"] < direct_limits.max_nodes:
+            derivation = _retry(claim, bank, direct_limits, derivation["nodes"],
+                                integer_rounding=integer_rounding, index_leaves=scheduled)
+    if (induct_edges and not derivation["derived"]
+            and (scheduled or derivation["nodes"] < direct_limits.max_nodes)):
         base["edge_induction"].update(attempted=True, initial_derivation=derivation)
         bank += (EDGE_INDUCTION_RULE,)
-        derivation = _retry(claim, bank, limits, derivation["nodes"],
-                            integer_rounding=integer_rounding)
+        if derivation["nodes"] < direct_limits.max_nodes:
+            derivation = _retry(claim, bank, direct_limits, derivation["nodes"],
+                                integer_rounding=integer_rounding, index_leaves=scheduled)
+    if schedule is not None:
+        direct_nodes = derivation["nodes"]
+        schedule["direct_nodes"] = direct_nodes
+        schedule["direct_budget_exhausted"] = (derivation["node_budget_exhausted"]
+                                                or direct_nodes == direct_limits.max_nodes)
+        if not derivation["derived"] and schedule["rounding_node_limit"]:
+            rounding_limits = replace(limits, max_nodes=direct_nodes + schedule["rounding_node_limit"])
+            derivation = _retry(claim, bank, rounding_limits, direct_nodes,
+                                integer_rounding=True, index_leaves=True)
+            schedule["rounding_nodes"] = derivation["nodes"] - direct_nodes
     base["derivation"] = derivation
     plans = ()
     remaining = limits.max_nodes - derivation["nodes"]
@@ -240,6 +268,7 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
         base["proof_plans"]["candidates"] = [[lemma.theorem for lemma in plan] for plan in plans]
     if not (derivation["derived"] or plans):
         budget_exhausted = (derivation["node_budget_exhausted"]
+                            or (schedule is not None and schedule["direct_budget_exhausted"])
                             or ((retrieval_limit or synthesis_limit or split_order or induct_edges or plan_limit)
                                 and derivation["nodes"] == limits.max_nodes))
         reason = "NODE_BUDGET_EXHAUSTED" if budget_exhausted else "NO_BOUNDED_COMBINATION"

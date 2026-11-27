@@ -8,7 +8,7 @@ import pytest
 
 from axiom.graph_claims import digest
 from axiom.graph_lemma_retrieval import (
-    CLIQUE_BOUNDS_INDEX, CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX, retrieve,
+    CLIQUE_BOUNDS_INDEX, CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX, SCHEDULED_INDEX, retrieve,
 )
 from axiom.graph_proof import RETRIEVAL_SCHEMA, SCHEMA, audit, prove
 from axiom.graph_proof_search import SearchLimits
@@ -144,3 +144,38 @@ def test_decomposition_retrieval_keeps_lemmas_in_scope(premise, terms, rhs, adap
     claim = AffineRelation.normalized(terms, rhs, premise)
     assert all(item.lemma.theorem != "retrieved_" + adapter
                for item in retrieve(claim, 32, index=DECOMPOSITION_INDEX))
+
+
+
+def test_scheduled_rounding_has_auditable_separate_budget(tmp_path):
+    claim = AffineRelation.normalized({"clique": 1, "edges": -1, "n": 1}, 3, "CONNECTED")
+    project = PROJECT if os.environ.get("AXIOM_REAL_LEAN") == "1" else tmp_path
+    record = prove(claim.to_dict(), retrieval_limit=5, retrieval_index=SCHEDULED_INDEX,
+                   plan_limit=16, project_root=project, timeout=25)
+    expected = "FORMALLY_VERIFIED" if project == PROJECT else "LEAN_UNAVAILABLE"
+    assert record["status"] == expected, record["kernel"]
+    direction, = record["derivation"]["directions"]
+    assert direction["target_scale"] == 2
+    schedule = record["retrieval"]["schedule"]
+    assert 0 < schedule["direct_nodes"] <= schedule["direct_node_limit"]
+    assert 0 < schedule["rounding_nodes"] <= schedule["rounding_node_limit"]
+    assert schedule["rounding_nodes"] + schedule["direct_nodes"] == record["derivation"]["nodes"]
+    assert sum(schedule[key] for key in ("direct_node_limit", "rounding_node_limit", "reserved_plan_slots")) == 10_000
+    assert audit(record)
+    altered = deepcopy(record)
+    altered["retrieval"]["schedule"]["rounding_nodes"] += 1
+    altered["record_sha256"] = digest({k: v for k, v in altered.items() if k != "record_sha256"})
+    with pytest.raises(ValueError, match="deterministic replay"):
+        audit(altered)
+
+
+def test_scheduled_direct_cutoff_leaves_tactic_slots(tmp_path):
+    claim = AffineRelation.normalized({"clique": 1, "edges": -1, "n": 1}, 3, "CONNECTED")
+    record = prove(claim.to_dict(), retrieval_limit=5, retrieval_index=SCHEDULED_INDEX,
+                   plan_limit=16, limits=SearchLimits(max_nodes=3), project_root=tmp_path)
+    assert record["retrieval"]["schedule"] == {
+        "direct_node_limit": 1, "direct_nodes": 1, "direct_budget_exhausted": True,
+        "rounding_node_limit": 0, "rounding_nodes": 0, "reserved_plan_slots": 2,
+    }
+    assert 0 < len(record["proof_plans"]["candidates"]) <= 2
+    assert audit(record)
