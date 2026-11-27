@@ -41,12 +41,15 @@ SECONDARIES = SECONDARY + tuple(
 )
 
 
-def freeze():
+def freeze(seed=SEED, previous_holdout=False):
     data = ROOT / "research/proof_engine"
     previous = json.loads((data / "proof_coverage_100_v1.json").read_bytes())
     excluded = excluded_directions() | {
         direction(AffineRelation.from_dict(case["statement"])) for case in previous["cases"]
     }
+    if previous_holdout:
+        prior = json.loads((data / "proof_holdout_100_v1.json").read_bytes())
+        excluded.update(direction(AffineRelation.from_dict(case["statement"])) for case in prior["cases"])
     excluded.update(direction(AffineRelation.normalized(terms, upper, scope))
                     for scope, _, terms, upper in (*DEVELOPMENT_ANCHORS, *ANCHORS))
     # The small historical competition file has a different row layout.
@@ -54,7 +57,7 @@ def freeze():
     excluded.update(direction(AffineRelation.normalized(terms, upper, scope, relation))
                     for _, scope, terms, upper, relation, _ in regression)
 
-    randomizer = Random(SEED)
+    randomizer = Random(seed)
     cases = []
     for scope, family, anchor, bound in ANCHORS:
         choices = [(terms, upper, scale) for terms, upper in SECONDARIES for scale in (1, 2)]
@@ -84,7 +87,8 @@ def freeze():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("output", type=Path)
+    parser.add_argument("--second-holdout", action="store_true")
     args = parser.parse_args()
     with args.output.open("x", encoding="utf-8") as file:
-        json.dump(freeze(), file, indent=2, sort_keys=True)
+        json.dump(freeze(112712, True) if args.second_holdout else freeze(), file, indent=2, sort_keys=True)
         file.write("\n")
