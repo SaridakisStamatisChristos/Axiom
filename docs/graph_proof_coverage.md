@@ -146,3 +146,53 @@ proofs, and six remained unresolved. The separate frozen regression suite
 returned 22 Lean proofs and 10 independently checked counterexamples.
 The full aggregate is recorded in
 [`proof_coverage_results_v2.json`](../research/proof_engine/proof_coverage_results_v2.json).
+
+## v11 certificate-directed retrieval
+
+The v11 profile inherits the scheduled search. If its shortlist and rounding
+passes produce no exact certificate, v11 uses the unspent direct-search
+budget to search all pinned adapters applicable to the statement's premise.
+An admissible certificate must fit the requested retrieval limit. Lean checks
+the selected adapters, their fixed dependencies, and the composed proof.
+If this search finds no admissible certificate, the scheduled tactic-plan
+budget remains available. Proof audit reconstructs the fallback and checks
+its node count and selected adapters.
+
+The fallback inventory adds a clique bound for triangle-free graphs,
+nonnegativity of the triangle count, and a bound on the sum of matching size
+and component count. The last bound composes two existing facts through the
+independence number.
+
+Select v11 with `graph-prove --retrieval-index v11` or
+`graph-discover-universal --proof-profile certificate`.
+
+Protocol v3 uses the same frozen statements and resource limits. Failures on
+these statements informed development, so its results measure regression
+coverage. A fresh holdout is needed to measure generalization.
+
+```bash
+python scripts/benchmark_graph_proof_coverage.py --protocol v3 \
+  --autographforge /path/to/AutoGraphForge --output /path/to/coverage-v3 --workers 8
+python scripts/benchmark_graph_competition.py \
+  --proof-index v11 --output /path/to/regression-v11
+```
+
+| Premise | Statements | v7 Lean proofs | v9 Lean proofs | v10 Lean proofs | v11 Lean proofs |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| All graphs | 25 | 21 | 24 | 25 | 25 |
+| Connected | 25 | 13 | 19 | 20 | 21 |
+| Triangle-free | 25 | 18 | 19 | 20 | 25 |
+| Bipartite | 25 | 15 | 14 | 14 | 20 |
+| Total | 100 | 67 | 76 | 79 | 91 |
+
+v11 retained every proof from the three earlier profiles. Its 24-point
+gain over v7 passed the 15-point gate. The 12-point gain over v10 had a
+paired family bootstrap interval of 2 to 24 points. Nine statements reached
+Lean without an accepted proof.
+
+A diagnostic rerun of the 21 v10 failures used the new fallback with the
+original v10 inventory. It recovered 11 proofs. The expanded inventory
+recovered P090 as well. The separate frozen regression returned 22 Lean
+proofs and 10 independently checked counterexamples. The full aggregate
+appears in
+[`proof_coverage_results_v3.json`](../research/proof_engine/proof_coverage_results_v3.json).
