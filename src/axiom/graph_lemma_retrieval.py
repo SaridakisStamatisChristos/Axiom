@@ -394,9 +394,9 @@ _INDEX_V9 = _INDEX_V8 + (
 )
 
 
-def _combined_adapter(name, weights, rhs, *parents):
+def _combined_adapter(name, weights, rhs, *parents, premise="ALL"):
     facts = _lemma_facts((entry.lemma.theorem, entry.lemma.premise) for entry in parents)
-    lemma = LemmaSpec("retrieved_" + name, "ALL", _vector(weights.items()), rhs)
+    lemma = LemmaSpec("retrieved_" + name, premise, _vector(weights.items()), rhs)
     return MathlibAdapter(
         lemma, tuple(dict.fromkeys(declaration for entry in parents for declaration in entry.declarations)),
         facts.strip() + "\n  omega", parents=parents,
@@ -434,6 +434,18 @@ _INDEX_V12 = _INDEX_V11 + (
 )
 
 
+_INDEX_V13 = _INDEX_V12 + (
+    _combined_adapter(
+        "bipartite_matching_le_independence", {"matching": 1, "independence": -1}, 0,
+        _V9_BY_NAME["retrieved_twice_matching_le_order"],
+        _V9_BY_NAME["retrieved_bipartite_order_le_matching_add_independence"],
+        premise="BIPARTITE",
+    ),
+    *(_adapter(f"{symbol}_nonnegative", "ALL", {symbol: -1}, 0, (), "omega")
+      for symbol in ("components", "chromatic")),
+)
+
+
 INDEX_VERSION = "axiom.mathlib_affine_graph_index.v1"
 STRUCTURAL_INDEX = "axiom.mathlib_affine_graph_index.v2"
 MATCHING_INDEX = "axiom.mathlib_affine_graph_index.v3"
@@ -446,12 +458,13 @@ DECOMPOSITION_INDEX = "axiom.mathlib_affine_graph_index.v9"
 SCHEDULED_INDEX = "axiom.mathlib_affine_graph_index.v10"
 CERTIFICATE_INDEX = "axiom.mathlib_affine_graph_index.v11"
 PALETTE_INDEX = "axiom.mathlib_affine_graph_index.v12"
+CARDINALITY_INDEX = "axiom.mathlib_affine_graph_index.v13"
 ROUNDING_BUDGET_DIVISOR = 5
 _INDEXES = {INDEX_VERSION: _INDEX_V1, STRUCTURAL_INDEX: _INDEX_V2, MATCHING_INDEX: _INDEX_V3,
             COMPONENT_INDEX: _INDEX_V4, COMPONENT_INDEPENDENCE_INDEX: _INDEX_V5,
             MATCHING_CARDINALITY_INDEX: _INDEX_V6, CLIQUE_INDEPENDENCE_INDEX: _INDEX_V7,
             CLIQUE_BOUNDS_INDEX: _INDEX_V8, DECOMPOSITION_INDEX: _INDEX_V9, SCHEDULED_INDEX: _INDEX_V9,
-            CERTIFICATE_INDEX: _INDEX_V11, PALETTE_INDEX: _INDEX_V12}
+            CERTIFICATE_INDEX: _INDEX_V11, PALETTE_INDEX: _INDEX_V12, CARDINALITY_INDEX: _INDEX_V13}
 _MATCHING_CARDINALITY_ADAPTER = "retrieved_twice_matching_le_order"
 _MATCHING_CARDINALITY_POLICY = "offer_cardinality_adapter_for_matching_coefficient_at_least_two"
 _CLIQUE_INDEPENDENCE_ADAPTER = "retrieved_clique_add_independence_le_order_add_one"
@@ -488,7 +501,7 @@ INDEX_DIGESTS = {version: digest({
     **({"composition": {"schedule": "v10_then_inventory_certificate_then_plans",
                         "baseline_index": SCHEDULED_INDEX,
                         "rounding_budget_divisor": ROUNDING_BUDGET_DIVISOR}}
-       if version in (CERTIFICATE_INDEX, PALETTE_INDEX) else {}),
+       if version in (CERTIFICATE_INDEX, PALETTE_INDEX, CARDINALITY_INDEX) else {}),
 }) for version, entries in _INDEXES.items()}
 INDEX_SHA256 = INDEX_DIGESTS[INDEX_VERSION]
 MAX_RETRIEVED_LEMMAS = 32
@@ -496,7 +509,7 @@ MAX_RETRIEVED_LEMMAS = 32
 
 def retrieve(claim: AffineRelation, limit: int, *, index=INDEX_VERSION) -> tuple[MathlibAdapter, ...]:
     """Rank exact directions first, then signed overlaps and sparse supports."""
-    if index in (CERTIFICATE_INDEX, PALETTE_INDEX):
+    if index in (CERTIFICATE_INDEX, PALETTE_INDEX, CARDINALITY_INDEX):
         index = SCHEDULED_INDEX
     directions = claim.inequalities()
     targets = [_vector(side.terms) for side in directions]

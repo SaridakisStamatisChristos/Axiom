@@ -1,0 +1,33 @@
+{
+  "axiom_git_objects": {
+    "lake-manifest.json": "ace4c8a1ea647b0ad5a8f729acccfd64b6bf6e88",
+    "lakefile.toml": "7328587f52a884a3ea0bbd89b7c1f299951aa1ed",
+    "lean-toolchain": "a6aff065db2882c535684f8c5bcd4f16e9a23915",
+    "src": "ff8f86e2d129b237b3d411e94617595e038d554b"
+  },
+  "bootstrap_replicates": 20000,
+  "bootstrap_seed": 112712,
+  "budget": {
+    "max_coefficient": 3,
+    "max_lemmas": 3,
+    "max_nodes": 10000,
+    "plan_limit": 16,
+    "retrieval_limit": 5,
+    "synthesis_limit": 3,
+    "timeout": 45,
+    "witness_order": 5
+  },
+  "cases": 100,
+  "contender": "v13",
+  "families": 20,
+  "lanes": [
+    "v12",
+    "v13"
+  ],
+  "lean": "4.35.0",
+  "manifest": "proof_holdout_100_v2.json",
+  "manifest_sha256": "2acd257012a7db46bf553158cc35635c0bc800ec628c0c005422909bfb24016b",
+  "mathlib": "56a005855ea17e0b0958f73ec801ae140b0a1679",
+  "primary": "Paired change in verified proofs on a previously scored regression suite",
+  "schema": "axiom.graph_proof_coverage_protocol.v10"
+}

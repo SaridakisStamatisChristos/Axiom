@@ -10,7 +10,7 @@ import sys
 from time import perf_counter
 
 from axiom.graph_lemma_retrieval import (
-    PALETTE_INDEX, CERTIFICATE_INDEX, CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX, SCHEDULED_INDEX,
+    CARDINALITY_INDEX, PALETTE_INDEX, CERTIFICATE_INDEX, CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX, SCHEDULED_INDEX,
 )
 from axiom.graph_novelty import PROFILE, PROFILES, NoveltyFilter, entails, fact_bank
 from axiom.graph_proof import audit, prove
@@ -142,7 +142,7 @@ def main():
         "v9": DECOMPOSITION_INDEX,
         "v10": SCHEDULED_INDEX,
         "v11": CERTIFICATE_INDEX,
-        "v12": PALETTE_INDEX,
+        "v12": PALETTE_INDEX, "v13": CARDINALITY_INDEX,
     }
     parser.add_argument("--proof-index", choices=proof_indexes, default="v7",
                         help="retrieval index for the same frozen 32-case proof regression")

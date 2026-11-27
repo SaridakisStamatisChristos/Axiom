@@ -9,7 +9,7 @@ import pytest
 from axiom.graph_claims import digest
 from axiom.graph_lemma_retrieval import (
     CERTIFICATE_INDEX, CLIQUE_BOUNDS_INDEX, CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX,
-    PALETTE_INDEX, SCHEDULED_INDEX, retrieve,
+    CARDINALITY_INDEX, PALETTE_INDEX, SCHEDULED_INDEX, retrieve,
 )
 from axiom.graph_proof import RETRIEVAL_SCHEMA, SCHEMA, audit, prove
 from axiom.graph_proof_search import SearchLimits
@@ -227,4 +227,21 @@ def test_palette_certificates(tmp_path, premise, terms, rhs):
     attempt = prove(claim, retrieval_index=PALETTE_INDEX, retrieval_limit=5,
                     project_root=project, timeout=45)
     assert attempt["status"] == ("FORMALLY_VERIFIED" if project == PROJECT else "LEAN_UNAVAILABLE")
+    assert audit(attempt)
+
+
+@pytest.mark.parametrize("scope,terms,rhs,status", [
+    ("BIPARTITE", {"matching": 1, "independence": -1, "chromatic": -2}, 0, "proof"),
+    ("BIPARTITE", {"clique": 1, "components": -1}, 1, "proof"),
+    ("ALL", {"matching": 1, "independence": -1}, 0, "COUNTEREXAMPLE"),
+    ("ALL", {"components": -1}, -1, "COUNTEREXAMPLE"),
+])
+def test_cardinality_bounds_respect_scope(tmp_path, scope, terms, rhs, status):
+    project = PROJECT if os.environ.get("AXIOM_REAL_LEAN") == "1" else tmp_path
+    attempt = prove(AffineRelation.normalized(terms, rhs, scope).to_dict(),
+                    retrieval_index=CARDINALITY_INDEX, retrieval_limit=5,
+                    split_order=True, project_root=project, timeout=45)
+    if status == "proof":
+        status = "FORMALLY_VERIFIED" if project == PROJECT else "LEAN_UNAVAILABLE"
+    assert attempt["status"] == status
     assert audit(attempt)
