@@ -153,3 +153,9 @@ Protocols v13, v14, and v15 run the v14 engine on the three historical suites.
 PYTHONPATH=src python scripts/benchmark_graph_proof_coverage.py --protocol v11 --workers 8 --output /tmp/axiom-targeted
 PYTHONPATH=src python scripts/benchmark_graph_proof_coverage.py --protocol v12 --workers 8 --output /tmp/axiom-cross-family
 ```
+
+V14 also verified all 300 historical statements in a fresh kernel replay, 100
+per suite. Per-statement statuses and proof source digests are recorded in the
+[historical results](../research/proof_engine/proof_extremal_regression_results.json),
+[targeted results](../research/proof_engine/proof_coverage_results_v11.json),
+and [cross-family results](../research/proof_engine/proof_coverage_results_v12.json).
