@@ -354,7 +354,7 @@ def main() -> None:
     proof.add_argument("--max-nodes", type=int, default=10_000)
     proof.add_argument("--retrieve-lemmas", type=int, default=0, metavar="K",
                        help="retry exhausted composition with up to K pinned Mathlib adapters")
-    proof.add_argument("--retrieval-index", choices=("v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13"), default="v1",
+    proof.add_argument("--retrieval-index", choices=("v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14"), default="v1",
                        help="select the Mathlib retrieval index version")
     proof.add_argument("--synthesize-lemmas", type=int, default=0, metavar="K",
                        help="retry exhausted search with up to K projected intermediate lemmas")
@@ -457,7 +457,7 @@ def main() -> None:
             discovery.add_argument("--proof-profile",
                                    choices=("extended", "structural", "matching", "components",
                                             "component-independence", "matching-cardinality", "clique-independence",
-                                            "clique-bounds", "decomposition", "scheduled", "certificate", "palette", "cardinality"),
+                                            "clique-bounds", "decomposition", "scheduled", "certificate", "palette", "cardinality", "extremal"),
                                    help="use the extended proof engine on the audited selections")
             discovery.add_argument("--proof-hints", metavar="FILE",
                                    help="statement-bound campaign hint manifest for the chosen profile")
@@ -552,7 +552,7 @@ def main() -> None:
         from .graph_lemma_retrieval import (
             CLIQUE_INDEPENDENCE_INDEX, CLIQUE_BOUNDS_INDEX, COMPONENT_INDEX, COMPONENT_INDEPENDENCE_INDEX,
             DECOMPOSITION_INDEX, INDEX_VERSION, MATCHING_CARDINALITY_INDEX, MATCHING_INDEX,
-            CARDINALITY_INDEX, PALETTE_INDEX, CERTIFICATE_INDEX, SCHEDULED_INDEX, STRUCTURAL_INDEX,
+            EXTREMAL_INDEX, CARDINALITY_INDEX, PALETTE_INDEX, CERTIFICATE_INDEX, SCHEDULED_INDEX, STRUCTURAL_INDEX,
         )
         from .graph_proof import audit, hint_context, prove
         from .graph_proof_hints import read_hints
@@ -571,7 +571,7 @@ def main() -> None:
                        "v4": COMPONENT_INDEX, "v5": COMPONENT_INDEPENDENCE_INDEX,
                        "v6": MATCHING_CARDINALITY_INDEX, "v7": CLIQUE_INDEPENDENCE_INDEX,
                        "v8": CLIQUE_BOUNDS_INDEX, "v9": DECOMPOSITION_INDEX,
-                       "v10": SCHEDULED_INDEX, "v11": CERTIFICATE_INDEX, "v12": PALETTE_INDEX, "v13": CARDINALITY_INDEX}
+                       "v10": SCHEDULED_INDEX, "v11": CERTIFICATE_INDEX, "v12": PALETTE_INDEX, "v13": CARDINALITY_INDEX, "v14": EXTREMAL_INDEX}
             options = dict(witness_order=args.witness_order, retrieval_limit=args.retrieve_lemmas,
                            retrieval_index=indexes[args.retrieval_index],
                            synthesis_limit=args.synthesize_lemmas, split_order=args.split_order,

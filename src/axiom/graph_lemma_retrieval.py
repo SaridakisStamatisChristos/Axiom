@@ -2,10 +2,11 @@
 from dataclasses import asdict, dataclass
 
 from .graph_bipartite_matching import BIPARTITE_MATCHING_PROOF
+from .graph_affine import MAX_COEFFICIENT, VARIABLES
 from .graph_claims import digest
 from .graph_palette_bounds import INDEPENDENT_PALETTE, MATCHING_PALETTE
 from .graph_component_coloring import COMPONENT_COLORING_PROOF
-from .graph_decomposition_bounds import CONNECTED_CHROMATIC_EDGES_PROOF, TRIANGLE_FREE_MATCHING_PROOF
+from .graph_decomposition_bounds import CONNECTED_CHROMATIC_EDGES_PROOF, TRIANGLE_FREE_MATCHING_PROOF, critical_edge_tangent
 from .graph_matching_cardinality import MATCHING_CARDINALITY_PROOF
 from .graph_proof_search import LemmaSpec
 from .graph_relations import AffineRelation, _vector
@@ -446,6 +447,29 @@ _INDEX_V13 = _INDEX_V12 + (
 )
 
 
+_TANGENTS = tuple(
+    _adapter(f"critical_{'connected' if connected else 'all'}_slope_{slope}",
+             "CONNECTED" if connected else "ALL",
+             {"chromatic": slope, "edges": -1, **({"n": 1} if connected else {})},
+             (slope + int(connected)) * (slope + int(connected) + 1) // 2,
+             _V9_BY_NAME["retrieved_connected_twice_chromatic_le_edges_sub_order_add_six"].declarations,
+             critical_edge_tangent(slope, connected),
+             imports=("Mathlib.Combinatorics.SimpleGraph.DegreeSum",))
+    for connected in (False, True) for slope in range(2, MAX_COEFFICIENT + 1)
+)
+
+
+def _clique_tangent(parent):
+    lemma = parent.lemma
+    weights = dict(zip(VARIABLES, lemma.vector))
+    weights["clique"] = weights.pop("chromatic")
+    proof = _lemma_facts([(lemma.theorem, lemma.premise)]).strip() + "\n  have := clique_le_chromatic G\n  omega"
+    return MathlibAdapter(LemmaSpec(lemma.theorem + "_clique", lemma.premise, _vector(weights.items()), lemma.rhs),
+                          (*parent.declarations, "SimpleGraph.cliqueNum_le_chromaticNumber"), proof, parents=(parent,))
+
+
+_INDEX_V14 = _INDEX_V13 + _TANGENTS + tuple(_clique_tangent(entry) for entry in _TANGENTS)
+
 INDEX_VERSION = "axiom.mathlib_affine_graph_index.v1"
 STRUCTURAL_INDEX = "axiom.mathlib_affine_graph_index.v2"
 MATCHING_INDEX = "axiom.mathlib_affine_graph_index.v3"
@@ -460,11 +484,13 @@ CERTIFICATE_INDEX = "axiom.mathlib_affine_graph_index.v11"
 PALETTE_INDEX = "axiom.mathlib_affine_graph_index.v12"
 CARDINALITY_INDEX = "axiom.mathlib_affine_graph_index.v13"
 ROUNDING_BUDGET_DIVISOR = 5
+EXTREMAL_INDEX = "axiom.mathlib_affine_graph_index.v14"
+
 _INDEXES = {INDEX_VERSION: _INDEX_V1, STRUCTURAL_INDEX: _INDEX_V2, MATCHING_INDEX: _INDEX_V3,
             COMPONENT_INDEX: _INDEX_V4, COMPONENT_INDEPENDENCE_INDEX: _INDEX_V5,
             MATCHING_CARDINALITY_INDEX: _INDEX_V6, CLIQUE_INDEPENDENCE_INDEX: _INDEX_V7,
             CLIQUE_BOUNDS_INDEX: _INDEX_V8, DECOMPOSITION_INDEX: _INDEX_V9, SCHEDULED_INDEX: _INDEX_V9,
-            CERTIFICATE_INDEX: _INDEX_V11, PALETTE_INDEX: _INDEX_V12, CARDINALITY_INDEX: _INDEX_V13}
+            CERTIFICATE_INDEX: _INDEX_V11, PALETTE_INDEX: _INDEX_V12, CARDINALITY_INDEX: _INDEX_V13, EXTREMAL_INDEX: _INDEX_V14}
 _MATCHING_CARDINALITY_ADAPTER = "retrieved_twice_matching_le_order"
 _MATCHING_CARDINALITY_POLICY = "offer_cardinality_adapter_for_matching_coefficient_at_least_two"
 _CLIQUE_INDEPENDENCE_ADAPTER = "retrieved_clique_add_independence_le_order_add_one"
@@ -501,7 +527,7 @@ INDEX_DIGESTS = {version: digest({
     **({"composition": {"schedule": "v10_then_inventory_certificate_then_plans",
                         "baseline_index": SCHEDULED_INDEX,
                         "rounding_budget_divisor": ROUNDING_BUDGET_DIVISOR}}
-       if version in (CERTIFICATE_INDEX, PALETTE_INDEX, CARDINALITY_INDEX) else {}),
+       if version in (CERTIFICATE_INDEX, PALETTE_INDEX, CARDINALITY_INDEX, EXTREMAL_INDEX) else {}),
 }) for version, entries in _INDEXES.items()}
 INDEX_SHA256 = INDEX_DIGESTS[INDEX_VERSION]
 MAX_RETRIEVED_LEMMAS = 32
@@ -509,7 +535,7 @@ MAX_RETRIEVED_LEMMAS = 32
 
 def retrieve(claim: AffineRelation, limit: int, *, index=INDEX_VERSION) -> tuple[MathlibAdapter, ...]:
     """Rank exact directions first, then signed overlaps and sparse supports."""
-    if index in (CERTIFICATE_INDEX, PALETTE_INDEX, CARDINALITY_INDEX):
+    if index in (CERTIFICATE_INDEX, PALETTE_INDEX, CARDINALITY_INDEX, EXTREMAL_INDEX):
         index = SCHEDULED_INDEX
     directions = claim.inequalities()
     targets = [_vector(side.terms) for side in directions]
