@@ -9,7 +9,7 @@ import pytest
 from axiom.graph_claims import digest
 from axiom.graph_lemma_retrieval import (
     CERTIFICATE_INDEX, CLIQUE_BOUNDS_INDEX, CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX,
-    CARDINALITY_INDEX, PALETTE_INDEX, SCHEDULED_INDEX, retrieve,
+    CARDINALITY_INDEX, EXTREMAL_INDEX, PALETTE_INDEX, SCHEDULED_INDEX, retrieve,
 )
 from axiom.graph_proof import RETRIEVAL_SCHEMA, SCHEMA, audit, prove
 from axiom.graph_proof_search import SearchLimits
@@ -245,3 +245,18 @@ def test_cardinality_bounds_respect_scope(tmp_path, scope, terms, rhs, status):
         status = "FORMALLY_VERIFIED" if project == PROJECT else "LEAN_UNAVAILABLE"
     assert attempt["status"] == status
     assert audit(attempt)
+
+
+@pytest.mark.parametrize("scope,terms,rhs", [
+    ("ALL", {"chromatic": 4, "edges": -1}, 10),
+    ("CONNECTED", {"clique": 4, "n": 1, "edges": -1}, 15),
+])
+def test_extremal_certificate_and_sharpness(tmp_path, scope, terms, rhs):
+    project = PROJECT if os.environ.get("AXIOM_REAL_LEAN") == "1" else tmp_path
+    for upper, status in ((rhs, "FORMALLY_VERIFIED" if project == PROJECT else "LEAN_UNAVAILABLE"),
+                          (rhs - 1, "COUNTEREXAMPLE")):
+        attempt = prove(AffineRelation.normalized(terms, upper, scope).to_dict(),
+                        retrieval_index=EXTREMAL_INDEX, retrieval_limit=5, witness_order=5,
+                        project_root=project, timeout=45)
+        assert attempt["status"] == status
+        assert audit(attempt)

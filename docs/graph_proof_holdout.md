@@ -124,3 +124,32 @@ respectively. The [regression results](../research/proof_engine/proof_palette_re
 include each statement's outcome and the v12 attempt digest. The
 [fresh results](../research/proof_engine/proof_holdout_results_v2.json)
 give the paired comparison and breakdown by premise.
+
+## Extremal transfer (v14)
+
+The opt-in `extremal` profile uses a critical subgraph to bound the number of
+edges required by a coloring. For a slope $t$ from 2 through 8 it proves
+$tχ - m ≤ t(t+1)/2$. For connected graphs it proves
+$tχ + n - m ≤ (t+1)(t+2)/2$. Here $χ$ is the chromatic number, $n$ is the
+order, and $m$ is the edge count. Both bounds also hold with clique number
+in place of $χ$. The CLI accepts `graph-prove --retrieval-index v14 --retrieve-lemmas 5`.
+
+| Evaluation | Statements | v13 verified | v14 verified | Lost proofs |
+| --- | ---: | ---: | ---: | ---: |
+| Targeted transfer | 47 | 10 | 36 | 0 |
+| Cross-family transfer | 37 | 6 | 13 | 0 |
+
+Across the 27 direct edge and cycle-rank targets, v14 proved all 27 and v13
+proved one. Both proved nine of the 20 structural targets. All seven cross-family
+gains combined clique and chromatic terms. Both engines scored zero on the
+clique–triangle, star–clique edge, and clique–forest excess families (20 claims
+in total). The cross-family panel was reconstructed after a partially observed
+run and counts as a replay. It cannot serve as a sealed final holdout.
+
+Reproduce the paired comparisons with the pinned Lean and Mathlib versions.
+Protocols v13, v14, and v15 run the v14 engine on the three historical suites.
+
+```bash
+PYTHONPATH=src python scripts/benchmark_graph_proof_coverage.py --protocol v11 --workers 8 --output /tmp/axiom-targeted
+PYTHONPATH=src python scripts/benchmark_graph_proof_coverage.py --protocol v12 --workers 8 --output /tmp/axiom-cross-family
+```

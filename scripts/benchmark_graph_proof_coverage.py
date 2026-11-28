@@ -252,7 +252,7 @@ def main():
     parser.add_argument("--autographforge", type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--workers", type=int, choices=range(1, 9), default=4)
-    parser.add_argument("--protocol", choices=("v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12"), default="v1")
+    parser.add_argument("--protocol", choices=("v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15"), default="v1")
     args = parser.parse_args()
     protocol = read(DATA / f"proof_coverage_protocol_{args.protocol}.json")
     cases = frozen_suite(protocol)
