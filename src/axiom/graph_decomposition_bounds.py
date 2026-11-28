@@ -99,12 +99,7 @@ classical
   omega"""
 
 
-CONNECTED_CHROMATIC_EDGES_PROOF = """\
-classical
-  let k := chromatic G
-  change (1 : Int) * n + (-1 : Int) * (edges G : Int) + (2 : Int) * k ≤ 6
-  have hconn := connected_edge_bound G premise
-  by_cases hk : 3 ≤ k
+_CRITICAL_CORE = """\
   · let q := k - 1
     have hq : 0 < q := by omega
     have whole_bad : ¬ G.Colorable q := by
@@ -170,6 +165,9 @@ classical
       have hsum := Finset.sum_le_sum (s := Finset.univ) (fun v _ => minDeg v)
       rw [J.sum_degrees_eq_twice_card_edges] at hsum
       simpa [size_card] using hsum
+"""
+
+_SPANNING_TREE_COUNT = """\
     -- Count the edges of the core beyond a spanning tree of the ambient graph.
     let f : (s : Set (Fin n)) ↪ Fin n := Function.Embedding.subtype _
     let K := J.map f
@@ -203,7 +201,15 @@ classical
     have hunion := Finset.card_le_card (SimpleGraph.edgeFinset_mono (sup_le hTG hK))
     rw [SimpleGraph.edgeFinset_sup] at hunion
     have hcount := Finset.card_union_add_card_inter T.edgeFinset K.edgeFinset
-    have mul_split : s.card * q = s.card * (k - 3) + 2 * s.card := by
+"""
+
+CONNECTED_CHROMATIC_EDGES_PROOF = """\
+classical
+  let k := chromatic G
+  change (1 : Int) * n + (-1 : Int) * (edges G : Int) + (2 : Int) * k ≤ 6
+  have hconn := connected_edge_bound G premise
+  by_cases hk : 3 ≤ k
+""" + _CRITICAL_CORE + _SPANNING_TREE_COUNT + """    have mul_split : s.card * q = s.card * (k - 3) + 2 * s.card := by
       have h : q = k - 3 + 2 := by omega
       rw [h, Nat.mul_add, Nat.mul_comm s.card 2]
     have deg_excess : 4 * (k - 3) ≤ s.card * (k - 3) := by
@@ -214,3 +220,46 @@ classical
     unfold edges
     omega
   · omega"""
+
+
+def critical_edge_tangent(slope, connected):
+    """Specialize the discrete tangent of the critical-subgraph edge bound."""
+    if connected:
+        tree_setup = "  have conn := connected_edge_bound G premise\n"
+        count = _SPANNING_TREE_COUNT + """    have product : k * (k - 3) ≤ s.card * (k - 3) :=
+      Nat.mul_le_mul_right _ size_lower
+    have split : s.card * q = s.card * (k - 3) + 2 * s.card := by
+      have eq : q = k - 3 + 2 := by omega
+      rw [eq, Nat.mul_add, Nat.mul_comm s.card 2]
+    have bound : k * (k - 3) + 2 * n ≤ 2 * G.edgeFinset.card := by omega
+"""
+        center = slope + 1
+        offset = 3
+    else:
+        tree_setup = ""
+        count = """    let f : (s : Set (Fin n)) ↪ Fin n := Function.Embedding.subtype _
+    have mono := Finset.card_le_card (SimpleGraph.edgeFinset_mono (SimpleGraph.map_comap_le f G))
+    change (J.map f).edgeFinset.card ≤ G.edgeFinset.card at mono
+    rw [SimpleGraph.card_edgeFinset_map] at mono
+    have bound : k * (k - 1) ≤ 2 * G.edgeFinset.card :=
+      (Nat.mul_le_mul_right q size_lower).trans (handshaking.trans (by omega))
+"""
+        center = slope
+        offset = 1
+    threshold = 3 if connected else 2
+    cast_rules = "Int.natCast_mul, Int.natCast_add" if connected else "Int.natCast_mul"
+    return ("classical\n  let k := chromatic G\n" + tree_setup +
+            f"  by_cases hk : {threshold} ≤ k\n" + _CRITICAL_CORE + count +
+            f"""    have gap : 0 ≤ ((k : Int) - {center}) * ((k : Int) - {center+1}) := by
+      by_cases h : (k : Int) ≤ {center}
+      · exact mul_nonneg_of_nonpos_of_nonpos (by omega) (by omega)
+      · exact mul_nonneg (by omega) (by omega)
+    have cast_sub : ((k - {offset} : Nat) : Int) = (k : Int) - {offset} := by omega
+    have linear := Int.ofNat_le.mpr bound
+    simp only [{cast_rules}, cast_sub] at linear
+    change _ ≤ (_ : Int)
+    unfold edges
+    dsimp [k] at linear gap
+    grind only
+  · have small : chromatic G < {threshold} := by omega
+    omega""")

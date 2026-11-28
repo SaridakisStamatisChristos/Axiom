@@ -13,7 +13,7 @@ from .graph_discovery import _failed_side
 from .graph_edge_induction import (EDGE_INDUCTION_PROOF, EDGE_INDUCTION_RULE,
                                    EDGE_INDUCTION_VERSION)
 from .graph_lemma_retrieval import (
-    CARDINALITY_INDEX, CERTIFICATE_INDEX, PALETTE_INDEX, DECOMPOSITION_INDEX, INDEX_DIGESTS, INDEX_VERSION, MAX_RETRIEVED_LEMMAS,
+    EXTREMAL_INDEX, CARDINALITY_INDEX, CERTIFICATE_INDEX, PALETTE_INDEX, DECOMPOSITION_INDEX, INDEX_DIGESTS, INDEX_VERSION, MAX_RETRIEVED_LEMMAS,
     ROUNDING_BUDGET_DIVISOR, SCHEDULED_INDEX, describe, indexed_facts, retrieve,
 )
 from .graph_large_witness import SCHEMA as LARGE_WITNESS_SCHEMA, replay_witness
@@ -189,7 +189,7 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
         return dict(base, status="COUNTEREXAMPLE", reason="INDEPENDENT_GRAPH_WITNESS",
                     counterexample=witness)
 
-    scheduled = retrieval_index in (SCHEDULED_INDEX, CERTIFICATE_INDEX, PALETTE_INDEX, CARDINALITY_INDEX)
+    scheduled = retrieval_index in (SCHEDULED_INDEX, CERTIFICATE_INDEX, PALETTE_INDEX, CARDINALITY_INDEX, EXTREMAL_INDEX)
     direct_limits = limits
     schedule = None
     if scheduled:
@@ -226,7 +226,7 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
             bank += tuple(step.lemma for step in projections)
             derivation = _retry(claim, bank, direct_limits, derivation["nodes"],
                                 integer_rounding=integer_rounding, index_leaves=scheduled)
-    positive_bank = CARDINALITY_POSITIVE_BANK if retrieval_index == CARDINALITY_INDEX else POSITIVE_BANK
+    positive_bank = CARDINALITY_POSITIVE_BANK if retrieval_index in (CARDINALITY_INDEX, EXTREMAL_INDEX) else POSITIVE_BANK
     split_used = (split_order and not derivation["derived"]
                   and (scheduled or derivation["nodes"] < direct_limits.max_nodes))
     if split_used:
@@ -255,7 +255,7 @@ def _prepare(statement, limits, witness_order, external_witness, retrieval_limit
             derivation = _retry(claim, bank, rounding_limits, direct_nodes,
                                 integer_rounding=True, index_leaves=True)
             schedule["rounding_nodes"] = derivation["nodes"] - direct_nodes
-    if retrieval_index in (CERTIFICATE_INDEX, PALETTE_INDEX, CARDINALITY_INDEX):
+    if retrieval_index in (CERTIFICATE_INDEX, PALETTE_INDEX, CARDINALITY_INDEX, EXTREMAL_INDEX):
         fallback = {"attempted": False, "nodes": 0, "selected": []}
         base["retrieval"]["certificate_fallback"] = fallback
         unused_direct = direct_limits.max_nodes - schedule["direct_nodes"]

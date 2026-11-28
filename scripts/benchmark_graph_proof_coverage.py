@@ -17,7 +17,7 @@ from axiom.graph_affine_lean_n3 import run_affine_kernel
 from axiom.graph_campaign import _discovery_properties
 from axiom.graph_checker import reference_properties
 from axiom.graph_lemma_retrieval import (
-    CARDINALITY_INDEX, PALETTE_INDEX, CERTIFICATE_INDEX, CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX, SCHEDULED_INDEX,
+    EXTREMAL_INDEX, CARDINALITY_INDEX, PALETTE_INDEX, CERTIFICATE_INDEX, CLIQUE_INDEPENDENCE_INDEX, DECOMPOSITION_INDEX, SCHEDULED_INDEX,
 )
 from axiom.graph_model import edge_positions
 from axiom.graph_proof import audit, prove
@@ -30,7 +30,7 @@ DATA = ROOT / "research/proof_engine"
 MANIFEST = DATA / "proof_coverage_100_v1.json"
 PROTOCOL = DATA / "proof_coverage_protocol_v1.json"
 INDEXES = {"v7": CLIQUE_INDEPENDENCE_INDEX, "v9": DECOMPOSITION_INDEX,
-           "v10": SCHEDULED_INDEX, "v11": CERTIFICATE_INDEX, "v12": PALETTE_INDEX, "v13": CARDINALITY_INDEX}
+           "v10": SCHEDULED_INDEX, "v11": CERTIFICATE_INDEX, "v12": PALETTE_INDEX, "v13": CARDINALITY_INDEX, "v14": EXTREMAL_INDEX}
 COLUMNS = {"n": "order", "edges": "size", "clique": "clique_number",
            "independence": "independence_number", "maximum_degree": "maximum_degree",
            "chromatic": "chromatic_number", "matching": "matching_number",
@@ -63,12 +63,12 @@ def frozen_suite(protocol):
     claims = [AffineRelation.from_dict(case["statement"]) for case in cases]
     directions = {(claim.bound.assumption, claim.bound.terms) for claim in claims}
     sizes = Counter(case["family"] for case in cases)
-    if (suite["schema"] != "axiom.graph_proof_coverage.v1"
+    if (suite["schema"] != protocol.get("suite_schema", "axiom.graph_proof_coverage.v1")
             or len(cases) != len({case["id"] for case in cases}) or len(cases) != len(directions)
             or len(cases) != protocol["cases"] or len(sizes) != protocol["families"]
-            or set(sizes.values()) != {5}
-            or Counter(claim.bound.assumption for claim in claims) != dict.fromkeys(
-                ("ALL", "BIPARTITE", "CONNECTED", "TRIANGLE_FREE"), 25)):
+            or sizes != protocol.get("family_sizes", dict.fromkeys(sizes, 5))
+            or Counter(claim.bound.assumption for claim in claims) != protocol.get("premise_sizes", dict.fromkeys(
+                ("ALL", "BIPARTITE", "CONNECTED", "TRIANGLE_FREE"), 25))):
         raise ValueError("malformed proof-coverage suite")
     return cases
 
@@ -252,7 +252,7 @@ def main():
     parser.add_argument("--autographforge", type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--workers", type=int, choices=range(1, 9), default=4)
-    parser.add_argument("--protocol", choices=("v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10"), default="v1")
+    parser.add_argument("--protocol", choices=("v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15"), default="v1")
     args = parser.parse_args()
     protocol = read(DATA / f"proof_coverage_protocol_{args.protocol}.json")
     cases = frozen_suite(protocol)

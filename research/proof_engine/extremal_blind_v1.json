@@ -1,0 +1,1345 @@
+{
+  "cases": [
+    {
+      "family": "star_clique_edges",
+      "id": "B001",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 2,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "maximum_degree"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 5
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_forest_excess",
+      "id": "B002",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 2,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "components"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "n"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 5
+          },
+          "schema": "axiom.graph.proof_affine_bound.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "mixed_palette",
+      "id": "B003",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "chromatic"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 3
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_triangle_growth",
+      "id": "B004",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 3,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "triangles"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 8
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "star_clique_edges",
+      "id": "B005",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 3,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "maximum_degree"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 9
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_forest_excess",
+      "id": "B006",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 3,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "components"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "n"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 9
+          },
+          "schema": "axiom.graph.proof_affine_bound.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "mixed_palette",
+      "id": "B007",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 2,
+              "symbol": "chromatic"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 6
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_triangle_growth",
+      "id": "B008",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 4,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "triangles"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 12
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "star_clique_edges",
+      "id": "B009",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 4,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "maximum_degree"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 14
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_forest_excess",
+      "id": "B010",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 4,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "components"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "n"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 14
+          },
+          "schema": "axiom.graph.proof_affine_bound.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "mixed_palette",
+      "id": "B011",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 3,
+              "symbol": "chromatic"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 10
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_triangle_growth",
+      "id": "B012",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 5,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "triangles"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 16
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "star_clique_edges",
+      "id": "B013",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 5,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "maximum_degree"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 20
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_forest_excess",
+      "id": "B014",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 5,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "components"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "n"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 20
+          },
+          "schema": "axiom.graph.proof_affine_bound.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "mixed_palette",
+      "id": "B015",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 4,
+              "symbol": "chromatic"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 15
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_triangle_growth",
+      "id": "B016",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 6,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "triangles"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 20
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "star_clique_edges",
+      "id": "B017",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 6,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "maximum_degree"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 27
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_forest_excess",
+      "id": "B018",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 6,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "components"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "n"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 27
+          },
+          "schema": "axiom.graph.proof_affine_bound.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "mixed_palette",
+      "id": "B019",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 5,
+              "symbol": "chromatic"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 21
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_triangle_growth",
+      "id": "B020",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 7,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "triangles"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 25
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "star_clique_edges",
+      "id": "B021",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 7,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "maximum_degree"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 35
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_forest_excess",
+      "id": "B022",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 7,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "components"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "n"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 35
+          },
+          "schema": "axiom.graph.proof_affine_bound.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "mixed_palette",
+      "id": "B023",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 6,
+              "symbol": "chromatic"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 28
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_triangle_growth",
+      "id": "B024",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 8,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "triangles"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 30
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "star_clique_edges",
+      "id": "B025",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 8,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "maximum_degree"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 44
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_forest_excess",
+      "id": "B026",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 8,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "components"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "n"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 44
+          },
+          "schema": "axiom.graph.proof_affine_bound.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "mixed_palette",
+      "id": "B027",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 7,
+              "symbol": "chromatic"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 36
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "star_matching_union",
+      "id": "B028",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "matching"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "maximum_degree"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 1
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "star_matching_union",
+      "id": "B029",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "matching"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "maximum_degree"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "n"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 1
+          },
+          "schema": "axiom.graph.proof_affine_bound.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "star_matching_union",
+      "id": "B030",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "independence"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "matching"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "maximum_degree"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "n"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 1
+          },
+          "schema": "axiom.graph.proof_affine_bound.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "star_matching_union",
+      "id": "B031",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": -2,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "matching"
+            },
+            {
+              "denominator": 1,
+              "numerator": 2,
+              "symbol": "maximum_degree"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 1
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "star_matching_union",
+      "id": "B032",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "chromatic"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "matching"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "maximum_degree"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "n"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 1
+          },
+          "schema": "axiom.graph.proof_affine_bound.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_matching_endpoints",
+      "id": "B033",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -2,
+              "symbol": "matching"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 1
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_matching_endpoints",
+      "id": "B034",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 2,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -2,
+              "symbol": "matching"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "n"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 1
+          },
+          "schema": "axiom.graph.affine_conjecture.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_matching_endpoints",
+      "id": "B035",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "independence"
+            },
+            {
+              "denominator": 1,
+              "numerator": -2,
+              "symbol": "matching"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "n"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 1
+          },
+          "schema": "axiom.graph.proof_affine_bound.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_matching_endpoints",
+      "id": "B036",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "edges"
+            },
+            {
+              "denominator": 1,
+              "numerator": -2,
+              "symbol": "matching"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "maximum_degree"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 1
+          },
+          "schema": "axiom.graph.proof_affine_bound.v1"
+        },
+        "relation": "<="
+      }
+    },
+    {
+      "family": "clique_matching_endpoints",
+      "id": "B037",
+      "statement": {
+        "bound": {
+          "assumption": "ALL",
+          "lhs": [
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "chromatic"
+            },
+            {
+              "denominator": 1,
+              "numerator": 1,
+              "symbol": "clique"
+            },
+            {
+              "denominator": 1,
+              "numerator": -2,
+              "symbol": "matching"
+            },
+            {
+              "denominator": 1,
+              "numerator": -1,
+              "symbol": "n"
+            }
+          ],
+          "mathematical_novelty": "NOT_ASSESSED",
+          "quantifier": "forall_finite_simple_graphs_all_orders",
+          "relation": "<=",
+          "rhs": {
+            "denominator": 1,
+            "numerator": 1
+          },
+          "schema": "axiom.graph.proof_affine_bound.v1"
+        },
+        "relation": "<="
+      }
+    }
+  ],
+  "schema": "axiom.graph_family_transfer.v1"
+}
